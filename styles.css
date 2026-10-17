@@ -97,11 +97,13 @@ h1 {
 .controls {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.6rem;
   margin-bottom: 0.85rem;
 }
 
 button {
+  min-height: 44px;
   border: 0;
   border-radius: 0.75rem;
   padding: 0.72rem 0.95rem;
@@ -234,6 +236,7 @@ footer p { margin-bottom: 0; }
   .topbar { align-items: flex-start; }
   .scoreboard { gap: 0.35rem; }
   .score-card { min-width: 4.2rem; padding: 0.5rem 0.55rem; }
+  .connection { flex-basis: 100%; margin-left: 0; }
   .desktop-hint { display: none; }
   .mobile-hint { display: inline; }
   footer { display: none; }
@@ -241,8 +244,6 @@ footer p { margin-bottom: 0; }
 
 @media (max-width: 380px) {
   .tagline { max-width: 12rem; }
-  .controls { flex-wrap: wrap; }
-  .connection { width: 100%; margin-left: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
