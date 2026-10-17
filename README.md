@@ -22,14 +22,22 @@ Spielstand, letzter Undo-Snapshot und Bestwert werden lokal im Browser gespeiche
 
 ## Tests
 
-Es gibt keine npm-Runtime-Dependencies. Benötigt wird Node.js 20 oder neuer.
+Es gibt keine npm-Runtime-Dependencies. Für die normalen Checks wird Node.js 20 oder neuer benötigt.
 
 ```bash
 npm test
 npm run check
 ```
 
-`npm run check` prüft JavaScript-Syntax, Move-/Merge-/Win-/Game-over-Logik, Undo/Persistenz, Pointer- und Fokusregeln, Motion-/Responsive-Verträge, Service-Worker-Fallbacks sowie Webroot-/PWA-Installationsdaten. Derselbe Check läuft in GitHub Actions.
+`npm run check` prüft JavaScript-Syntax, Move-/Merge-/Win-/Game-over-Logik, Undo/Persistenz, Pointer- und Fokusregeln, Motion-/Responsive-Verträge, Service-Worker-Fallbacks sowie Webroot-/PWA-Installationsdaten.
+
+Zusätzlich gibt es einen echten Browser-Smoke-Test. Dafür werden Node.js 22+ und ein lokales Chrome/Chromium benötigt (`CHROME_BIN` kann explizit gesetzt werden):
+
+```bash
+npm run smoke
+```
+
+Der Smoke startet selbst einen lokalen Webroot, lädt die App in Headless Chrome, wartet auf einen aktiven Service Worker, lässt Chrome das Manifest parsen, schaltet das Browsernetzwerk offline und verifiziert einen echten Offline-Reload inklusive 4×4-Spielfeld. In GitHub Actions laufen `npm run check` und `npm run smoke` als Pflichtpfade.
 
 ## PWA / Offline
 
@@ -53,6 +61,7 @@ Für einen manuellen Offline-Smoke-Test:
 - `app.js` – Browserzustand, Rendering, Eingabe, Motion-Trigger und Installationsintegration
 - `index.html` / `styles.css` – direkt auslieferbare Oberfläche, Responsive- und Reduced-Motion-Verträge
 - `sw.js` / `manifest.webmanifest` / `icon*.{svg,png}` / `apple-touch-icon.png` – PWA-, Installations- und Offline-Shell
+- `browser-smoke.mjs` – dependency-freier Headless-Chrome-Acceptance-Smoke über das DevTools-Protokoll
 - `*.test.js` – dependency-freie Node-Regressionen und statische Webroot-Verträge
 
 Die Trennung hält Kernlogik, Persistenz, Eingaberegeln und Offlinepfad deterministisch testbar und lässt das Deployment ohne Buildschritt auskommen.
