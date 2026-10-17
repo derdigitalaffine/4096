@@ -1,3 +1,4 @@
+import { connectionStatus } from './connectivity.js';
 import { wrappedDialogFocusTarget } from './dialog.js';
 import { applyTurn, canMove, hasWon, newBoard } from './game.js';
 import { getSafeStorage, persistStoredState, readBestScore, restoreStoredState } from './storage.js';
@@ -24,6 +25,8 @@ const dialogButtons = [continueButton, overlayUndoButton, overlayNewGameButton];
 let installPrompt = null;
 let pointerStart = null;
 let statusTimer = null;
+let offlineReady = 'serviceWorker' in navigator && Boolean(navigator.serviceWorker.controller);
+let offlineError = !('serviceWorker' in navigator);
 let state = restoreState();
 
 function freshState() {
@@ -251,8 +254,11 @@ continueButton.addEventListener('click', () => {
 });
 
 function updateConnectionStatus() {
-  connectionElement.textContent = navigator.onLine ? 'Online · offline bereit' : 'Offline · spielbereit';
-  connectionElement.dataset.offline = String(!navigator.onLine);
+  const online = navigator.onLine;
+  connectionElement.textContent = connectionStatus({ online, offlineReady, offlineError });
+  connectionElement.dataset.offline = String(!online);
+  connectionElement.dataset.offlineReady = String(offlineReady);
+  connectionElement.dataset.offlineError = String(offlineError);
 }
 
 window.addEventListener('online', updateConnectionStatus);
@@ -278,11 +284,24 @@ window.addEventListener('appinstalled', () => {
 });
 
 if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    offlineReady = Boolean(navigator.serviceWorker.controller);
+    if (offlineReady) offlineError = false;
+    updateConnectionStatus();
+  });
+
   window.addEventListener('load', async () => {
     try {
       const registration = await navigator.serviceWorker.register('./sw.js');
       registration.update().catch(() => {});
+      await navigator.serviceWorker.ready;
+      offlineReady = true;
+      offlineError = false;
+      updateConnectionStatus();
     } catch (error) {
+      offlineReady = false;
+      offlineError = true;
+      updateConnectionStatus();
       console.warn('Service Worker konnte nicht registriert werden:', error);
     }
   });
