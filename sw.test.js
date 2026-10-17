@@ -21,7 +21,7 @@ function loadWorker({ fetchImpl, entries = [] }) {
   const caches = {
     open: async () => cache,
     match: async (request) => store.get(cacheKey(request))?.clone(),
-    keys: async () => ['4096-shell-v7'],
+    keys: async () => ['4096-shell-v8'],
     delete: async () => true,
   };
   const self = {

@@ -1,6 +1,7 @@
 import { connectionStatus } from './connectivity.js';
 import { wrappedDialogFocusTarget } from './dialog.js';
 import { applyTurn, canMove, hasWon, newBoard } from './game.js';
+import { shouldCancelPointerGesture, shouldStartPointerGesture } from './pointer.js';
 import { getSafeStorage, persistStoredState, readBestScore, restoreStoredState } from './storage.js';
 
 const storage = getSafeStorage(window);
@@ -253,6 +254,7 @@ overlay.addEventListener('keydown', (event) => {
 });
 
 boardElement.addEventListener('pointerdown', (event) => {
+  if (!shouldStartPointerGesture(event, pointerStart)) return;
   pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
   boardElement.setPointerCapture?.(event.pointerId);
 });
@@ -267,8 +269,8 @@ boardElement.addEventListener('pointerup', (event) => {
   performMove(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
 });
 
-boardElement.addEventListener('pointercancel', () => {
-  pointerStart = null;
+boardElement.addEventListener('pointercancel', (event) => {
+  if (shouldCancelPointerGesture(pointerStart, event.pointerId)) pointerStart = null;
 });
 
 newGameButton.addEventListener('click', startNewGame);
