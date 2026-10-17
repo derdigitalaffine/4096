@@ -18,7 +18,7 @@ Steuerung:
 - Rückgängig: Button oder `Strg/⌘+Z`; verfügbar ist genau der letzte gültige Zug
 - `Neues Spiel` startet jederzeit eine frische Runde
 
-Spielstand, letzter Undo-Snapshot und Bestwert werden lokal im Browser gespeichert. Es gibt keine Anmeldung, Tracker oder externen Laufzeitressourcen.
+Spielstand, letzter Undo-Snapshot und Bestwert werden lokal im Browser gespeichert, wenn Storage verfügbar ist. Ist Browser-Storage gesperrt oder beschädigt, bleibt das Spiel mit einem frischen flüchtigen Zustand spielbar. Es gibt keine Anmeldung, Tracker oder externen Laufzeitressourcen.
 
 ## Tests
 
@@ -29,7 +29,7 @@ npm test
 npm run check
 ```
 
-`npm run check` prüft JavaScript-Syntax, die Move-/Merge-/Win-/Game-over-Logik, Service-Worker-Fallbacks sowie den Webroot-/PWA-Vertrag. Derselbe Check läuft in GitHub Actions.
+`npm run check` prüft JavaScript-Syntax, die Move-/Merge-/Win-/Game-over-Logik, Storage-Recovery, Service-Worker-Fallbacks sowie den Webroot-/PWA-Vertrag. Derselbe Check läuft in GitHub Actions.
 
 ## PWA / Offline
 
@@ -44,15 +44,16 @@ Für einen manuellen Offline-Smoke-Test:
 ## Architektur
 
 - `game.js` – pure, browser- und Node-kompatible Spielregeln
-- `app.js` – Browserzustand, Rendering, Keyboard/Pointer, Persistenz und Installationsstatus
+- `storage.js` – validierte, fehlertolerante Local-Storage-Grenze
+- `app.js` – Browserzustand, Rendering, Keyboard/Pointer und Installationsstatus
 - `index.html` / `styles.css` – direkt auslieferbare Oberfläche
 - `sw.js` / `manifest.webmanifest` / `icon.svg` – PWA- und Offline-Shell
 - `*.test.js` – dependency-freie Node-Tests
 
-Die Trennung hält die Kernlogik deterministisch testbar und lässt das Deployment ohne Buildschritt auskommen.
+Die Trennung hält Kernlogik, Persistenz und Offlinepfad deterministisch testbar und lässt das Deployment ohne Buildschritt auskommen.
 
 ## Deployment
 
 `main` soll direkt als Webroot des Ziel-Webservers ausgeliefert werden. Es ist kein Kopieren aus `dist/` und kein Buildschritt erforderlich. Der Server sollte mindestens korrekte MIME-Typen liefern; HTTPS ist außerhalb von `localhost` für Service Worker und Installation erforderlich.
 
-Aktuelle Entwicklungssteuerung: Issue #1 (Master), #3 (fortlaufender Delivery-Loop), aktuell Round 2 in #8.
+Aktuelle Entwicklungssteuerung: Issue #1 (Master), #3 (fortlaufender Delivery-Loop), aktuell Round 3 in #10.

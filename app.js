@@ -1,7 +1,7 @@
-import { applyTurn, canMove, hasWon, isValidBoard, newBoard } from './game.js';
+import { applyTurn, canMove, hasWon, newBoard } from './game.js';
+import { getSafeStorage, persistStoredState, readBestScore, restoreStoredState } from './storage.js';
 
-const STORAGE_KEY = '4096:state:v1';
-const BEST_KEY = '4096:best:v1';
+const storage = getSafeStorage(window);
 
 const boardElement = document.querySelector('#board');
 const scoreElement = document.querySelector('#score');
@@ -23,69 +23,22 @@ let pointerStart = null;
 let statusTimer = null;
 let state = restoreState();
 
-function safeBestScore() {
-  const value = Number.parseInt(localStorage.getItem(BEST_KEY) ?? '0', 10);
-  return Number.isFinite(value) && value >= 0 ? value : 0;
-}
-
-function restoreUndoSnapshot(value) {
-  if (
-    value &&
-    isValidBoard(value.board) &&
-    Number.isFinite(value.score) &&
-    value.score >= 0 &&
-    typeof value.wonAcknowledged === 'boolean'
-  ) {
-    return {
-      board: value.board,
-      score: value.score,
-      wonAcknowledged: value.wonAcknowledged,
-    };
-  }
-  return null;
-}
-
 function freshState() {
   return {
     board: newBoard(),
     score: 0,
-    best: safeBestScore(),
+    best: readBestScore(storage),
     wonAcknowledged: false,
     undo: null,
   };
 }
 
 function restoreState() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (
-      parsed &&
-      isValidBoard(parsed.board) &&
-      Number.isFinite(parsed.score) &&
-      parsed.score >= 0 &&
-      typeof parsed.wonAcknowledged === 'boolean'
-    ) {
-      return {
-        board: parsed.board,
-        score: parsed.score,
-        best: Math.max(safeBestScore(), Number(parsed.best) || 0, parsed.score),
-        wonAcknowledged: parsed.wonAcknowledged,
-        undo: restoreUndoSnapshot(parsed.undo),
-      };
-    }
-  } catch {
-    // Corrupt or old state falls back to a clean game.
-  }
-  return freshState();
+  return restoreStoredState(storage) ?? freshState();
 }
 
 function persistState() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    localStorage.setItem(BEST_KEY, String(state.best));
-  } catch {
-    // Gameplay must remain available even when storage is unavailable.
-  }
+  persistStoredState(storage, state);
 }
 
 function tileLabel(value, row, col) {
@@ -200,7 +153,7 @@ function undoLastMove() {
   state = {
     board: snapshot.board,
     score: snapshot.score,
-    best: Math.max(state.best, safeBestScore()),
+    best: Math.max(state.best, readBestScore(storage)),
     wonAcknowledged: snapshot.wonAcknowledged,
     undo: null,
   };
@@ -211,7 +164,7 @@ function undoLastMove() {
 }
 
 function startNewGame() {
-  const best = Math.max(state.best, state.score, safeBestScore());
+  const best = Math.max(state.best, state.score, readBestScore(storage));
   state = { board: newBoard(), score: 0, best, wonAcknowledged: false, undo: null };
   persistState();
   overlay.hidden = true;
