@@ -29,17 +29,17 @@ npm test
 npm run check
 ```
 
-`npm run check` prüft JavaScript-Syntax, die Move-/Merge-/Win-/Game-over-Logik sowie den Webroot-/PWA-Vertrag. Derselbe Check läuft in GitHub Actions.
+`npm run check` prüft JavaScript-Syntax, die Move-/Merge-/Win-/Game-over-Logik, Service-Worker-Fallbacks sowie den Webroot-/PWA-Vertrag. Derselbe Check läuft in GitHub Actions.
 
 ## PWA / Offline
 
-`manifest.webmanifest` beschreibt die installierbare App. `sw.js` cached den vollständigen App-Shell nach dem ersten erfolgreichen Laden und ermöglicht danach Offline-Reloads. Cache-Versionen sind explizit benannt; beim Aktivieren einer neuen Service-Worker-Version werden alte App-Shell-Caches entfernt.
+`manifest.webmanifest` beschreibt die installierbare App. `sw.js` legt den vollständigen App-Shell nach dem ersten erfolgreichen Laden lokal ab. Solange Netzwerk verfügbar ist, werden Navigation und lokale Shell-Assets network-first geladen und erfolgreiche Antworten aktualisieren den Cache sofort; bei Netzfehlern oder fehlerhaften Serverantworten fällt die App auf den zuletzt gültigen Cache zurück. Damit hängt ein normaler Produkt-Deploy nicht von einem manuellen Cache-Namens-Bump ab. Explizite Cache-Versionen bleiben für strukturelle Cache-Wechsel erhalten und alte Versionen werden beim Aktivieren bereinigt.
 
 Für einen manuellen Offline-Smoke-Test:
 1. Seite online laden und einmal neu laden, damit der Service Worker sicher kontrolliert.
 2. In Browser-DevTools auf Offline wechseln oder Netzwerk trennen.
 3. Seite neu laden und eine Runde spielen.
-4. Netzwerk wieder aktivieren und prüfen, dass ein neuer Deploy nach Reload übernommen wird.
+4. Netzwerk wieder aktivieren und prüfen, dass ein neuer Deploy bereits beim nächsten Online-Load übernommen wird.
 
 ## Architektur
 
@@ -55,4 +55,4 @@ Die Trennung hält die Kernlogik deterministisch testbar und lässt das Deployme
 
 `main` soll direkt als Webroot des Ziel-Webservers ausgeliefert werden. Es ist kein Kopieren aus `dist/` und kein Buildschritt erforderlich. Der Server sollte mindestens korrekte MIME-Typen liefern; HTTPS ist außerhalb von `localhost` für Service Worker und Installation erforderlich.
 
-Aktuelle Entwicklungssteuerung: Issue #1 (Master), #3 (fortlaufender Delivery-Loop), aktuell Round 1 in #6.
+Aktuelle Entwicklungssteuerung: Issue #1 (Master), #3 (fortlaufender Delivery-Loop), aktuell Round 2 in #8.
