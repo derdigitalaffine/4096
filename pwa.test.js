@@ -14,6 +14,7 @@ const requiredFiles = [
   'index.html',
   'styles.css',
   'app.js',
+  'connectivity.js',
   'dialog.js',
   'game.js',
   'storage.js',
@@ -66,7 +67,7 @@ test('HTML references only local app-shell resources and an Apple touch icon', (
 
 test('service worker precaches the critical shell and install icons', () => {
   const worker = readFileSync('sw.js', 'utf8');
-  for (const ref of ['./index.html', './styles.css', './app.js', './dialog.js', './game.js', './storage.js', './manifest.webmanifest', ...iconFiles.map((file) => `./${file}`)]) {
+  for (const ref of ['./index.html', './styles.css', './app.js', './connectivity.js', './dialog.js', './game.js', './storage.js', './manifest.webmanifest', ...iconFiles.map((file) => `./${file}`)]) {
     assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')));
   }
 });
@@ -86,4 +87,13 @@ test('terminal dialog wires description, inert background and focus containment'
   assert.match(app, /appShell\.inert = true/);
   assert.match(app, /appShell\.inert = false/);
   assert.match(app, /wrappedDialogFocusTarget/);
+});
+
+test('connection status waits for real service-worker readiness and exposes failure state', () => {
+  const app = readFileSync('app.js', 'utf8');
+  assert.match(app, /connectionStatus/);
+  assert.match(app, /navigator\.serviceWorker\.ready/);
+  assert.match(app, /controllerchange/);
+  assert.match(app, /offlineError = true/);
+  assert.match(app, /offlineReady = true/);
 });

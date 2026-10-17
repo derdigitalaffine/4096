@@ -1,9 +1,10 @@
-const CACHE_NAME = '4096-shell-v6';
+const CACHE_NAME = '4096-shell-v7';
 const APP_SHELL = [
   './',
   './index.html',
   './styles.css',
   './app.js',
+  './connectivity.js',
   './dialog.js',
   './game.js',
   './storage.js',
