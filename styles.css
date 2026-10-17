@@ -113,6 +113,12 @@ button {
 
 button:hover { filter: brightness(1.06); }
 button:active { transform: translateY(1px); }
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  filter: none;
+  transform: none;
+}
 button:focus-visible, .board:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 3px;
@@ -131,6 +137,18 @@ button.secondary {
 }
 
 .connection[data-offline="true"] { color: #b9e8b5; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 .board {
   display: grid;
@@ -209,7 +227,7 @@ footer p { margin-bottom: 0; }
 
 .dialog-card h2 { margin-bottom: 0.45rem; font-size: 2rem; }
 .dialog-card > p:not(.eyebrow) { color: var(--muted); line-height: 1.55; }
-.dialog-actions { display: flex; gap: 0.6rem; margin-top: 1rem; }
+.dialog-actions { display: flex; gap: 0.6rem; margin-top: 1rem; flex-wrap: wrap; }
 
 @media (max-width: 560px) {
   .app-shell { width: min(100% - 1rem, 42rem); padding-top: max(0.85rem, env(safe-area-inset-top)); }

@@ -35,6 +35,7 @@
 
     <section class="controls" aria-label="Spielsteuerung">
       <button id="new-game" type="button">Neues Spiel</button>
+      <button id="undo" class="secondary" type="button" aria-keyshortcuts="Control+Z Meta+Z" disabled>Rückgängig</button>
       <button id="install-app" class="secondary" type="button" hidden>Installieren</button>
       <span id="connection-status" class="connection" aria-live="polite">Online</span>
     </section>
@@ -44,13 +45,14 @@
         id="board"
         class="board"
         role="grid"
-        aria-label="4 mal 4 Spielfeld. Mit Pfeiltasten, WASD oder Wischgesten bewegen."
+        aria-label="4 mal 4 Spielfeld. Score 0. Höchster Stein 0. Mit Pfeiltasten, WASD oder Wischgesten bewegen."
         tabindex="0"
       ></div>
+      <p id="game-status" class="sr-only" aria-live="polite" aria-atomic="true"></p>
 
       <p class="hint">
-        <span class="desktop-hint">Pfeiltasten / WASD</span>
-        <span class="mobile-hint">Wischen</span>
+        <span class="desktop-hint">Pfeiltasten / WASD · Strg/⌘+Z rückgängig</span>
+        <span class="mobile-hint">Wischen · Rückgängig per Button</span>
         · gleiche Werte verschmelzen einmal pro Zug.
       </p>
     </section>
@@ -67,6 +69,7 @@
       <p id="overlay-message"></p>
       <div class="dialog-actions">
         <button id="continue-game" type="button">Weiterspielen</button>
+        <button id="overlay-undo" class="secondary" type="button" disabled>Rückgängig</button>
         <button id="overlay-new-game" class="secondary" type="button">Neue Runde</button>
       </div>
     </div>

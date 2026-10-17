@@ -1,4 +1,4 @@
-import { addRandomTile, canMove, hasWon, isValidBoard, moveBoard, newBoard } from './game.js';
+import { applyTurn, canMove, hasWon, isValidBoard, newBoard } from './game.js';
 
 const STORAGE_KEY = '4096:state:v1';
 const BEST_KEY = '4096:best:v1';
@@ -7,21 +7,42 @@ const boardElement = document.querySelector('#board');
 const scoreElement = document.querySelector('#score');
 const bestElement = document.querySelector('#best');
 const connectionElement = document.querySelector('#connection-status');
+const statusElement = document.querySelector('#game-status');
 const newGameButton = document.querySelector('#new-game');
+const undoButton = document.querySelector('#undo');
 const installButton = document.querySelector('#install-app');
 const overlay = document.querySelector('#overlay');
 const overlayTitle = document.querySelector('#overlay-title');
 const overlayMessage = document.querySelector('#overlay-message');
 const continueButton = document.querySelector('#continue-game');
+const overlayUndoButton = document.querySelector('#overlay-undo');
 const overlayNewGameButton = document.querySelector('#overlay-new-game');
 
 let installPrompt = null;
 let pointerStart = null;
+let statusTimer = null;
 let state = restoreState();
 
 function safeBestScore() {
   const value = Number.parseInt(localStorage.getItem(BEST_KEY) ?? '0', 10);
   return Number.isFinite(value) && value >= 0 ? value : 0;
+}
+
+function restoreUndoSnapshot(value) {
+  if (
+    value &&
+    isValidBoard(value.board) &&
+    Number.isFinite(value.score) &&
+    value.score >= 0 &&
+    typeof value.wonAcknowledged === 'boolean'
+  ) {
+    return {
+      board: value.board,
+      score: value.score,
+      wonAcknowledged: value.wonAcknowledged,
+    };
+  }
+  return null;
 }
 
 function freshState() {
@@ -30,6 +51,7 @@ function freshState() {
     score: 0,
     best: safeBestScore(),
     wonAcknowledged: false,
+    undo: null,
   };
 }
 
@@ -48,6 +70,7 @@ function restoreState() {
         score: parsed.score,
         best: Math.max(safeBestScore(), Number(parsed.best) || 0, parsed.score),
         wonAcknowledged: parsed.wonAcknowledged,
+        undo: restoreUndoSnapshot(parsed.undo),
       };
     }
   } catch {
@@ -69,6 +92,22 @@ function tileLabel(value, row, col) {
   return value ? `Zeile ${row + 1}, Spalte ${col + 1}: ${value}` : `Zeile ${row + 1}, Spalte ${col + 1}: leer`;
 }
 
+function highestTile(board) {
+  return Math.max(0, ...board.flat());
+}
+
+function directionLabel(direction) {
+  return { left: 'links', right: 'rechts', up: 'oben', down: 'unten' }[direction];
+}
+
+function announce(message) {
+  window.clearTimeout(statusTimer);
+  statusElement.textContent = '';
+  statusTimer = window.setTimeout(() => {
+    statusElement.textContent = message;
+  }, 0);
+}
+
 function render() {
   boardElement.replaceChildren();
   state.board.forEach((row, rowIndex) => {
@@ -83,8 +122,15 @@ function render() {
     });
   });
 
+  const maxTile = highestTile(state.board);
+  boardElement.setAttribute(
+    'aria-label',
+    `4 mal 4 Spielfeld. Score ${state.score}. Höchster Stein ${maxTile}. Mit Pfeiltasten, WASD oder Wischgesten bewegen.`
+  );
   scoreElement.textContent = String(state.score);
   bestElement.textContent = String(state.best);
+  undoButton.disabled = !state.undo;
+  overlayUndoButton.disabled = !state.undo;
 }
 
 function hideOverlay() {
@@ -96,14 +142,15 @@ function showOverlay(kind) {
   overlay.hidden = false;
   if (kind === 'win') {
     overlayTitle.textContent = '4096 erreicht!';
-    overlayMessage.textContent = 'Stark gespielt. Du kannst weiterspielen oder eine neue Runde starten.';
+    overlayMessage.textContent = 'Stark gespielt. Du kannst weiterspielen, den letzten Zug rückgängig machen oder eine neue Runde starten.';
     continueButton.hidden = false;
     continueButton.focus();
   } else {
     overlayTitle.textContent = 'Keine Züge mehr';
-    overlayMessage.textContent = `Endstand: ${state.score}. Starte eine neue Runde und greif den Bestwert an.`;
+    overlayMessage.textContent = `Endstand: ${state.score}. Du kannst den letzten Zug rückgängig machen oder eine neue Runde starten.`;
     continueButton.hidden = true;
-    overlayNewGameButton.focus();
+    if (state.undo) overlayUndoButton.focus();
+    else overlayNewGameButton.focus();
   }
 }
 
@@ -115,27 +162,62 @@ function evaluateTerminalState() {
   if (!canMove(state.board)) showOverlay('game-over');
 }
 
+function undoSnapshot() {
+  return {
+    board: state.board.map((row) => [...row]),
+    score: state.score,
+    wonAcknowledged: state.wonAcknowledged,
+  };
+}
+
 function performMove(direction) {
   if (!overlay.hidden) return;
 
-  const result = moveBoard(state.board, direction);
-  if (!result.moved) return;
+  const result = applyTurn(state.board, direction);
+  if (!result.moved) {
+    announce(`Zug nach ${directionLabel(direction)} nicht möglich.`);
+    return;
+  }
 
-  state.board = addRandomTile(result.board);
+  const undo = undoSnapshot();
+  state.board = result.board;
   state.score += result.scoreGain;
   state.best = Math.max(state.best, state.score);
+  state.undo = undo;
   persistState();
   render();
+  announce(`Zug nach ${directionLabel(direction)}. Score ${state.score}. Höchster Stein ${highestTile(state.board)}.`);
   evaluateTerminalState();
+}
+
+function undoLastMove() {
+  if (!state.undo) {
+    announce('Kein Zug zum Rückgängigmachen vorhanden.');
+    return;
+  }
+
+  const snapshot = state.undo;
+  state = {
+    board: snapshot.board,
+    score: snapshot.score,
+    best: Math.max(state.best, safeBestScore()),
+    wonAcknowledged: snapshot.wonAcknowledged,
+    undo: null,
+  };
+  persistState();
+  render();
+  hideOverlay();
+  announce(`Letzten Zug rückgängig gemacht. Score ${state.score}. Höchster Stein ${highestTile(state.board)}.`);
 }
 
 function startNewGame() {
   const best = Math.max(state.best, state.score, safeBestScore());
-  state = { board: newBoard(), score: 0, best, wonAcknowledged: false };
+  state = { board: newBoard(), score: 0, best, wonAcknowledged: false, undo: null };
   persistState();
   overlay.hidden = true;
   render();
   boardElement.focus({ preventScroll: true });
+  announce('Neue Runde gestartet. Score 0.');
 }
 
 function keyboardDirection(key) {
@@ -156,6 +238,12 @@ function keyboardDirection(key) {
 }
 
 window.addEventListener('keydown', (event) => {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+    event.preventDefault();
+    undoLastMove();
+    return;
+  }
+
   const direction = keyboardDirection(event.key);
   if (!direction) return;
   event.preventDefault();
@@ -182,6 +270,8 @@ boardElement.addEventListener('pointercancel', () => {
 });
 
 newGameButton.addEventListener('click', startNewGame);
+undoButton.addEventListener('click', undoLastMove);
+overlayUndoButton.addEventListener('click', undoLastMove);
 overlayNewGameButton.addEventListener('click', startNewGame);
 continueButton.addEventListener('click', () => {
   state.wonAcknowledged = true;
