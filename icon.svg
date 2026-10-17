@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">4096 App Icon</title>
+  <desc id="desc">Dunkles abgerundetes Quadrat mit goldener Zahl 4096.</desc>
+  <rect width="512" height="512" rx="112" fill="#171717"/>
+  <rect x="44" y="44" width="424" height="424" rx="92" fill="#2a2722" stroke="#f2c14e" stroke-width="12"/>
+  <text x="256" y="292" text-anchor="middle" font-family="system-ui, sans-serif" font-size="130" font-weight="900" fill="#f2c14e">4096</text>
+</svg>
