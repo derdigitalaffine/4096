@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v5';
+const CACHE_NAME = '4096-shell-v6';
 const APP_SHELL = [
   './',
   './index.html',
@@ -9,6 +9,10 @@ const APP_SHELL = [
   './storage.js',
   './manifest.webmanifest',
   './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png',
+  './apple-touch-icon.png',
 ];
 
 self.addEventListener('install', (event) => {
