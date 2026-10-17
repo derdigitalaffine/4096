@@ -38,8 +38,12 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+async function cachedNavigationResponse(request) {
+  return (await caches.match(request)) || (await caches.match(request, { ignoreSearch: true }));
+}
+
 async function navigationResponse(request) {
-  const cachedRequest = await caches.match(request);
+  const cachedRequest = await cachedNavigationResponse(request);
 
   try {
     const response = await fetch(request);
