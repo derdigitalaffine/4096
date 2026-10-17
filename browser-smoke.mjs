@@ -53,8 +53,9 @@ async function startStaticServer() {
   const server = createServer(async (request, response) => {
     try {
       const requestUrl = new URL(request.url, 'http://127.0.0.1');
-      const pathname = decodeURIComponent(requestUrl.pathname === '/' ? '/index.html' : requestUrl.pathname);
-      const filePath = resolve(ROOT, `.${pathname}`);
+      const pathname = decodeURIComponent(requestUrl.pathname);
+      const resourcePath = pathname === '/' ? '/index.html' : pathname.endsWith('/') ? `${pathname}index.html` : pathname;
+      const filePath = resolve(ROOT, `.${resourcePath}`);
 
       if (!filePath.startsWith(`${ROOT}${sep}`)) throw new Error('Path traversal rejected');
 

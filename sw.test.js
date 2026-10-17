@@ -80,3 +80,32 @@ test('navigationResponse falls back to cached index on a failed HTTP response', 
   const response = await context.navigationResponse(`${origin}/game`);
   assert.equal(await response.text(), 'cached index');
 });
+
+test('navigationResponse caches successful subpage navigation without replacing root index', async () => {
+  const route = `${origin}/sudoku/`;
+  const { context, store } = loadWorker({
+    entries: [['./index.html', new Response('root index')]],
+    fetchImpl: async () => new Response('sudoku index'),
+  });
+
+  const response = await context.navigationResponse(route);
+  assert.equal(await response.text(), 'sudoku index');
+  assert.equal(await store.get(route).text(), 'sudoku index');
+  assert.equal(await store.get('./index.html').text(), 'root index');
+});
+
+test('navigationResponse prefers the exact cached subpage while offline', async () => {
+  const route = `${origin}/sudoku/`;
+  const { context } = loadWorker({
+    entries: [
+      [route, new Response('cached sudoku')],
+      ['./index.html', new Response('cached root')],
+    ],
+    fetchImpl: async () => {
+      throw new TypeError('offline');
+    },
+  });
+
+  const response = await context.navigationResponse(route);
+  assert.equal(await response.text(), 'cached sudoku');
+});
