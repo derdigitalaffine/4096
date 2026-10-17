@@ -147,7 +147,9 @@ button.secondary {
   transition: color var(--motion-medium) ease;
 }
 
-.connection[data-offline="true"] { color: #b9e8b5; }
+.connection[data-offline-ready="true"] { color: #b9e8b5; }
+.connection[data-offline-error="true"],
+.connection[data-offline="true"][data-offline-ready="false"] { color: var(--accent); }
 
 .sr-only {
   position: absolute;
