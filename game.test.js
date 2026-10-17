@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   addRandomTile,
+  applyTurn,
   canMove,
   emptyBoard,
   hasWon,
@@ -57,6 +58,31 @@ test('random tile only uses empty cells and creates 2 or 4', () => {
   const next = addRandomTile(board, () => values.shift());
   assert.equal(next[0][0], 8);
   assert.equal(next[0][1], 4);
+});
+
+test('applyTurn spawns exactly one tile after a valid move and preserves score gain', () => {
+  const board = [[2, 2, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+  const values = [0, 0];
+  const result = applyTurn(board, 'left', () => values.shift());
+
+  assert.equal(result.moved, true);
+  assert.equal(result.scoreGain, 4);
+  assert.deepEqual(result.board[0], [4, 2, 0, 0]);
+  assert.equal(result.board.flat().filter(Boolean).length, 2);
+});
+
+test('applyTurn does not spawn or consume randomness after an ineffective move', () => {
+  const board = [[2, 4, 8, 16], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+  let randomCalls = 0;
+  const result = applyTurn(board, 'left', () => {
+    randomCalls += 1;
+    return 0;
+  });
+
+  assert.equal(result.moved, false);
+  assert.equal(result.scoreGain, 0);
+  assert.equal(randomCalls, 0);
+  assert.deepEqual(result.board, board);
 });
 
 test('new board starts with exactly two tiles', () => {

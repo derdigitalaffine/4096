@@ -15,9 +15,10 @@ Danach `http://localhost:8080` öffnen. `localhost` ist ein sicherer Browserkont
 Steuerung:
 - Desktop: Pfeiltasten oder WASD
 - Touch: auf dem Spielfeld wischen
+- Rückgängig: Button oder `Strg/⌘+Z`; verfügbar ist genau der letzte gültige Zug
 - `Neues Spiel` startet jederzeit eine frische Runde
 
-Der Spielstand und Bestwert werden lokal im Browser gespeichert. Es gibt keine Anmeldung, Tracker oder externen Laufzeitressourcen.
+Spielstand, letzter Undo-Snapshot und Bestwert werden lokal im Browser gespeichert. Es gibt keine Anmeldung, Tracker oder externen Laufzeitressourcen.
 
 ## Tests
 
@@ -54,4 +55,4 @@ Die Trennung hält die Kernlogik deterministisch testbar und lässt das Deployme
 
 `main` soll direkt als Webroot des Ziel-Webservers ausgeliefert werden. Es ist kein Kopieren aus `dist/` und kein Buildschritt erforderlich. Der Server sollte mindestens korrekte MIME-Typen liefern; HTTPS ist außerhalb von `localhost` für Service Worker und Installation erforderlich.
 
-Aktuelle Entwicklungssteuerung: Issue #1 (Master), #2 (Round 0), danach #3 (fortlaufender Delivery-Loop).
+Aktuelle Entwicklungssteuerung: Issue #1 (Master), #3 (fortlaufender Delivery-Loop), aktuell Round 1 in #6.

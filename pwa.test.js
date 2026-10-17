@@ -40,3 +40,11 @@ test('service worker precaches the critical shell', () => {
     assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')));
   }
 });
+
+test('HTML exposes undo controls and a polite live game status', () => {
+  const html = readFileSync('index.html', 'utf8');
+  assert.match(html, /id="undo"/);
+  assert.match(html, /id="overlay-undo"/);
+  assert.match(html, /id="game-status"[^>]*aria-live="polite"/);
+  assert.match(html, /aria-keyshortcuts="Control\+Z Meta\+Z"/);
+});

@@ -93,6 +93,12 @@ export function addRandomTile(board, random = Math.random) {
   return next;
 }
 
+export function applyTurn(board, direction, random = Math.random) {
+  const result = moveBoard(board, direction);
+  if (!result.moved) return result;
+  return { ...result, board: addRandomTile(result.board, random) };
+}
+
 export function newBoard(random = Math.random) {
   let board = emptyBoard();
   board = addRandomTile(board, random);
