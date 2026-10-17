@@ -7,10 +7,12 @@ const app = readFileSync('sudoku/app.js', 'utf8');
 const css = readFileSync('sudoku/styles.css', 'utf8');
 const rootHtml = readFileSync('index.html', 'utf8');
 
-test('root exposes Sudoku as a touch-sized local navigation target', () => {
+test('both game navigation directions expose touch-sized local targets', () => {
   assert.match(rootHtml, /class="nav-link"[^>]*href="\.\/sudoku\/"[^>]*>Sudoku</);
   const rootCss = readFileSync('styles.css', 'utf8');
   assert.match(rootCss, /button, \.nav-link\s*\{[\s\S]*?min-height:\s*44px/);
+  assert.match(html, /class="back-link"[^>]*href="\.\.\/"[^>]*>← 4096</);
+  assert.match(css, /\.back-link\s*\{[\s\S]*?min-height:\s*44px/);
 });
 
 test('Sudoku exposes mobile controls, live status and keyboard shortcuts', () => {

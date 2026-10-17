@@ -47,7 +47,7 @@ button, .button-link, .back-link { touch-action: manipulation; }
 .back-link {
   display: inline-flex;
   align-items: center;
-  min-height: 36px;
+  min-height: 44px;
   margin-bottom: 0.45rem;
   color: var(--muted);
   font-size: 0.82rem;
