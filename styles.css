@@ -208,10 +208,10 @@ button.secondary {
 .tile[data-value="16"] { background: #aa5a30; }
 .tile[data-value="32"] { background: #bd4f35; }
 .tile[data-value="64"] { background: #c83f2f; }
-.tile[data-value="128"] { background: #b98426; }
-.tile[data-value="256"] { background: #c4931e; }
-.tile[data-value="512"] { background: #d0a019; }
-.tile[data-value="1024"] { background: #d7ac24; font-size: clamp(1.05rem, 6vw, 2.7rem); }
+.tile[data-value="128"] { background: #b98426; color: #17140d; }
+.tile[data-value="256"] { background: #c4931e; color: #17140d; }
+.tile[data-value="512"] { background: #d0a019; color: #17140d; }
+.tile[data-value="1024"] { background: #d7ac24; color: #17140d; font-size: clamp(1.05rem, 6vw, 2.7rem); }
 .tile[data-value="2048"] { background: #e0b932; color: #17140d; font-size: clamp(1.05rem, 6vw, 2.7rem); }
 .tile[data-value="4096"] { background: #f2c14e; color: #17140d; font-size: clamp(1.05rem, 6vw, 2.7rem); box-shadow: 0 0 2rem rgba(242,193,78,0.28); }
 
