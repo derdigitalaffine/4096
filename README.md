@@ -1,24 +1,39 @@
-# 4096
+# 4096 + Sudoku
 
-Eine schlanke, installierbare und offlinefähige Browser-PWA: gleiche Zahlen zusammenschieben, kombinieren und **4096** erreichen.
+Dieses Repository ist direkt der Webroot für zwei lokale, offlinefähige Browser-Spiele ohne Runtime-Dependencies, Anmeldung oder Tracker:
 
-## Spielen
+- **4096** unter `/` – gleiche Zahlen zusammenschieben und 4096 erreichen.
+- **Sudoku** unter `/sudoku/` – mobile-first 9×9-Sudoku mit Leicht/Mittel/Schwer, Notizen, Undo, Timer und lokaler Fortsetzung.
 
-Das Repository ist selbst der Webroot. Für lokale Entwicklung genügt ein statischer Server, zum Beispiel:
+## Lokal starten
+
+Für lokale Entwicklung genügt ein statischer Server, zum Beispiel:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Danach `http://localhost:8080` öffnen. `localhost` ist ein sicherer Browserkontext und erlaubt damit auch Service Worker/PWA-Tests.
+Danach `http://localhost:8080` öffnen. `localhost` ist ein sicherer Browserkontext und erlaubt Service Worker/PWA-Tests. Von 4096 führt der Button **Sudoku** direkt zur Unterseite; Sudoku bietet einen Rückweg zu 4096.
 
-Steuerung:
+### 4096-Steuerung
+
 - Desktop: Pfeiltasten oder WASD
 - Touch: auf dem Spielfeld wischen
 - Rückgängig: Button oder `Strg/⌘+Z`; verfügbar ist genau der letzte gültige Zug
 - `Neues Spiel` startet jederzeit eine frische Runde
 
-Spielstand, letzter Undo-Snapshot und Bestwert werden lokal im Browser gespeichert, wenn Storage verfügbar ist. Ist Browser-Storage gesperrt oder beschädigt, bleibt das Spiel mit einem frischen flüchtigen Zustand spielbar. Es gibt keine Anmeldung, Tracker oder externen Laufzeitressourcen.
+Spielstand, letzter Undo-Snapshot und Bestwert werden lokal gespeichert, wenn Browser-Storage verfügbar ist.
+
+### Sudoku-Steuerung
+
+- Touch/Maus: Feld wählen, danach eine Zahl 1–9 tippen
+- Tastatur: Pfeiltasten zum Navigieren, `1`–`9` zum Eintragen
+- `N`: Notizenmodus umschalten
+- `Entf`/`Backspace`: aktuelles Feld leeren
+- `Strg/⌘+Z`: letzte Änderung rückgängig machen
+- Schwierigkeitsstufen: Leicht, Mittel, Schwer; je zwei geprüfte Aufgaben
+
+Sudoku speichert Aufgabe, Einträge, Notizen, Auswahl, Fehlerzahl und Timer lokal und stellt einen gültigen Spielstand nach Reload wieder her. Beschädigter oder nicht kompatibler Storage fällt auf eine frische Aufgabe zurück.
 
 ## Tests
 
@@ -29,7 +44,7 @@ npm test
 npm run check
 ```
 
-`npm run check` prüft JavaScript-Syntax, Move-/Merge-/Win-/Game-over-Logik, Undo/Persistenz, Pointer- und Fokusregeln, Motion-/Responsive-Verträge, Service-Worker-Fallbacks sowie Webroot-/PWA-Installationsdaten.
+`npm run check` prüft die Syntax beider Spiele sowie alle Node-Regressionen. Dazu gehören unter anderem 4096-Move-/Merge-/Win-/Persistenzregeln, Sudoku-Einheiten/Kandidaten/Konflikte, die Eindeutigkeit aller sechs Sudoku-Aufgaben, Accessibility-/Responsive-Verträge und Service-Worker-/Webroot-Verträge.
 
 Zusätzlich gibt es einen echten Browser-Smoke-Test. Dafür werden Node.js 22+ und ein lokales Chrome/Chromium benötigt (`CHROME_BIN` kann explizit gesetzt werden):
 
@@ -37,37 +52,47 @@ Zusätzlich gibt es einen echten Browser-Smoke-Test. Dafür werden Node.js 22+ u
 npm run smoke
 ```
 
-Der Smoke startet selbst einen lokalen Webroot, lädt die App in Headless Chrome, wartet auf einen aktiven Service Worker, lässt Chrome das Manifest parsen, schaltet das Browsernetzwerk offline und verifiziert einen echten Offline-Reload inklusive 4×4-Spielfeld. In GitHub Actions laufen `npm run check` und `npm run smoke` als Pflichtpfade.
+Der Smoke startet selbst einen lokalen Webroot und prüft in Headless Chrome den realen Mehrseitenpfad: 4096 online bis Service-Worker-Bereitschaft und Manifest-Parsing, Sudoku online mit 81 Zellen, anschließend echten Sudoku-Offline-Reload und danach eine Offline-Navigation zurück zu 4096. In GitHub Actions laufen `npm run check` und `npm run smoke` als Pflichtpfade.
 
 ## PWA / Offline
 
-`manifest.webmanifest` beschreibt die installierbare App mit expliziten 192/512-PNGs, separatem Maskable-Icon, SVG-Fallback und Apple-Touch-Icon. `sw.js` legt den vollständigen App-Shell nach dem ersten erfolgreichen Laden lokal ab. Solange Netzwerk verfügbar ist, werden Navigation und lokale Shell-Assets network-first geladen und erfolgreiche Antworten aktualisieren den Cache sofort; bei Netzfehlern oder fehlerhaften Serverantworten fällt die App auf den zuletzt gültigen Cache zurück. Damit hängt ein normaler Produkt-Deploy nicht von einem manuellen Cache-Namens-Bump ab. Explizite Cache-Versionen bleiben für strukturelle Cache-Wechsel erhalten und alte Versionen werden beim Aktivieren bereinigt.
+`manifest.webmanifest` beschreibt die installierbare Root-PWA. `sw.js` precacht die kritischen Dateien **beider** Spiele. Navigationen werden pro Request getrennt gecacht, damit `/sudoku/` niemals den Root-Fallback von 4096 überschreibt. Solange Netzwerk verfügbar ist, werden Navigation und lokale Assets network-first geladen und erfolgreiche Antworten aktualisieren ihren Cacheeintrag; bei Netzfehlern oder fehlerhaften Serverantworten fällt die App auf den passenden Cache zurück.
 
-Die Connection-Zeile unterscheidet Vorbereitung, echte Offline-Bereitschaft und Fehler. Erst `Online · offline bereit` bestätigt, dass der Service Worker bereit ist; `Offline · Reload nicht abgesichert` bedeutet, dass die aktuelle Seite zwar weiterlaufen kann, ein Reload aber nicht als offlinefähig bestätigt ist.
+Die Connection-Zeile unterscheidet Vorbereitung, echte Offline-Bereitschaft und Fehler. Erst `Online · offline bereit` bestätigt, dass der Service Worker bereit ist; offline bestätigt `Offline · spielbereit`, dass ein Reload aus dem lokalen Shell möglich ist.
 
-Für einen manuellen Offline-Smoke-Test:
-1. Seite online laden und warten, bis `Online · offline bereit` angezeigt wird.
-2. In Browser-DevTools auf Offline wechseln oder Netzwerk trennen.
-3. Seite neu laden und eine Runde spielen; der Status soll `Offline · spielbereit` zeigen.
-4. Netzwerk wieder aktivieren und prüfen, dass ein neuer Deploy bereits beim nächsten Online-Load übernommen wird.
+Für einen manuellen Mehrseiten-Offline-Smoke:
+
+1. Root online laden und auf `Online · offline bereit` warten.
+2. Sudoku öffnen und prüfen, dass auch dort `Online · offline bereit` steht.
+3. Netzwerk in DevTools auf Offline setzen und Sudoku neu laden.
+4. Prüfen, dass Sudoku mit `Offline · spielbereit` und vollständigem 9×9-Grid startet.
+5. Offline zurück zu `/` navigieren und 4096 weiter bedienen.
 
 ## Architektur
 
-- `game.js` – pure, browser- und Node-kompatible Spielregeln
-- `storage.js` – validierte, fehlertolerante Local-Storage-Grenze
-- `connectivity.js` – pure Ableitung des Online-/Offline-Bereitschaftsstatus
-- `dialog.js` – pure Fokus-Wrap-Regel für modale Endzustände
-- `pointer.js` – pure Guards für primäre Pointer-/Touch-Gesten
-- `app.js` – Browserzustand, Rendering, Eingabe, Motion-Trigger und Installationsintegration
-- `index.html` / `styles.css` – direkt auslieferbare Oberfläche, Responsive- und Reduced-Motion-Verträge
-- `sw.js` / `manifest.webmanifest` / `icon*.{svg,png}` / `apple-touch-icon.png` – PWA-, Installations- und Offline-Shell
-- `browser-smoke.mjs` – dependency-freier Headless-Chrome-Acceptance-Smoke über das DevTools-Protokoll
-- `*.test.js` – dependency-freie Node-Regressionen und statische Webroot-Verträge
+### 4096
 
-Die Trennung hält Kernlogik, Persistenz, Eingaberegeln und Offlinepfad deterministisch testbar und lässt das Deployment ohne Buildschritt auskommen.
+- `game.js` – pure Spielregeln
+- `storage.js` – validierte, fehlertolerante Local-Storage-Grenze
+- `connectivity.js` – pure Ableitung des Online-/Offline-Status
+- `dialog.js` – Fokus-Wrap-Regel für modale Endzustände
+- `pointer.js` – Guards für Pointer-/Touch-Gesten
+- `app.js` – Browserzustand, Rendering und Eingabe
+- `index.html` / `styles.css` – Root-Oberfläche
+
+### Sudoku
+
+- `sudoku/game.js` – pure Sudoku-Regeln, sechs geprüfte Aufgaben und Hilfsfunktionen
+- `sudoku/app.js` – Browserzustand, Persistenz, Notizen, Undo, Timer, Keyboard/Touch
+- `sudoku/index.html` / `sudoku/styles.css` – mobile-first Oberfläche und semantisches 9×9-Grid
+- `sudoku/*.test.js` – Aufgaben-Eindeutigkeit, Regel- und UI-Verträge
+
+### Gemeinsame PWA-/Qualitätsschicht
+
+- `sw.js` / `manifest.webmanifest` / Icons – gemeinsame Offline-/Installationsschicht
+- `browser-smoke.mjs` – dependency-freier Headless-Chrome-Acceptance-Smoke via DevTools-Protokoll
+- `*.test.js` – dependency-freie Node-Regressionen und statische Webroot-Verträge
 
 ## Deployment
 
-`main` soll direkt als Webroot des Ziel-Webservers ausgeliefert werden. Es ist kein Kopieren aus `dist/` und kein Buildschritt erforderlich. Der Server sollte mindestens korrekte MIME-Typen liefern; HTTPS ist außerhalb von `localhost` für Service Worker und Installation erforderlich.
-
-Aktuelle Entwicklungssteuerung: Issue #1 (Master), #3 (fortlaufender Delivery-Loop) und #4 (finaler Hardening-/Acceptance-Pass).
+`main` wird direkt als Webroot ausgeliefert. Es gibt keinen Buildschritt und kein `dist/`. Der Webserver muss Verzeichnis-URLs wie `/sudoku/` auf deren `index.html` auflösen und korrekte MIME-Typen liefern. Außerhalb von `localhost` ist HTTPS für Service Worker und Installation erforderlich.
