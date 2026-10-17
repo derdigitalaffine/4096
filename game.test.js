@@ -6,10 +6,21 @@ import {
   canMove,
   emptyBoard,
   hasWon,
+  isValidBoard,
   mergeLine,
   moveBoard,
   newBoard,
 } from './game.js';
+
+test('isValidBoard accepts empty cells and powers of two only', () => {
+  assert.equal(isValidBoard([[0, 2, 4, 8], [16, 32, 64, 128], [256, 512, 1024, 2048], [4096, 8192, 0, 0]]), true);
+
+  for (const invalid of [1, 3, -2, 2.5, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER]) {
+    const board = emptyBoard();
+    board[0][0] = invalid;
+    assert.equal(isValidBoard(board), false, `expected ${invalid} to be rejected`);
+  }
+});
 
 test('mergeLine merges each tile at most once', () => {
   assert.deepEqual(mergeLine([2, 2, 2, 2]), { line: [4, 4, 0, 0], scoreGain: 8 });

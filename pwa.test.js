@@ -7,6 +7,7 @@ const requiredFiles = [
   'styles.css',
   'app.js',
   'game.js',
+  'storage.js',
   'sw.js',
   'manifest.webmanifest',
   'icon.svg',
@@ -36,7 +37,7 @@ test('HTML references only local app-shell resources', () => {
 
 test('service worker precaches the critical shell', () => {
   const worker = readFileSync('sw.js', 'utf8');
-  for (const ref of ['./index.html', './styles.css', './app.js', './game.js', './manifest.webmanifest', './icon.svg']) {
+  for (const ref of ['./index.html', './styles.css', './app.js', './game.js', './storage.js', './manifest.webmanifest', './icon.svg']) {
     assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')));
   }
 });

@@ -15,7 +15,12 @@ export function isValidBoard(board) {
     board.every((row) =>
       Array.isArray(row) &&
       row.length === SIZE &&
-      row.every((value) => Number.isInteger(value) && value >= 0)
+      row.every((value) => {
+        if (value === 0) return true;
+        if (!Number.isSafeInteger(value) || value < 2) return false;
+        const exponent = Math.log2(value);
+        return Number.isInteger(exponent) && 2 ** exponent === value;
+      })
     );
 }
 
