@@ -20,7 +20,19 @@ function loadWorker({ fetchImpl, entries = [] }) {
   };
   const caches = {
     open: async () => cache,
-    match: async (request) => store.get(cacheKey(request))?.clone(),
+    match: async (request, options = {}) => {
+      const key = cacheKey(request);
+      if (!options.ignoreSearch) return store.get(key)?.clone();
+
+      const requestedUrl = new URL(key, origin);
+      for (const [entryKey, response] of store.entries()) {
+        const entryUrl = new URL(entryKey, origin);
+        if (entryUrl.origin === requestedUrl.origin && entryUrl.pathname === requestedUrl.pathname) {
+          return response.clone();
+        }
+      }
+      return undefined;
+    },
     keys: async () => ['4096-shell-v8'],
     delete: async () => true,
   };
@@ -107,5 +119,22 @@ test('navigationResponse prefers the exact cached subpage while offline', async 
   });
 
   const response = await context.navigationResponse(route);
+  assert.equal(await response.text(), 'cached sudoku');
+});
+
+test('navigationResponse reuses the cached subpage when only search params differ offline', async () => {
+  const cachedRoute = `${origin}/sudoku/`;
+  const requestedRoute = `${origin}/sudoku/?source=shortcut`;
+  const { context } = loadWorker({
+    entries: [
+      [cachedRoute, new Response('cached sudoku')],
+      ['./index.html', new Response('cached root')],
+    ],
+    fetchImpl: async () => {
+      throw new TypeError('offline');
+    },
+  });
+
+  const response = await context.navigationResponse(requestedRoute);
   assert.equal(await response.text(), 'cached sudoku');
 });

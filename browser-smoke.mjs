@@ -316,6 +316,23 @@ try {
   assert.equal(restoredSudokuProbe.renderedValue, '1', 'Sudoku-Spielstand wurde beim Offline-Reload nicht wiederhergestellt.');
   console.log('browser-smoke: sudoku offline reload + persistence passed');
 
+  const sudokuQueryUrl = new URL('sudoku/?source=offline-smoke', url).href;
+  const navigatedSudokuQuery = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === sudokuQueryUrl);
+  const sudokuQueryNavigation = await client.send('Page.navigate', { url: sudokuQueryUrl });
+  assert.equal(sudokuQueryNavigation.errorText, undefined, `Offline-Sudoku-Navigation mit Query fehlgeschlagen: ${sudokuQueryNavigation.errorText}`);
+  await navigatedSudokuQuery;
+
+  await waitForValue(client, 'document.readyState', 'complete');
+  await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Offline · spielbereit');
+  assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Sudoku-Query-Navigation verlor Service-Worker-Kontrolle.');
+  assert.equal(await evaluate(client, "document.querySelectorAll('.sudoku-cell').length"), 81, 'Offline-Sudoku mit Query erhielt nicht die Sudoku-Shell.');
+  assert.equal(
+    await evaluate(client, `document.querySelector('[data-index="${sudokuPersistenceProbe.index}"]')?.textContent`),
+    '1',
+    'Sudoku-Query-Navigation verlor den wiederhergestellten Spielstand.'
+  );
+  console.log('browser-smoke: sudoku offline query navigation passed');
+
   const navigatedRootOffline = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === url);
   const rootOfflineNavigation = await client.send('Page.navigate', { url });
   assert.equal(rootOfflineNavigation.errorText, undefined, `Offline-Navigation zurück zu 4096 fehlgeschlagen: ${rootOfflineNavigation.errorText}`);
