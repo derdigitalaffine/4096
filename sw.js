@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v9';
+const CACHE_NAME = '4096-shell-v10';
 const APP_SHELL = [
   './',
   './index.html',
@@ -9,6 +9,11 @@ const APP_SHELL = [
   './game.js',
   './pointer.js',
   './storage.js',
+  './sudoku/',
+  './sudoku/index.html',
+  './sudoku/styles.css',
+  './sudoku/app.js',
+  './sudoku/game.js',
   './manifest.webmanifest',
   './icon.svg',
   './icon-192.png',
