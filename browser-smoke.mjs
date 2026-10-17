@@ -268,7 +268,25 @@ try {
   assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Sudoku wird online nicht vom Service Worker kontrolliert.');
   assert.equal(await evaluate(client, "document.querySelectorAll('.sudoku-cell').length"), 81, 'Online-Sudoku hat nicht 81 Zellen.');
   assert.equal(await evaluate(client, "document.querySelectorAll('[data-number]').length"), 9, 'Sudoku-Ziffernfeld hat nicht 9 Tasten.');
-  console.log('browser-smoke: sudoku online ready');
+
+  const sudokuPersistenceProbe = await evaluate(client, `(() => {
+    const cell = [...document.querySelectorAll('.sudoku-cell')].find((candidate) => candidate.dataset.given === 'false');
+    const numberButton = document.querySelector('[data-number="1"]');
+    if (!cell || !numberButton) return null;
+    const index = Number(cell.dataset.index);
+    cell.click();
+    numberButton.click();
+    const stored = JSON.parse(localStorage.getItem('sudoku-state-v1'));
+    return {
+      index,
+      storedValue: stored?.values?.[index],
+      renderedValue: document.querySelector('[data-index="' + index + '"]')?.textContent,
+    };
+  })()`);
+  assert.ok(sudokuPersistenceProbe, 'Sudoku-Persistenzprobe konnte kein editierbares Feld bedienen.');
+  assert.equal(sudokuPersistenceProbe.storedValue, 1, 'Sudoku-Eingabe wurde online nicht im lokalen Zustand gespeichert.');
+  assert.equal(sudokuPersistenceProbe.renderedValue, '1', 'Sudoku-Eingabe wurde online nicht gerendert.');
+  console.log('browser-smoke: sudoku online input + persistence passed');
 
   await client.send('Network.emulateNetworkConditions', {
     offline: true,
@@ -285,7 +303,18 @@ try {
   await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Offline · spielbereit');
   assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Sudoku-Offline-Reload verlor Service-Worker-Kontrolle.');
   assert.equal(await evaluate(client, "document.querySelectorAll('.sudoku-cell').length"), 81, 'Offline-Sudoku hat nicht 81 Zellen.');
-  console.log('browser-smoke: sudoku offline reload passed');
+
+  const restoredSudokuProbe = await evaluate(client, `(() => {
+    const index = ${sudokuPersistenceProbe.index};
+    const stored = JSON.parse(localStorage.getItem('sudoku-state-v1'));
+    return {
+      storedValue: stored?.values?.[index],
+      renderedValue: document.querySelector('[data-index="' + index + '"]')?.textContent,
+    };
+  })()`);
+  assert.equal(restoredSudokuProbe.storedValue, 1, 'Sudoku-Spielstand ging beim Offline-Reload im Storage verloren.');
+  assert.equal(restoredSudokuProbe.renderedValue, '1', 'Sudoku-Spielstand wurde beim Offline-Reload nicht wiederhergestellt.');
+  console.log('browser-smoke: sudoku offline reload + persistence passed');
 
   const navigatedRootOffline = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === url);
   const rootOfflineNavigation = await client.send('Page.navigate', { url });
