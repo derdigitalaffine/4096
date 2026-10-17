@@ -10,6 +10,8 @@
   --accent: #f2c14e;
   --board: #2a2722;
   --gap: clamp(0.38rem, 1.6vw, 0.75rem);
+  --motion-fast: 140ms;
+  --motion-medium: 180ms;
 }
 
 * { box-sizing: border-box; }
@@ -92,6 +94,7 @@ h1 {
   display: block;
   margin-top: 0.15rem;
   font-size: 1.15rem;
+  transform-origin: center;
 }
 
 .controls {
@@ -111,10 +114,15 @@ button {
   color: #17140d;
   font-weight: 800;
   cursor: pointer;
+  transition:
+    filter var(--motion-fast) ease,
+    transform var(--motion-fast) ease,
+    opacity var(--motion-fast) ease,
+    background-color var(--motion-medium) ease;
 }
 
 button:hover { filter: brightness(1.06); }
-button:active { transform: translateY(1px); }
+button:active { transform: translateY(1px) scale(0.985); }
 button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
@@ -136,6 +144,7 @@ button.secondary {
   margin-left: auto;
   color: var(--muted);
   font-size: 0.78rem;
+  transition: color var(--motion-medium) ease;
 }
 
 .connection[data-offline="true"] { color: #b9e8b5; }
@@ -179,7 +188,17 @@ button.secondary {
   letter-spacing: -0.06em;
   line-height: 1;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.035);
+  transform-origin: center;
+  transition:
+    background-color var(--motion-fast) ease,
+    color var(--motion-fast) ease,
+    box-shadow var(--motion-medium) ease;
 }
+
+.tile[data-motion="a"] { animation: tile-change-a var(--motion-medium) cubic-bezier(.2, .8, .2, 1); }
+.tile[data-motion="b"] { animation: tile-change-b var(--motion-medium) cubic-bezier(.2, .8, .2, 1); }
+.score-card strong[data-motion="a"] { animation: score-change-a var(--motion-medium) cubic-bezier(.2, .8, .2, 1); }
+.score-card strong[data-motion="b"] { animation: score-change-b var(--motion-medium) cubic-bezier(.2, .8, .2, 1); }
 
 .tile[data-value="2"] { background: #514a3d; }
 .tile[data-value="4"] { background: #625743; }
@@ -216,6 +235,8 @@ footer p { margin-bottom: 0; }
   z-index: 10;
 }
 
+.overlay:not([hidden]) { animation: overlay-enter var(--motion-medium) ease-out; }
+.overlay:not([hidden]) .dialog-card { animation: dialog-enter var(--motion-medium) cubic-bezier(.2, .8, .2, 1); }
 .overlay[hidden] { display: none; }
 
 .dialog-card {
@@ -230,6 +251,34 @@ footer p { margin-bottom: 0; }
 .dialog-card h2 { margin-bottom: 0.45rem; font-size: 2rem; }
 .dialog-card > p:not(.eyebrow) { color: var(--muted); line-height: 1.55; }
 .dialog-actions { display: flex; gap: 0.6rem; margin-top: 1rem; flex-wrap: wrap; }
+
+@keyframes tile-change-a {
+  from { opacity: 0.72; transform: scale(0.90); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes tile-change-b {
+  from { opacity: 0.72; transform: scale(0.90); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes score-change-a {
+  50% { transform: scale(1.12); }
+}
+
+@keyframes score-change-b {
+  50% { transform: scale(1.12); }
+}
+
+@keyframes overlay-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dialog-enter {
+  from { opacity: 0.75; transform: translateY(0.5rem) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 @media (max-width: 560px) {
   .app-shell { width: min(100% - 1rem, 42rem); padding-top: max(0.85rem, env(safe-area-inset-top)); }

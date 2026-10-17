@@ -25,6 +25,7 @@ const dialogButtons = [continueButton, overlayUndoButton, overlayNewGameButton];
 let installPrompt = null;
 let pointerStart = null;
 let statusTimer = null;
+let hasRendered = false;
 let offlineReady = 'serviceWorker' in navigator && Boolean(navigator.serviceWorker.controller);
 let offlineError = !('serviceWorker' in navigator);
 let state = restoreState();
@@ -67,17 +68,39 @@ function announce(message) {
   }, 0);
 }
 
+function ensureBoardTiles() {
+  if (boardElement.children.length === 16) return;
+
+  const fragment = document.createDocumentFragment();
+  for (let index = 0; index < 16; index += 1) {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.dataset.value = '0';
+    tile.setAttribute('role', 'gridcell');
+    fragment.append(tile);
+  }
+  boardElement.replaceChildren(fragment);
+}
+
+function retriggerMotion(element) {
+  element.dataset.motion = element.dataset.motion === 'a' ? 'b' : 'a';
+}
+
 function render() {
-  boardElement.replaceChildren();
+  ensureBoardTiles();
+  let cellIndex = 0;
+
   state.board.forEach((row, rowIndex) => {
     row.forEach((value, colIndex) => {
-      const tile = document.createElement('div');
-      tile.className = 'tile';
-      tile.dataset.value = String(value);
-      tile.setAttribute('role', 'gridcell');
+      const tile = boardElement.children[cellIndex];
+      const nextValue = String(value);
+      const changed = hasRendered && tile.dataset.value !== nextValue;
+
+      tile.dataset.value = nextValue;
       tile.setAttribute('aria-label', tileLabel(value, rowIndex, colIndex));
       tile.textContent = value || '';
-      boardElement.append(tile);
+      if (changed) retriggerMotion(tile);
+      cellIndex += 1;
     });
   });
 
@@ -86,10 +109,16 @@ function render() {
     'aria-label',
     `4 mal 4 Spielfeld. Score ${state.score}. Höchster Stein ${maxTile}. Mit Pfeiltasten, WASD oder Wischgesten bewegen.`
   );
-  scoreElement.textContent = String(state.score);
-  bestElement.textContent = String(state.best);
+
+  const nextScore = String(state.score);
+  const nextBest = String(state.best);
+  if (hasRendered && scoreElement.textContent !== nextScore) retriggerMotion(scoreElement);
+  if (hasRendered && bestElement.textContent !== nextBest) retriggerMotion(bestElement);
+  scoreElement.textContent = nextScore;
+  bestElement.textContent = nextBest;
   undoButton.disabled = !state.undo;
   overlayUndoButton.disabled = !state.undo;
+  hasRendered = true;
 }
 
 function closeOverlay() {
