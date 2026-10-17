@@ -280,7 +280,7 @@ try {
     return {
       index,
       storedValue: stored?.values?.[index],
-      renderedValue: document.querySelector(`[data-index="${index}"]`)?.textContent,
+      renderedValue: document.querySelector('[data-index="' + index + '"]')?.textContent,
     };
   })()`);
   assert.ok(sudokuPersistenceProbe, 'Sudoku-Persistenzprobe konnte kein editierbares Feld bedienen.');
@@ -309,7 +309,7 @@ try {
     const stored = JSON.parse(localStorage.getItem('sudoku-state-v1'));
     return {
       storedValue: stored?.values?.[index],
-      renderedValue: document.querySelector(`[data-index="${index}"]`)?.textContent,
+      renderedValue: document.querySelector('[data-index="' + index + '"]')?.textContent,
     };
   })()`);
   assert.equal(restoredSudokuProbe.storedValue, 1, 'Sudoku-Spielstand ging beim Offline-Reload im Storage verloren.');
