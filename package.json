@@ -1,0 +1,13 @@
+{
+  "name": "4096-pwa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check game.js && node --check app.js && node --check sw.js && node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

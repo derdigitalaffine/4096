@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#171717">
+  <meta name="description" content="4096 – eine schnelle, offlinefähige Zahlen-PWA.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>4096</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Offline PWA</p>
+        <h1>4096</h1>
+        <p class="tagline">Verbinde gleiche Zahlen. Erreiche 4096.</p>
+      </div>
+
+      <div class="scoreboard" aria-label="Punktestand">
+        <div class="score-card">
+          <span>Score</span>
+          <strong id="score">0</strong>
+        </div>
+        <div class="score-card">
+          <span>Best</span>
+          <strong id="best">0</strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="controls" aria-label="Spielsteuerung">
+      <button id="new-game" type="button">Neues Spiel</button>
+      <button id="install-app" class="secondary" type="button" hidden>Installieren</button>
+      <span id="connection-status" class="connection" aria-live="polite">Online</span>
+    </section>
+
+    <section class="game-area" aria-label="4096 Spiel">
+      <div
+        id="board"
+        class="board"
+        role="grid"
+        aria-label="4 mal 4 Spielfeld. Mit Pfeiltasten, WASD oder Wischgesten bewegen."
+        tabindex="0"
+      ></div>
+
+      <p class="hint">
+        <span class="desktop-hint">Pfeiltasten / WASD</span>
+        <span class="mobile-hint">Wischen</span>
+        · gleiche Werte verschmelzen einmal pro Zug.
+      </p>
+    </section>
+
+    <footer>
+      <p>Keine Anmeldung. Keine Tracker. Dein Spielstand bleibt lokal auf diesem Gerät.</p>
+    </footer>
+  </main>
+
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="overlay-title" hidden>
+    <div class="dialog-card">
+      <p class="eyebrow">Runde</p>
+      <h2 id="overlay-title"></h2>
+      <p id="overlay-message"></p>
+      <div class="dialog-actions">
+        <button id="continue-game" type="button">Weiterspielen</button>
+        <button id="overlay-new-game" class="secondary" type="button">Neue Runde</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
