@@ -206,6 +206,7 @@ async function stopBrowser(browser) {
 }
 
 const { server, url } = await startStaticServer();
+const sudokuUrl = new URL('sudoku/', url).href;
 const debugPort = await freePort();
 const profileDir = await mkdtemp(join(tmpdir(), '4096-browser-smoke-'));
 const browser = spawn(findBrowser(), [
@@ -249,13 +250,25 @@ try {
 
   await waitForValue(client, 'document.readyState', 'complete');
   await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Online · offline bereit');
-  assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Seite wird nicht vom Service Worker kontrolliert.');
-  assert.equal(await evaluate(client, "document.querySelectorAll('.tile').length"), 16, 'Online-Spielfeld hat nicht 16 Zellen.');
+  assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, '4096 wird nicht vom Service Worker kontrolliert.');
+  assert.equal(await evaluate(client, "document.querySelectorAll('.tile').length"), 16, 'Online-4096-Spielfeld hat nicht 16 Zellen.');
 
   const manifest = await client.send('Page.getAppManifest');
   assert.equal(manifest.errors.length, 0, `Manifestfehler: ${JSON.stringify(manifest.errors)}`);
   assert.match(manifest.url, /manifest\.webmanifest$/);
-  console.log('browser-smoke: online + service-worker ready + manifest parsed');
+  console.log('browser-smoke: 4096 online + service-worker ready + manifest parsed');
+
+  const navigatedSudoku = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === sudokuUrl);
+  const sudokuNavigation = await client.send('Page.navigate', { url: sudokuUrl });
+  assert.equal(sudokuNavigation.errorText, undefined, `Sudoku-Navigation fehlgeschlagen: ${sudokuNavigation.errorText}`);
+  await navigatedSudoku;
+
+  await waitForValue(client, 'document.readyState', 'complete');
+  await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Online · offline bereit');
+  assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Sudoku wird online nicht vom Service Worker kontrolliert.');
+  assert.equal(await evaluate(client, "document.querySelectorAll('.sudoku-cell').length"), 81, 'Online-Sudoku hat nicht 81 Zellen.');
+  assert.equal(await evaluate(client, "document.querySelectorAll('[data-number]').length"), 9, 'Sudoku-Ziffernfeld hat nicht 9 Tasten.');
+  console.log('browser-smoke: sudoku online ready');
 
   await client.send('Network.emulateNetworkConditions', {
     offline: true,
@@ -264,15 +277,26 @@ try {
     uploadThroughput: 0,
   });
 
-  const navigatedOffline = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === url);
+  const reloadedSudoku = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === sudokuUrl);
   await client.send('Page.reload', { ignoreCache: false });
-  await navigatedOffline;
+  await reloadedSudoku;
 
   await waitForValue(client, 'document.readyState', 'complete');
   await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Offline · spielbereit');
-  assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Offline-Reload verlor Service-Worker-Kontrolle.');
-  assert.equal(await evaluate(client, "document.querySelectorAll('.tile').length"), 16, 'Offline-Spielfeld hat nicht 16 Zellen.');
-  console.log('browser-smoke: offline reload passed');
+  assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Sudoku-Offline-Reload verlor Service-Worker-Kontrolle.');
+  assert.equal(await evaluate(client, "document.querySelectorAll('.sudoku-cell').length"), 81, 'Offline-Sudoku hat nicht 81 Zellen.');
+  console.log('browser-smoke: sudoku offline reload passed');
+
+  const navigatedRootOffline = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === url);
+  const rootOfflineNavigation = await client.send('Page.navigate', { url });
+  assert.equal(rootOfflineNavigation.errorText, undefined, `Offline-Navigation zurück zu 4096 fehlgeschlagen: ${rootOfflineNavigation.errorText}`);
+  await navigatedRootOffline;
+
+  await waitForValue(client, 'document.readyState', 'complete');
+  await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Offline · spielbereit');
+  assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, '4096-Offline-Navigation verlor Service-Worker-Kontrolle.');
+  assert.equal(await evaluate(client, "document.querySelectorAll('.tile').length"), 16, 'Offline-4096-Spielfeld hat nicht 16 Zellen.');
+  console.log('browser-smoke: 4096 offline navigation passed');
 } catch (error) {
   const browserDetails = browserStderr.trim() ? `\nBrowser stderr:\n${browserStderr.trim()}` : '';
   throw new Error(`${error.message}${browserDetails}`, { cause: error });

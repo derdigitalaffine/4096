@@ -27,7 +27,7 @@ body {
 }
 
 button, .board { font: inherit; }
-button { touch-action: manipulation; }
+button, .nav-link { touch-action: manipulation; }
 
 .app-shell {
   width: min(100% - 2rem, 42rem);
@@ -105,15 +105,12 @@ h1 {
   margin-bottom: 0.85rem;
 }
 
-button {
+button, .nav-link {
   min-height: 44px;
   border: 0;
   border-radius: 0.75rem;
   padding: 0.72rem 0.95rem;
-  background: var(--accent);
-  color: #17140d;
   font-weight: 800;
-  cursor: pointer;
   transition:
     filter var(--motion-fast) ease,
     transform var(--motion-fast) ease,
@@ -121,15 +118,32 @@ button {
     background-color var(--motion-medium) ease;
 }
 
-button:hover { filter: brightness(1.06); }
-button:active { transform: translateY(1px) scale(0.985); }
+button {
+  min-height: 44px;
+  background: var(--accent);
+  color: #17140d;
+  cursor: pointer;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: #f7f3e9;
+  text-decoration: none;
+}
+
+button:hover, .nav-link:hover { filter: brightness(1.06); }
+button:active, .nav-link:active { transform: translateY(1px) scale(0.985); }
 button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
   filter: none;
   transform: none;
 }
-button:focus-visible, .board:focus-visible {
+button:focus-visible, .nav-link:focus-visible, .board:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 3px;
 }

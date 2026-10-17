@@ -10,6 +10,13 @@ const iconFiles = [
   'apple-touch-icon.png',
 ];
 
+const sudokuFiles = [
+  'sudoku/index.html',
+  'sudoku/styles.css',
+  'sudoku/app.js',
+  'sudoku/game.js',
+];
+
 const requiredFiles = [
   'index.html',
   'styles.css',
@@ -21,6 +28,7 @@ const requiredFiles = [
   'storage.js',
   'sw.js',
   'manifest.webmanifest',
+  ...sudokuFiles,
   ...iconFiles,
 ];
 
@@ -57,20 +65,38 @@ test('raster install icons have the declared pixel dimensions', () => {
   assert.deepEqual(pngDimensions('apple-touch-icon.png'), { width: 180, height: 180 });
 });
 
-test('HTML references only local app-shell resources and an Apple touch icon', () => {
+test('root HTML references only local app-shell resources, Sudoku and an Apple touch icon', () => {
   const html = readFileSync('index.html', 'utf8');
-  for (const ref of ['./manifest.webmanifest', './icon.svg', './apple-touch-icon.png', './styles.css', './app.js']) {
+  for (const ref of ['./manifest.webmanifest', './icon.svg', './apple-touch-icon.png', './styles.css', './app.js', './sudoku/']) {
     assert.match(html, new RegExp(ref.replaceAll('.', '\\.')));
   }
   assert.match(html, /rel="apple-touch-icon"[^>]*href="\.\/apple-touch-icon\.png"[^>]*sizes="180x180"/);
+  assert.match(html, /class="nav-link"[^>]*href="\.\/sudoku\/"[^>]*>Sudoku</);
   assert.doesNotMatch(html, /https?:\/\//i);
 });
 
-test('service worker precaches the critical shell and install icons', () => {
+test('Sudoku HTML is a local-only subpage sharing the root PWA shell', () => {
+  const html = readFileSync('sudoku/index.html', 'utf8');
+  for (const ref of ['../manifest.webmanifest', '../icon.svg', '../apple-touch-icon.png', './styles.css', './app.js', '../']) {
+    assert.match(html, new RegExp(ref.replaceAll('.', '\\.')));
+  }
+  assert.match(html, /id="sudoku-grid"[^>]*role="grid"/);
+  assert.match(html, /id="sudoku-status"[^>]*aria-live="polite"/);
+  assert.match(html, /id="notes-mode"[^>]*aria-pressed="false"/);
+  assert.doesNotMatch(html, /https?:\/\//i);
+});
+
+test('service worker precaches both games, critical shell and install icons', () => {
   const worker = readFileSync('sw.js', 'utf8');
-  for (const ref of ['./index.html', './styles.css', './app.js', './connectivity.js', './dialog.js', './game.js', './pointer.js', './storage.js', './manifest.webmanifest', ...iconFiles.map((file) => `./${file}`)]) {
+  const refs = [
+    './index.html', './styles.css', './app.js', './connectivity.js', './dialog.js', './game.js', './pointer.js', './storage.js',
+    './sudoku/', './sudoku/index.html', './sudoku/styles.css', './sudoku/app.js', './sudoku/game.js',
+    './manifest.webmanifest', ...iconFiles.map((file) => `./${file}`),
+  ];
+  for (const ref of refs) {
     assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')));
   }
+  assert.match(worker, /4096-shell-v10/);
 });
 
 test('HTML exposes undo controls and a polite live game status', () => {
