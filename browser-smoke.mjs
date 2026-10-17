@@ -279,5 +279,9 @@ try {
   client?.close();
   await stopBrowser(browser);
   await new Promise((resolveClose) => server.close(resolveClose));
-  await rm(profileDir, { recursive: true, force: true });
+  try {
+    await rm(profileDir, { recursive: true, force: true, maxRetries: 8, retryDelay: 100 });
+  } catch (error) {
+    console.warn(`browser-smoke: temporäres Profil konnte nicht vollständig entfernt werden (${error.code ?? 'unknown'}).`);
+  }
 }
