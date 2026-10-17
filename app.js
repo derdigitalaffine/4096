@@ -70,15 +70,26 @@ function announce(message) {
 }
 
 function ensureBoardTiles() {
-  if (boardElement.children.length === 16) return;
+  const existingRows = boardElement.querySelectorAll('.board-row');
+  const existingTiles = boardElement.querySelectorAll('.tile');
+  if (existingRows.length === 4 && existingTiles.length === 16) return;
 
   const fragment = document.createDocumentFragment();
-  for (let index = 0; index < 16; index += 1) {
-    const tile = document.createElement('div');
-    tile.className = 'tile';
-    tile.dataset.value = '0';
-    tile.setAttribute('role', 'gridcell');
-    fragment.append(tile);
+  for (let rowIndex = 0; rowIndex < 4; rowIndex += 1) {
+    const row = document.createElement('div');
+    row.className = 'board-row';
+    row.setAttribute('role', 'row');
+    row.setAttribute('aria-rowindex', String(rowIndex + 1));
+
+    for (let colIndex = 0; colIndex < 4; colIndex += 1) {
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.dataset.value = '0';
+      tile.setAttribute('role', 'gridcell');
+      tile.setAttribute('aria-colindex', String(colIndex + 1));
+      row.append(tile);
+    }
+    fragment.append(row);
   }
   boardElement.replaceChildren(fragment);
 }
@@ -89,11 +100,12 @@ function retriggerMotion(element) {
 
 function render() {
   ensureBoardTiles();
+  const tiles = boardElement.querySelectorAll('.tile');
   let cellIndex = 0;
 
   state.board.forEach((row, rowIndex) => {
     row.forEach((value, colIndex) => {
-      const tile = boardElement.children[cellIndex];
+      const tile = tiles[cellIndex];
       const nextValue = String(value);
       const changed = hasRendered && tile.dataset.value !== nextValue;
 
