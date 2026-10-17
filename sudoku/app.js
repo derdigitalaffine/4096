@@ -1,4 +1,5 @@
 import { connectionStatus } from '../connectivity.js';
+import { wrappedDialogFocusTarget } from '../dialog.js';
 import {
   conflictIndexes,
   getPuzzle,
@@ -25,6 +26,7 @@ const statusElement = document.querySelector('#sudoku-status');
 const overlay = document.querySelector('#completion-overlay');
 const overlayMessage = document.querySelector('#completion-message');
 const overlayNewGameButton = document.querySelector('#overlay-new-game');
+const overlayActions = [...overlay.querySelectorAll('button, a[href]')];
 const numberButtons = [...document.querySelectorAll('[data-number]')];
 
 let history = [];
@@ -439,6 +441,14 @@ eraseButton.addEventListener('click', eraseSelected);
 undoButton.addEventListener('click', undo);
 newGameButton.addEventListener('click', () => startNewGame());
 overlayNewGameButton.addEventListener('click', () => startNewGame());
+
+overlay.addEventListener('keydown', (event) => {
+  if (event.key !== 'Tab') return;
+  const target = wrappedDialogFocusTarget(overlayActions, document.activeElement, event.shiftKey);
+  if (!target) return;
+  event.preventDefault();
+  target.focus();
+});
 
 difficultyElement.addEventListener('change', () => {
   startNewGame(difficultyElement.value, null);
