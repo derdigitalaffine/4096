@@ -17,6 +17,7 @@ const requiredFiles = [
   'connectivity.js',
   'dialog.js',
   'game.js',
+  'pointer.js',
   'storage.js',
   'sw.js',
   'manifest.webmanifest',
@@ -67,7 +68,7 @@ test('HTML references only local app-shell resources and an Apple touch icon', (
 
 test('service worker precaches the critical shell and install icons', () => {
   const worker = readFileSync('sw.js', 'utf8');
-  for (const ref of ['./index.html', './styles.css', './app.js', './connectivity.js', './dialog.js', './game.js', './storage.js', './manifest.webmanifest', ...iconFiles.map((file) => `./${file}`)]) {
+  for (const ref of ['./index.html', './styles.css', './app.js', './connectivity.js', './dialog.js', './game.js', './pointer.js', './storage.js', './manifest.webmanifest', ...iconFiles.map((file) => `./${file}`)]) {
     assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')));
   }
 });
@@ -96,4 +97,10 @@ test('connection status waits for real service-worker readiness and exposes fail
   assert.match(app, /controllerchange/);
   assert.match(app, /offlineError = true/);
   assert.match(app, /offlineReady = true/);
+});
+
+test('pointer integration guards gesture start and only cancels the active pointer', () => {
+  const app = readFileSync('app.js', 'utf8');
+  assert.match(app, /shouldStartPointerGesture\(event, pointerStart\)/);
+  assert.match(app, /shouldCancelPointerGesture\(pointerStart, event\.pointerId\)/);
 });

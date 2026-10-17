@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v7';
+const CACHE_NAME = '4096-shell-v8';
 const APP_SHELL = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const APP_SHELL = [
   './connectivity.js',
   './dialog.js',
   './game.js',
+  './pointer.js',
   './storage.js',
   './manifest.webmanifest',
   './icon.svg',
