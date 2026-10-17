@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v8';
+const CACHE_NAME = '4096-shell-v9';
 const APP_SHELL = [
   './',
   './index.html',
@@ -34,16 +34,18 @@ self.addEventListener('activate', (event) => {
 });
 
 async function navigationResponse(request) {
+  const cachedRequest = await caches.match(request);
+
   try {
     const response = await fetch(request);
     if (response.ok) {
       const cache = await caches.open(CACHE_NAME);
-      await cache.put('./index.html', response.clone());
+      await cache.put(request, response.clone());
       return response;
     }
-    return (await caches.match('./index.html')) || (await caches.match('./')) || response;
+    return cachedRequest || (await caches.match('./index.html')) || (await caches.match('./')) || response;
   } catch {
-    return (await caches.match('./index.html')) || (await caches.match('./')) || Response.error();
+    return cachedRequest || (await caches.match('./index.html')) || (await caches.match('./')) || Response.error();
   }
 }
 
