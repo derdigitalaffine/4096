@@ -119,6 +119,7 @@ button, .nav-link {
 }
 
 button {
+  min-height: 44px;
   background: var(--accent);
   color: #17140d;
   cursor: pointer;
