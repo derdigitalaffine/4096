@@ -1,8 +1,10 @@
+import { wrappedDialogFocusTarget } from './dialog.js';
 import { applyTurn, canMove, hasWon, newBoard } from './game.js';
 import { getSafeStorage, persistStoredState, readBestScore, restoreStoredState } from './storage.js';
 
 const storage = getSafeStorage(window);
 
+const appShell = document.querySelector('.app-shell');
 const boardElement = document.querySelector('#board');
 const scoreElement = document.querySelector('#score');
 const bestElement = document.querySelector('#best');
@@ -17,6 +19,7 @@ const overlayMessage = document.querySelector('#overlay-message');
 const continueButton = document.querySelector('#continue-game');
 const overlayUndoButton = document.querySelector('#overlay-undo');
 const overlayNewGameButton = document.querySelector('#overlay-new-game');
+const dialogButtons = [continueButton, overlayUndoButton, overlayNewGameButton];
 
 let installPrompt = null;
 let pointerStart = null;
@@ -86,12 +89,18 @@ function render() {
   overlayUndoButton.disabled = !state.undo;
 }
 
-function hideOverlay() {
+function closeOverlay() {
   overlay.hidden = true;
+  appShell.inert = false;
+}
+
+function hideOverlay() {
+  closeOverlay();
   boardElement.focus({ preventScroll: true });
 }
 
 function showOverlay(kind) {
+  appShell.inert = true;
   overlay.hidden = false;
   if (kind === 'win') {
     overlayTitle.textContent = '4096 erreicht!';
@@ -167,7 +176,7 @@ function startNewGame() {
   const best = Math.max(state.best, state.score, readBestScore(storage));
   state = { board: newBoard(), score: 0, best, wonAcknowledged: false, undo: null };
   persistState();
-  overlay.hidden = true;
+  closeOverlay();
   render();
   boardElement.focus({ preventScroll: true });
   announce('Neue Runde gestartet. Score 0.');
@@ -201,6 +210,14 @@ window.addEventListener('keydown', (event) => {
   if (!direction) return;
   event.preventDefault();
   performMove(direction);
+});
+
+overlay.addEventListener('keydown', (event) => {
+  if (event.key !== 'Tab') return;
+  const target = wrappedDialogFocusTarget(dialogButtons, document.activeElement, event.shiftKey);
+  if (!target) return;
+  event.preventDefault();
+  target.focus();
 });
 
 boardElement.addEventListener('pointerdown', (event) => {

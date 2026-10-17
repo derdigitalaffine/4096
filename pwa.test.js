@@ -6,6 +6,7 @@ const requiredFiles = [
   'index.html',
   'styles.css',
   'app.js',
+  'dialog.js',
   'game.js',
   'storage.js',
   'sw.js',
@@ -37,7 +38,7 @@ test('HTML references only local app-shell resources', () => {
 
 test('service worker precaches the critical shell', () => {
   const worker = readFileSync('sw.js', 'utf8');
-  for (const ref of ['./index.html', './styles.css', './app.js', './game.js', './storage.js', './manifest.webmanifest', './icon.svg']) {
+  for (const ref of ['./index.html', './styles.css', './app.js', './dialog.js', './game.js', './storage.js', './manifest.webmanifest', './icon.svg']) {
     assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')));
   }
 });
@@ -48,4 +49,13 @@ test('HTML exposes undo controls and a polite live game status', () => {
   assert.match(html, /id="overlay-undo"/);
   assert.match(html, /id="game-status"[^>]*aria-live="polite"/);
   assert.match(html, /aria-keyshortcuts="Control\+Z Meta\+Z"/);
+});
+
+test('terminal dialog wires description, inert background and focus containment', () => {
+  const html = readFileSync('index.html', 'utf8');
+  const app = readFileSync('app.js', 'utf8');
+  assert.match(html, /id="overlay"[^>]*aria-describedby="overlay-message"/);
+  assert.match(app, /appShell\.inert = true/);
+  assert.match(app, /appShell\.inert = false/);
+  assert.match(app, /wrappedDialogFocusTarget/);
 });
