@@ -7,7 +7,9 @@ const css = readFileSync('styles.css', 'utf8');
 
 test('board renderer keeps stable cells and retriggers motion only on changed values', () => {
   assert.match(app, /function ensureBoardTiles\(\)/);
-  assert.match(app, /boardElement\.children\[cellIndex\]/);
+  assert.match(app, /existingRows\.length === 4 && existingTiles\.length === 16/);
+  assert.match(app, /const tiles = boardElement\.querySelectorAll\('\.tile'\)/);
+  assert.match(app, /const tile = tiles\[cellIndex\]/);
   assert.match(app, /const changed = hasRendered && tile\.dataset\.value !== nextValue/);
   assert.match(app, /if \(changed\) retriggerMotion\(tile\)/);
   assert.match(app, /element\.dataset\.motion = element\.dataset\.motion === 'a' \? 'b' : 'a'/);
