@@ -22,6 +22,13 @@ test('small-screen connection status gets its own row', () => {
   assert.match(connection, /margin-left:\s*0/);
 });
 
+test('connection colors distinguish readiness from warning states', () => {
+  assert.match(css, /\.connection\[data-offline-ready="true"\]\s*\{\s*color:\s*#b9e8b5/);
+  assert.match(css, /\.connection\[data-offline-error="true"\][\s\S]*?color:\s*var\(--accent\)/);
+  assert.match(css, /data-offline="true"\]\[data-offline-ready="false"\][\s\S]*?color:\s*var\(--accent\)/);
+  assert.doesNotMatch(css, /\.connection\[data-offline="true"\]\s*\{\s*color:\s*#b9e8b5/);
+});
+
 test('380px breakpoint no longer carries control-layout fixes', () => {
   const narrow = css.match(/@media \(max-width: 380px\) \{([\s\S]*?)\n\}/)?.[1] ?? '';
   assert.doesNotMatch(narrow, /\.controls|\.connection/);
