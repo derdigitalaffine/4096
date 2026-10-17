@@ -24,6 +24,13 @@ test('Sudoku exposes mobile controls, live status and keyboard shortcuts', () =>
   assert.match(html, /id="sudoku-status"[^>]*aria-live="polite"/);
 });
 
+test('completion dialog reuses the shared focus wrap for keyboard containment', () => {
+  assert.match(html, /id="completion-overlay"[^>]*role="dialog"[^>]*aria-modal="true"/);
+  assert.match(app, /import \{ wrappedDialogFocusTarget \} from '\.\.\/dialog\.js'/);
+  assert.match(app, /const overlayActions = \[\.\.\.overlay\.querySelectorAll\('button, a\[href\]'\)\]/);
+  assert.match(app, /overlay\.addEventListener\('keydown', \(event\) => \{[\s\S]*?wrappedDialogFocusTarget\(overlayActions, document\.activeElement, event\.shiftKey\)/);
+});
+
 test('renderer creates a semantic nine-row grid with 81 roving-focus cells', () => {
   assert.match(app, /for \(let rowIndex = 0; rowIndex < 9; rowIndex \+= 1\)/);
   assert.match(app, /for \(let columnIndex = 0; columnIndex < 9; columnIndex \+= 1\)/);
