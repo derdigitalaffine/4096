@@ -30,8 +30,13 @@ test('Super Mario Land supports touch, keyboard and flower attack controls', () 
   assert.match(app, /queueFire/);
   assert.match(app, /game\.power !== 'flower'/);
   assert.match(app, /key === 'r'/);
+  assert.match(app, /let activePointerId = null/);
+  assert.match(app, /event\.pointerId !== activePointerId/);
+  assert.match(app, /setDataIfChanged\(button, 'pressed', true\)/);
+  assert.match(app, /window\.addEventListener\('blur', releaseDirectionalHolds\)/);
   assert.match(styles, /button\s*\{[^}]*min-height:\s*44px/s);
   assert.match(styles, /touch-action:\s*manipulation/);
+  assert.match(styles, /button\[data-pressed="true"\]/);
 });
 
 test('Super Mario Land renders stage themes, question blocks, power-ups and projectiles locally', () => {
@@ -76,6 +81,7 @@ test('Super Mario Land has a compact mobile viewport and reduced-motion path', (
   assert.match(styles, /grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(styles, /grid-template-columns:\s*44px 44px minmax\(72px, 1fr\) minmax\(60px, 1fr\)/);
   assert.match(styles, /prefers-reduced-motion:\s*reduce/);
+  assert.match(styles, /button\[data-pressed="true"\][^}]*transform:\s*none/s);
   assert.match(app, /matchMedia\?\.\('\(prefers-reduced-motion: reduce\)'\)/);
   assert.match(app, /reducedMotionQuery\.matches/);
   assert.match(styles, /image-rendering:\s*pixelated/);
