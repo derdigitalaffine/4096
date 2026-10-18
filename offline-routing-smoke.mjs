@@ -236,7 +236,7 @@ try {
   await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Offline · spielbereit');
   assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Super Mario Land verlor nach Offline-Redirect die Service-Worker-Kontrolle.');
   assert.equal(await evaluate(client, "document.querySelector('#game-canvas')?.width"), 800, 'Offline-No-Slash-Super-Mario-Land erhielt nicht die Canvas-Shell.');
-  assert.equal(await evaluate(client, "document.querySelector('#level')?.textContent"), '1/3', 'Offline-No-Slash-Super-Mario-Land verlor die Mehrlevel-Anzeige.');
+  assert.equal(await evaluate(client, "document.querySelector('#level')?.textContent"), '1-1 · 1/12', 'Offline-No-Slash-Super-Mario-Land verlor die Welt-/Stage-Anzeige.');
   assert.equal(await evaluate(client, "document.querySelector('#power')?.textContent"), 'Klein', 'Offline-No-Slash-Super-Mario-Land verlor den Power-up-HUD-Grundzustand.');
   console.log('browser-smoke: offline /super-mario-land -> /super-mario-land/ canonical route passed');
 } catch (error) {
