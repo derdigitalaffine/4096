@@ -16,12 +16,14 @@ const livesElement = document.querySelector('#lives');
 const bestElement = document.querySelector('#best');
 const levelElement = document.querySelector('#level');
 const progressElement = document.querySelector('#progress');
+const powerElement = document.querySelector('#power');
 const statusElement = document.querySelector('#game-status');
 const connectionElement = document.querySelector('#connection-status');
 const newGameButton = document.querySelector('#new-game');
 const leftButton = document.querySelector('#move-left');
 const rightButton = document.querySelector('#move-right');
 const jumpButton = document.querySelector('#jump');
+const fireButton = document.querySelector('#fire');
 
 const BEST_KEY = 'super-mario-land-best-v1';
 const VIEW_WIDTH = canvas.width;
@@ -33,6 +35,7 @@ const LEVEL_THEMES = [
   { sky: '#9bbc0f', hills: '#306230', clouds: '#8bac0f' },
 ];
 let jumpQueued = false;
+let fireQueued = false;
 let game = createGame();
 let lastFrame = performance.now();
 let bestScore = loadBestScore();
@@ -54,6 +57,10 @@ function persistBestScore() {
   } catch {
     // Storage is optional; gameplay stays available without it.
   }
+}
+
+function powerLabel(power) {
+  return { small: 'Klein', mushroom: 'Pilz', flower: 'Blume' }[power] ?? 'Klein';
 }
 
 function setStatus(message) {
@@ -78,11 +85,13 @@ function updateHud() {
   bestElement.textContent = String(bestScore);
   levelElement.textContent = `${game.levelIndex + 1}/${LEVEL_COUNT}`;
   progressElement.textContent = `${progressPercent(game)}%`;
+  powerElement.textContent = powerLabel(game.power);
 
   const terminal = game.status !== 'playing';
   leftButton.disabled = terminal;
   rightButton.disabled = terminal;
   jumpButton.disabled = terminal;
+  fireButton.disabled = terminal || game.power !== 'flower';
 }
 
 function drawBackground(cameraX, levelIndex) {
@@ -125,6 +134,25 @@ function drawSolid(solid, cameraX) {
   }
 }
 
+function drawQuestionBlock(block, cameraX) {
+  const x = Math.round(block.x - cameraX);
+  if (x + block.width < 0 || x > VIEW_WIDTH) return;
+  context.fillStyle = '#0f380f';
+  context.fillRect(x, block.y, block.width, block.height);
+  context.fillStyle = block.used ? '#306230' : '#9bbc0f';
+  context.fillRect(x + 3, block.y + 3, block.width - 6, block.height - 6);
+  context.strokeStyle = '#0f380f';
+  context.lineWidth = 2;
+  context.strokeRect(x + 7, block.y + 7, block.width - 14, block.height - 14);
+  if (!block.used) {
+    context.fillStyle = '#0f380f';
+    context.font = 'bold 22px ui-monospace, monospace';
+    context.textAlign = 'center';
+    context.fillText('?', x + block.width / 2, block.y + 24);
+    context.textAlign = 'start';
+  }
+}
+
 function drawCoin(coin, cameraX) {
   if (coin.collected) return;
   const x = Math.round(coin.x - cameraX);
@@ -135,6 +163,34 @@ function drawCoin(coin, cameraX) {
   context.fill();
   context.fillStyle = '#9bbc0f';
   context.fillRect(x - 2, coin.y - 5, 4, 10);
+}
+
+function drawPowerup(item, cameraX) {
+  if (item.collected) return;
+  const x = Math.round(item.x - cameraX);
+  if (x + item.width < 0 || x > VIEW_WIDTH) return;
+  context.fillStyle = '#0f380f';
+  if (item.type === 'flower') {
+    context.fillRect(x + 9, item.y + 10, 6, 14);
+    context.fillRect(x + 3, item.y + 3, 18, 15);
+    context.fillStyle = '#9bbc0f';
+    context.fillRect(x + 9, item.y + 7, 6, 6);
+  } else {
+    context.fillRect(x + 3, item.y + 2, 18, 12);
+    context.fillRect(x + 7, item.y + 12, 10, 12);
+    context.fillStyle = '#9bbc0f';
+    context.fillRect(x + 7, item.y + 5, 4, 4);
+    context.fillRect(x + 15, item.y + 5, 4, 4);
+  }
+}
+
+function drawProjectile(projectile, cameraX) {
+  const x = Math.round(projectile.x - cameraX);
+  if (x + projectile.width < 0 || x > VIEW_WIDTH) return;
+  context.fillStyle = '#0f380f';
+  context.fillRect(x, projectile.y, projectile.width, projectile.height);
+  context.fillStyle = '#9bbc0f';
+  context.fillRect(x + 3, projectile.y + 3, projectile.width - 6, projectile.height - 6);
 }
 
 function drawEnemy(enemy, cameraX) {
@@ -164,15 +220,21 @@ function drawPlayer(cameraX) {
   const x = Math.round(player.x - cameraX);
   const y = Math.round(player.y);
   const flip = player.facing < 0;
+  const powered = game.power !== 'small';
 
   context.fillStyle = '#0f380f';
+  if (powered) context.fillRect(x + 2, y - 4, 20, 4);
   context.fillRect(x + 4, y, 16, 5);
   context.fillRect(x + (flip ? 7 : 5), y + 5, 13, 8);
   context.fillRect(x + 3, y + 13, 18, 10);
   context.fillRect(x + 1, y + 22, 8, 8);
   context.fillRect(x + 15, y + 22, 8, 8);
-  context.fillStyle = '#8bac0f';
+  context.fillStyle = game.power === 'flower' ? '#9bbc0f' : '#8bac0f';
   context.fillRect(x + (flip ? 8 : 13), y + 8, 3, 3);
+  if (game.power === 'flower') {
+    context.fillRect(x + 5, y + 15, 4, 4);
+    context.fillRect(x + 15, y + 15, 4, 4);
+  }
 }
 
 function renderGame() {
@@ -180,21 +242,29 @@ function renderGame() {
   const cameraX = Math.max(0, Math.min(level.width - VIEW_WIDTH, game.player.x - VIEW_WIDTH * 0.34));
   drawBackground(cameraX, game.levelIndex);
   for (const solid of level.solids) drawSolid(solid, cameraX);
+  for (const block of game.blocks) drawQuestionBlock(block, cameraX);
   for (const coin of game.coins) drawCoin(coin, cameraX);
+  for (const item of game.powerups) drawPowerup(item, cameraX);
+  for (const projectile of game.projectiles) drawProjectile(projectile, cameraX);
   for (const enemy of game.enemies) drawEnemy(enemy, cameraX);
   drawGoal(level.goalX, cameraX);
   drawPlayer(cameraX);
+
+  canvas.dataset.questionBlocks = String(game.blocks.length);
+  canvas.dataset.usedBlocks = String(game.blocks.filter((block) => block.used).length);
+  canvas.dataset.power = game.power;
 
   context.fillStyle = '#0f380f';
   context.font = 'bold 16px ui-monospace, monospace';
   context.fillText(`LEVEL ${game.levelIndex + 1}/${LEVEL_COUNT} · ZIEL ${Math.max(0, Math.ceil((level.goalX - game.player.x) / 32))}`, 12, 24);
 }
 
-function resetGame(message = `Los geht’s: Drei Level warten. Erreiche in jedem Level die Fahne.`) {
+function resetGame(message = 'Los geht’s: Drei Level, ?-Blöcke und Power-ups warten.') {
   game = createGame();
   controls.left = false;
   controls.right = false;
   jumpQueued = false;
+  fireQueued = false;
   setStatus(message);
   updateHud();
   renderGame();
@@ -208,11 +278,16 @@ function handleStateFeedback(previous) {
 
   if (game.levelIndex !== previous.levelIndex) {
     const level = getLevel(game);
-    setStatus(`Level ${previous.levelIndex + 1} geschafft! Weiter mit Level ${game.levelIndex + 1}: ${level.name}. Punkte und Leben bleiben erhalten.`);
+    setStatus(`Level ${previous.levelIndex + 1} geschafft! Weiter mit Level ${game.levelIndex + 1}: ${level.name}. Punkte, Leben und Power-up bleiben erhalten.`);
   } else if (game.status === 'won' && previous.status !== 'won') {
     setStatus(`Alle ${LEVEL_COUNT} Level geschafft! ${game.score} Punkte – starke Runde.`);
   } else if (game.status === 'lost' && previous.status !== 'lost') {
     setStatus('Runde verloren. Starte eine neue Runde und versuche die drei Level noch einmal.');
+  } else if (game.power !== previous.power) {
+    if (game.power === 'flower') setStatus('Blume eingesammelt! Mit X/K oder Ball-Taste Gegner treffen.');
+    else if (game.power === 'mushroom' && previous.power === 'small') setStatus('Pilz eingesammelt! Der nächste Gegnertreffer kostet kein Leben.');
+    else if (game.power === 'mushroom') setStatus('Treffer! Blumen-Kraft verloren, Pilzschutz bleibt.');
+    else setStatus('Treffer! Pilzschutz verbraucht, aber kein Leben verloren.');
   } else if (game.lives < previous.lives && game.status === 'playing') {
     setStatus(`Treffer! Noch ${game.lives} Leben übrig.`);
   }
@@ -222,8 +297,9 @@ function frame(now) {
   const delta = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000));
   lastFrame = now;
   const previous = game;
-  game = stepGame(game, { ...controls, jump: jumpQueued }, delta);
+  game = stepGame(game, { ...controls, jump: jumpQueued, fire: fireQueued }, delta);
   jumpQueued = false;
+  fireQueued = false;
   handleStateFeedback(previous);
   updateHud();
   renderGame();
@@ -236,6 +312,10 @@ function setDirection(key, active) {
 
 function queueJump() {
   if (game.status === 'playing') jumpQueued = true;
+}
+
+function queueFire() {
+  if (game.status === 'playing' && game.power === 'flower') fireQueued = true;
 }
 
 function bindHoldButton(button, direction) {
@@ -260,7 +340,11 @@ jumpButton.addEventListener('pointerdown', (event) => {
   event.preventDefault();
   queueJump();
 });
-newGameButton.addEventListener('click', () => resetGame('Neue Runde gestartet. Drei Level, drei Fahnen – los geht’s.'));
+fireButton.addEventListener('pointerdown', (event) => {
+  event.preventDefault();
+  queueFire();
+});
+newGameButton.addEventListener('click', () => resetGame('Neue Runde gestartet. Drei Level mit ?-Blöcken – los geht’s.'));
 
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase();
@@ -273,9 +357,12 @@ window.addEventListener('keydown', (event) => {
   } else if (event.key === 'ArrowUp' || event.key === ' ' || key === 'w') {
     event.preventDefault();
     if (!event.repeat) queueJump();
+  } else if (key === 'x' || key === 'k') {
+    event.preventDefault();
+    if (!event.repeat) queueFire();
   } else if (key === 'r') {
     event.preventDefault();
-    resetGame('Neue Runde gestartet. Drei Level, drei Fahnen – los geht’s.');
+    resetGame('Neue Runde gestartet. Drei Level mit ?-Blöcken – los geht’s.');
   }
 });
 

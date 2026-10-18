@@ -6,7 +6,7 @@ Dieses Repository ist direkt der Webroot für die **Tromu Spielewelt**: eine lok
 - **4096** unter `/4096/` – gleiche Zahlen zusammenschieben und 4096 erreichen.
 - **Sudoku** unter `/sudoku/` – mobile-first 9×9-Sudoku mit Leicht/Mittel/Schwer, Notizen, Undo, Timer und lokaler Fortsetzung.
 - **Dr. Mario** unter `/dr-mario/` – mobile-first Kapselpuzzle mit drei Farben, Viren, Vierer-Matches, Kaskaden und lokaler Fortsetzung.
-- **Super Mario Land** unter `/super-mario-land/` – eigenständige Browser-Hommage als seitlich scrollendes Jump ’n’ Run mit eigener Canvas-Pixelgrafik und drei aufeinanderfolgenden Leveln.
+- **Super Mario Land** unter `/super-mario-land/` – eigenständige Browser-Hommage als seitlich scrollendes Jump ’n’ Run mit eigener Canvas-Pixelgrafik, drei Leveln sowie Pilz-/Blumen-Power-ups aus `?`-Blöcken.
 
 Alle Laufzeitressourcen liegen im Repository. Es werden keine fremden Spielgrafiken, Tracker oder externen Runtime-Assets geladen.
 
@@ -64,11 +64,11 @@ Dr. Mario speichert Flasche, aktive und nächste Kapsel, Punkte und Viruszahl lo
 
 - Links/rechts: Pfeiltasten oder `A`/`D`
 - Springen: Pfeil hoch, `W` oder Leertaste
+- Blumenball: `X` oder `K`; auf Touch über die Taste **Ball**
 - `R`: neue Runde
-- Touch: separate Tasten für links, rechts und springen
-- Gegner von oben treffen, Münzen sammeln, Lücken überspringen und in jedem Level die Fahne erreichen
+- Gegner von oben treffen, Münzen sammeln, `?`-Blöcke von unten aktivieren, Lücken überspringen und in jedem Level die Fahne erreichen
 
-Eine Runde startet mit drei Leben und umfasst **drei unterschiedliche Level**: `Grüner Pfad`, `Höhenweg` und `Festungslauf`. Beim Erreichen der Fahne werden Punkte und verbleibende Leben ins nächste Level übernommen; erst die Fahne im dritten Level beendet die Gesamtrunde erfolgreich.
+Eine Runde startet mit drei Leben und umfasst **drei unterschiedliche Level**: `Grüner Pfad`, `Höhenweg` und `Festungslauf`. Jedes Level enthält einen Pilz- und einen Blumen-`?`-Block. Der **Pilz** schützt vor dem nächsten Gegnertreffer, ohne ein Leben zu verlieren. Die **Blume** ist die stärkere Stufe und schaltet einen lokalen Ball-Angriff frei, der Gegner besiegen kann; ein Treffer stuft zunächst auf Pilz zurück. Beim Erreichen einer Fahne werden Punkte, verbleibende Leben und der aktuelle Power-up-Zustand ins nächste Level übernommen. Bei Lebensverlust fällt die Figur auf den kleinen Zustand zurück. Erst die Fahne im dritten Level beendet die Gesamtrunde erfolgreich.
 
 ## Tests
 
@@ -79,7 +79,7 @@ npm test
 npm run check
 ```
 
-`npm run check` prüft die Syntax der Welcome-Page und aller vier Spiele sowie alle Node-Regressionen. Dazu gehören 4096-, Sudoku-, Dr.-Mario- und Super-Mario-Land-Regeln sowie Accessibility-, Responsive-, Service-Worker-, Storage-Recovery- und Webroot-Verträge.
+`npm run check` prüft die Syntax der Welcome-Page und aller vier Spiele sowie alle Node-Regressionen. Dazu gehören 4096-, Sudoku-, Dr.-Mario- und Super-Mario-Land-Regeln inklusive `?`-Block-Aktivierung, Pilzschutz, Blumenangriff und Power-up-Übernahme über Levelwechsel sowie Accessibility-, Responsive-, Service-Worker-, Storage-Recovery- und Webroot-Verträge.
 
 Zusätzlich gibt es echte Browser-Smoke-Tests. Dafür werden Node.js 22+ und ein lokales Chrome/Chromium benötigt (`CHROME_BIN` kann explizit gesetzt werden):
 
@@ -92,7 +92,7 @@ Der Pflicht-Smoke startet lokale Webroots und prüft reale Browserpfade in Headl
 - der gemeinsame Mehrseiten-Smoke lädt die Tromu-Welcome-Page online, bestätigt Service-Worker-Bereitschaft, Manifest und Installationshinweise, öffnet `/4096/`, prüft Sudoku-Eingabe/Persistenz und navigiert anschließend offline zurück zu Welcome-Page und 4096;
 - der Dr.-Mario-Smoke prüft 360×640-Mobile-Fit, Service-Worker-Bereitschaft, Save-Restore nach echtem Offline-Reload und kanonische Unterseiten-Navigation;
 - `dr-mario/storage-recovery-smoke.mjs` verifiziert in echtem Chrome, dass syntaktisch kaputtes und strukturell inkompatibles `localStorage` durch eine frische valide Runde ersetzt wird;
-- der Super-Mario-Land-Smoke prüft 360×640, die sichtbare `1/3`-Levelanzeige, die Regelkette Level 1 → 2 → 3 → Sieg, Tastatureingabe und Offline-Reload.
+- der Super-Mario-Land-Smoke prüft 360×640 ohne Scroll-Zwang, sichtbares Power-up-HUD und `?`-Blöcke, Pilz-/Blumen-Regelpfade, Power-up-Übernahme über Level 1 → 2 → 3, Tastatureingabe und Offline-Reload.
 
 In GitHub Actions laufen `npm run check` und `npm run smoke` als Pflichtpfade.
 
@@ -147,11 +147,11 @@ Für einen manuellen Mehrseiten-Offline-Smoke:
 
 ### Super Mario Land
 
-- `super-mario-land/game.js` – drei Leveldefinitionen plus pure Bewegungs-, Kollisions-, Lebens-, Levelwechsel- und Zielregeln
-- `super-mario-land/app.js` – Canvas-Rendering, Kamera/Hintergründe, HUD, Touch/Tastatur, Bestwert und Offline-Status
-- `super-mario-land/index.html` / `super-mario-land/styles.css` – mobile-first Spieloberfläche
-- `super-mario-land/*.test.js` – Spielregeln, Levelübergänge und UI-/PWA-Verträge
-- `super-mario-land/browser-smoke.mjs` – echter Chrome-Smoke für Mehrlevel-Regelkette, Eingabe und Offline-Reload
+- `super-mario-land/game.js` – drei Leveldefinitionen plus pure Bewegungs-, Kollisions-, Lebens-, `?`-Block-, Pilz-/Blumen-, Projektil-, Levelwechsel- und Zielregeln
+- `super-mario-land/app.js` – Canvas-Rendering für Level/Power-ups, Kamera/Hintergründe, HUD, Touch/Tastatur, Bestwert und Offline-Status
+- `super-mario-land/index.html` / `super-mario-land/styles.css` – mobile-first Spieloberfläche mit vier Touch-Aktionen
+- `super-mario-land/*.test.js` – Spielregeln, Power-ups, Levelübergänge und UI-/PWA-Verträge
+- `super-mario-land/browser-smoke.mjs` – echter Chrome-Smoke für Mobile-Fit, Power-ups, Mehrlevel-Regelkette, Eingabe und Offline-Reload
 
 ### Gemeinsame PWA-/Qualitätsschicht
 

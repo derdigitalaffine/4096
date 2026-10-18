@@ -2,12 +2,18 @@ export const WORLD_HEIGHT = 450;
 export const GROUND_Y = 384;
 export const PLAYER_WIDTH = 24;
 export const PLAYER_HEIGHT = 30;
+export const QUESTION_BLOCK_SIZE = 32;
 
 const MOVE_SPEED = 220;
 const JUMP_SPEED = 650;
 const GRAVITY = 1850;
 const MAX_FALL_SPEED = 850;
 const ENEMY_SPEED = 52;
+const POWERUP_SIZE = 24;
+const PROJECTILE_SIZE = 10;
+const PROJECTILE_SPEED = 440;
+const FIRE_COOLDOWN = 0.28;
+const HIT_INVULNERABILITY = 1;
 
 export const LEVELS = Object.freeze([
   Object.freeze({
@@ -26,6 +32,10 @@ export const LEVELS = Object.freeze([
       { x: 1664, y: 272, width: 192, height: 32 },
       { x: 2464, y: 304, width: 160, height: 32 },
       { x: 2752, y: 256, width: 128, height: 32 },
+    ]),
+    blocks: Object.freeze([
+      { x: 576, y: 304, powerup: 'mushroom' },
+      { x: 1152, y: 288, powerup: 'flower' },
     ]),
     coins: Object.freeze([
       { x: 224, y: 334 }, { x: 352, y: 258 }, { x: 416, y: 258 }, { x: 800, y: 334 },
@@ -56,6 +66,10 @@ export const LEVELS = Object.freeze([
       { x: 2384, y: 272, width: 192, height: 32 },
       { x: 2752, y: 224, width: 160, height: 32 },
       { x: 3040, y: 288, width: 128, height: 32 },
+    ]),
+    blocks: Object.freeze([
+      { x: 512, y: 288, powerup: 'mushroom' },
+      { x: 1344, y: 288, powerup: 'flower' },
     ]),
     coins: Object.freeze([
       { x: 192, y: 334 }, { x: 320, y: 258 }, { x: 384, y: 258 }, { x: 752, y: 334 },
@@ -93,6 +107,10 @@ export const LEVELS = Object.freeze([
       { x: 2560, y: 208, width: 160, height: 32 },
       { x: 2944, y: 288, width: 128, height: 32 },
       { x: 3168, y: 224, width: 160, height: 32 },
+    ]),
+    blocks: Object.freeze([
+      { x: 416, y: 304, powerup: 'mushroom' },
+      { x: 1024, y: 288, powerup: 'flower' },
     ]),
     coins: Object.freeze([
       { x: 160, y: 334 }, { x: 256, y: 242 }, { x: 320, y: 242 }, { x: 624, y: 334 },
@@ -143,12 +161,25 @@ function playerSpawn() {
   };
 }
 
-function createLevelState(levelIndex, score, lives) {
+function createLevelState(levelIndex, score, lives, power = 'small') {
   const normalized = normalizedLevelIndex(levelIndex);
   const level = LEVELS[normalized];
   return {
     levelIndex: normalized,
     player: playerSpawn(),
+    blocks: level.blocks.map((block, index) => ({
+      ...block,
+      id: index,
+      width: QUESTION_BLOCK_SIZE,
+      height: QUESTION_BLOCK_SIZE,
+      used: false,
+    })),
+    powerups: [],
+    projectiles: [],
+    nextEntityId: 0,
+    fireCooldown: 0,
+    invulnerable: 0,
+    power,
     coins: level.coins.map((coin, index) => ({ ...coin, id: index, collected: false })),
     enemies: level.enemies.map((enemy, index) => ({
       id: index,
@@ -167,7 +198,7 @@ function createLevelState(levelIndex, score, lives) {
 }
 
 export function createGame(startLevelIndex = 0) {
-  return createLevelState(startLevelIndex, 0, 3);
+  return createLevelState(startLevelIndex, 0, 3, 'small');
 }
 
 function overlaps(a, b) {
@@ -177,6 +208,17 @@ function overlaps(a, b) {
     && a.y + a.height > b.y;
 }
 
+function blockRect(block) {
+  return { x: block.x, y: block.y, width: block.width, height: block.height };
+}
+
+function collisionItems(level, blocks) {
+  return [
+    ...level.solids.map((solid) => ({ ...solid, blockId: null })),
+    ...blocks.map((block) => ({ ...blockRect(block), blockId: block.id })),
+  ];
+}
+
 function pointHitsSolid(solids, x, y) {
   return solids.some((solid) => x >= solid.x
     && x <= solid.x + solid.width
@@ -184,9 +226,9 @@ function pointHitsSolid(solids, x, y) {
     && y <= solid.y + solid.height);
 }
 
-function movePlayerHorizontally(player, deltaX, level) {
+function movePlayerHorizontally(player, deltaX, level, blocks) {
   const moved = { ...player, x: player.x + deltaX };
-  for (const solid of level.solids) {
+  for (const solid of collisionItems(level, blocks)) {
     if (!overlaps(moved, solid)) continue;
     if (deltaX > 0) moved.x = solid.x - moved.width;
     else if (deltaX < 0) moved.x = solid.x + solid.width;
@@ -196,9 +238,10 @@ function movePlayerHorizontally(player, deltaX, level) {
   return moved;
 }
 
-function movePlayerVertically(player, deltaY, level) {
+function movePlayerVertically(player, deltaY, level, blocks) {
   const moved = { ...player, y: player.y + deltaY, onGround: false };
-  for (const solid of level.solids) {
+  let hitBlockId = null;
+  for (const solid of collisionItems(level, blocks)) {
     if (!overlaps(moved, solid)) continue;
     if (deltaY > 0) {
       moved.y = solid.y - moved.height;
@@ -207,9 +250,10 @@ function movePlayerVertically(player, deltaY, level) {
     } else if (deltaY < 0) {
       moved.y = solid.y + solid.height;
       moved.vy = 0;
+      if (solid.blockId !== null) hitBlockId = solid.blockId;
     }
   }
-  return moved;
+  return { player: moved, hitBlockId };
 }
 
 function loseLife(state) {
@@ -218,6 +262,9 @@ function loseLife(state) {
     return {
       ...state,
       lives: 0,
+      power: 'small',
+      invulnerable: 0,
+      projectiles: [],
       status: 'lost',
       player: { ...state.player, vx: 0, vy: 0 },
     };
@@ -225,8 +272,32 @@ function loseLife(state) {
   return {
     ...state,
     lives,
+    power: 'small',
+    invulnerable: 0,
+    projectiles: [],
     player: playerSpawn(),
   };
+}
+
+function takeEnemyHit(state) {
+  if (state.invulnerable > 0) return state;
+  if (state.power === 'flower') {
+    return {
+      ...state,
+      power: 'mushroom',
+      invulnerable: HIT_INVULNERABILITY,
+      player: { ...state.player, vy: -JUMP_SPEED * 0.3, onGround: false },
+    };
+  }
+  if (state.power === 'mushroom') {
+    return {
+      ...state,
+      power: 'small',
+      invulnerable: HIT_INVULNERABILITY,
+      player: { ...state.player, vy: -JUMP_SPEED * 0.3, onGround: false },
+    };
+  }
+  return loseLife(state);
 }
 
 function moveEnemies(enemies, seconds, level) {
@@ -246,6 +317,77 @@ function moveEnemies(enemies, seconds, level) {
   });
 }
 
+function activateBlock(state, blockId) {
+  if (blockId === null) return state;
+  const block = state.blocks.find((candidate) => candidate.id === blockId);
+  if (!block || block.used) return state;
+  block.used = true;
+  const id = state.nextEntityId;
+  state.nextEntityId += 1;
+  state.powerups.push({
+    id,
+    type: block.powerup,
+    x: block.x + (QUESTION_BLOCK_SIZE - POWERUP_SIZE) / 2,
+    y: block.y - POWERUP_SIZE - 2,
+    width: POWERUP_SIZE,
+    height: POWERUP_SIZE,
+    collected: false,
+  });
+  state.score += 50;
+  return state;
+}
+
+function collectPowerups(state) {
+  for (const item of state.powerups) {
+    if (item.collected || !overlaps(state.player, item)) continue;
+    item.collected = true;
+    if (item.type === 'flower') {
+      state.power = 'flower';
+      state.score += 800;
+    } else {
+      if (state.power === 'small') state.power = 'mushroom';
+      state.score += 500;
+    }
+  }
+  return state;
+}
+
+function spawnProjectile(state) {
+  if (state.power !== 'flower' || state.fireCooldown > 0) return state;
+  const direction = state.player.facing < 0 ? -1 : 1;
+  const id = state.nextEntityId;
+  state.nextEntityId += 1;
+  state.projectiles.push({
+    id,
+    x: direction > 0 ? state.player.x + state.player.width : state.player.x - PROJECTILE_SIZE,
+    y: state.player.y + 10,
+    width: PROJECTILE_SIZE,
+    height: PROJECTILE_SIZE,
+    vx: PROJECTILE_SPEED * direction,
+  });
+  state.fireCooldown = FIRE_COOLDOWN;
+  return state;
+}
+
+function moveProjectiles(state, seconds, level) {
+  const solids = collisionItems(level, state.blocks);
+  state.projectiles = state.projectiles
+    .map((projectile) => ({ ...projectile, x: projectile.x + projectile.vx * seconds }))
+    .filter((projectile) => projectile.x + projectile.width >= 0
+      && projectile.x <= level.width
+      && !solids.some((solid) => overlaps(projectile, solid)));
+
+  for (const projectile of state.projectiles) {
+    const enemy = state.enemies.find((candidate) => candidate.alive && overlaps(projectile, candidate));
+    if (!enemy) continue;
+    enemy.alive = false;
+    projectile.hit = true;
+    state.score += 200;
+  }
+  state.projectiles = state.projectiles.filter((projectile) => !projectile.hit);
+  return state;
+}
+
 function clearLevel(state, level) {
   const timeBonus = Math.max(0, Math.round((level.parTime - state.elapsed) * 10));
   const score = state.score + 1000 + timeBonus;
@@ -257,7 +399,7 @@ function clearLevel(state, level) {
       player: { ...state.player, vx: 0 },
     };
   }
-  return createLevelState(state.levelIndex + 1, score, state.lives);
+  return createLevelState(state.levelIndex + 1, score, state.lives, state.power);
 }
 
 export function stepGame(current, input = {}, deltaSeconds = 0) {
@@ -276,17 +418,29 @@ export function stepGame(current, input = {}, deltaSeconds = 0) {
     player.onGround = false;
   }
 
-  player = movePlayerHorizontally(player, player.vx * seconds, level);
+  const blocks = current.blocks.map((block) => ({ ...block }));
+  player = movePlayerHorizontally(player, player.vx * seconds, level, blocks);
   player.vy = Math.min(MAX_FALL_SPEED, player.vy + GRAVITY * seconds);
-  player = movePlayerVertically(player, player.vy * seconds, level);
+  const verticalMove = movePlayerVertically(player, player.vy * seconds, level, blocks);
+  player = verticalMove.player;
 
   let next = {
     ...current,
     player,
+    blocks,
+    powerups: current.powerups.map((item) => ({ ...item })),
+    projectiles: current.projectiles.map((projectile) => ({ ...projectile })),
     coins: current.coins.map((coin) => ({ ...coin })),
     enemies: moveEnemies(current.enemies, seconds, level),
     elapsed: current.elapsed + seconds,
+    fireCooldown: Math.max(0, current.fireCooldown - seconds),
+    invulnerable: Math.max(0, current.invulnerable - seconds),
   };
+
+  activateBlock(next, verticalMove.hitBlockId);
+  collectPowerups(next);
+  if (input.fire) spawnProjectile(next);
+  moveProjectiles(next, seconds, level);
 
   for (const coin of next.coins) {
     if (coin.collected) continue;
@@ -306,13 +460,11 @@ export function stepGame(current, input = {}, deltaSeconds = 0) {
       next.score += 200;
       continue;
     }
-    return loseLife(next);
+    return takeEnemyHit(next);
   }
 
   if (next.player.y > WORLD_HEIGHT + 64) return loseLife(next);
-
   if (next.player.x + next.player.width >= level.goalX) return clearLevel(next, level);
-
   return next;
 }
 

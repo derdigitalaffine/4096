@@ -125,7 +125,7 @@ test('service worker precaches welcome page, all four games and critical shell',
     './manifest.webmanifest', ...iconFiles.map((file) => `./${file}`),
   ];
   for (const ref of refs) assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')));
-  assert.match(worker, /4096-shell-v13/);
+  assert.match(worker, /4096-shell-v14/);
 });
 
 test('4096 exposes undo controls and a polite live game status', () => {

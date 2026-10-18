@@ -83,7 +83,7 @@ h1 { margin: 0; font-size: clamp(2rem, 7vw, 4rem); line-height: 0.95; letter-spa
 .stats {
   margin: 0.8rem 0;
   display: grid;
-  grid-template-columns: repeat(6, minmax(74px, 1fr)) auto;
+  grid-template-columns: repeat(7, minmax(68px, 1fr)) auto;
   gap: 0.4rem;
   align-items: stretch;
 }
@@ -141,9 +141,9 @@ canvas {
 }
 
 .touch-controls {
-  min-width: min(100%, 310px);
+  min-width: min(100%, 380px);
   display: grid;
-  grid-template-columns: 58px 58px minmax(96px, 1fr);
+  grid-template-columns: 58px 58px minmax(88px, 1fr) minmax(64px, 1fr);
   gap: 0.45rem;
 }
 
@@ -178,7 +178,7 @@ footer { margin-top: 0.8rem; color: #d8e3b2; font-size: 0.74rem; text-align: cen
   .game-nav { justify-content: flex-start; flex-wrap: nowrap; gap: 0.25rem; }
   .game-nav a { min-height: 44px; padding: 0.3rem 0.45rem; font-size: 0.7rem; }
 
-  .stats { margin: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.2rem; }
+  .stats { margin: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.2rem; }
   .stat-card { padding: 0.24rem 0.2rem; border-width: 2px; box-shadow: 2px 2px 0 #081f08; text-align: center; }
   .stat-card span { font-size: 0.5rem; letter-spacing: -0.03em; }
   .stat-card strong { margin-top: 0.08rem; font-size: 0.78rem; line-height: 1; }
@@ -187,9 +187,9 @@ footer { margin-top: 0.8rem; color: #d8e3b2; font-size: 0.74rem; text-align: cen
   .game-panel { min-height: 0; align-content: start; gap: 0.35rem; padding: 0.38rem; border-width: 3px; box-shadow: 3px 3px 0 #081f08; }
   canvas { border-width: 3px; max-height: 38dvh; object-fit: contain; }
   .controls { gap: 0.35rem; }
-  .controls > button { padding-inline: 0.5rem; font-size: 0.72rem; }
-  .touch-controls { min-width: 0; flex: 1; grid-template-columns: 48px 48px minmax(82px, 1fr); gap: 0.3rem; }
-  .touch-controls button { padding-inline: 0.35rem; font-size: 0.82rem; }
+  .controls > button { padding-inline: 0.45rem; font-size: 0.7rem; }
+  .touch-controls { min-width: 0; flex: 1; grid-template-columns: 44px 44px minmax(72px, 1fr) minmax(60px, 1fr); gap: 0.3rem; }
+  .touch-controls button { padding-inline: 0.25rem; font-size: 0.78rem; }
   .instructions { display: none; }
   .status { min-height: 1rem; font-size: 0.68rem; line-height: 1.12; }
   footer { display: none; }
@@ -197,7 +197,7 @@ footer { margin-top: 0.8rem; color: #d8e3b2; font-size: 0.74rem; text-align: cen
 
 @media (max-width: 360px) {
   .game-nav a { font-size: 0.64rem; }
-  .touch-controls { grid-template-columns: 44px 44px minmax(74px, 1fr); }
+  .touch-controls { grid-template-columns: 44px 44px minmax(68px, 1fr) minmax(56px, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {
