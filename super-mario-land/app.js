@@ -1,6 +1,7 @@
 import { connectionStatus } from '../connectivity.js';
 import {
   LEVEL_COUNT,
+  campaignPosition,
   collectedCoins,
   createGame,
   getLevel,
@@ -31,8 +32,9 @@ const VIEW_HEIGHT = canvas.height;
 const controls = { left: false, right: false };
 const LEVEL_THEMES = [
   { sky: '#9bbc0f', hills: '#8bac0f', clouds: '#306230' },
-  { sky: '#8bac0f', hills: '#9bbc0f', clouds: '#306230' },
+  { sky: '#8bac0f', hills: '#306230', clouds: '#9bbc0f' },
   { sky: '#9bbc0f', hills: '#306230', clouds: '#8bac0f' },
+  { sky: '#306230', hills: '#0f380f', clouds: '#8bac0f' },
 ];
 let jumpQueued = false;
 let fireQueued = false;
@@ -79,11 +81,12 @@ function updateConnection() {
 
 function updateHud() {
   const level = getLevel(game);
+  const position = campaignPosition(game.levelIndex);
   scoreElement.textContent = String(game.score);
   coinsElement.textContent = `${collectedCoins(game)}/${level.coins.length}`;
   livesElement.textContent = String(game.lives);
   bestElement.textContent = String(bestScore);
-  levelElement.textContent = `${game.levelIndex + 1}/${LEVEL_COUNT}`;
+  levelElement.textContent = `${position.world}-${position.stage} · ${position.number}/${LEVEL_COUNT}`;
   progressElement.textContent = `${progressPercent(game)}%`;
   powerElement.textContent = powerLabel(game.power);
 
@@ -94,15 +97,16 @@ function updateHud() {
   fireButton.disabled = terminal || game.power !== 'flower';
 }
 
-function drawBackground(cameraX, levelIndex) {
-  const theme = LEVEL_THEMES[levelIndex % LEVEL_THEMES.length];
+function drawBackground(cameraX, level) {
+  const theme = LEVEL_THEMES[level.world - 1] ?? LEVEL_THEMES[0];
+  const stageOffset = (level.stage - 1) * 8;
   context.fillStyle = theme.sky;
   context.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
 
   context.fillStyle = theme.hills;
   for (let index = -1; index < 7; index += 1) {
     const x = index * 180 - ((cameraX * 0.18) % 180);
-    const peak = 230 - levelIndex * 12 + (index % 2) * 18;
+    const peak = 236 - (level.world - 1) * 10 - stageOffset + (index % 2) * 18;
     context.beginPath();
     context.moveTo(x, 360);
     context.lineTo(x + 90, peak);
@@ -114,7 +118,7 @@ function drawBackground(cameraX, levelIndex) {
   context.fillStyle = theme.clouds;
   for (let index = 0; index < 8; index += 1) {
     const x = index * 150 - ((cameraX * 0.08) % 150);
-    const y = 72 + (index % 3) * 28 + levelIndex * 6;
+    const y = 72 + (index % 3) * 28 + stageOffset;
     context.fillRect(x, y, 54, 12);
     context.fillRect(x + 12, y - 10, 32, 10);
   }
@@ -205,12 +209,16 @@ function drawEnemy(enemy, cameraX) {
   context.fillRect(x + enemy.width - 10, enemy.y + 9, 4, 4);
 }
 
-function drawGoal(goalX, cameraX) {
-  const x = Math.round(goalX - cameraX);
-  if (x < -40 || x > VIEW_WIDTH + 40) return;
+function drawGoal(level, cameraX) {
+  const x = Math.round(level.goalX - cameraX);
+  if (x < -50 || x > VIEW_WIDTH + 50) return;
   context.fillStyle = '#0f380f';
   context.fillRect(x, 152, 5, 232);
   context.fillRect(x - 22, 152, 22, 16);
+  if (level.kind === 'fortress') {
+    context.fillRect(x + 24, 128, 6, 256);
+    context.fillRect(x - 28, 128, 64, 8);
+  }
   context.fillStyle = '#306230';
   context.fillRect(x - 18, 156, 14, 8);
 }
@@ -240,26 +248,28 @@ function drawPlayer(cameraX) {
 function renderGame() {
   const level = getLevel(game);
   const cameraX = Math.max(0, Math.min(level.width - VIEW_WIDTH, game.player.x - VIEW_WIDTH * 0.34));
-  drawBackground(cameraX, game.levelIndex);
+  drawBackground(cameraX, level);
   for (const solid of level.solids) drawSolid(solid, cameraX);
   for (const block of game.blocks) drawQuestionBlock(block, cameraX);
   for (const coin of game.coins) drawCoin(coin, cameraX);
   for (const item of game.powerups) drawPowerup(item, cameraX);
   for (const projectile of game.projectiles) drawProjectile(projectile, cameraX);
   for (const enemy of game.enemies) drawEnemy(enemy, cameraX);
-  drawGoal(level.goalX, cameraX);
+  drawGoal(level, cameraX);
   drawPlayer(cameraX);
 
   canvas.dataset.questionBlocks = String(game.blocks.length);
   canvas.dataset.usedBlocks = String(game.blocks.filter((block) => block.used).length);
   canvas.dataset.power = game.power;
+  canvas.dataset.world = String(level.world);
+  canvas.dataset.stage = String(level.stage);
 
   context.fillStyle = '#0f380f';
   context.font = 'bold 16px ui-monospace, monospace';
-  context.fillText(`LEVEL ${game.levelIndex + 1}/${LEVEL_COUNT} · ZIEL ${Math.max(0, Math.ceil((level.goalX - game.player.x) / 32))}`, 12, 24);
+  context.fillText(`WELT ${level.world}-${level.stage} · ZIEL ${Math.max(0, Math.ceil((level.goalX - game.player.x) / 32))}`, 12, 24);
 }
 
-function resetGame(message = 'Los geht’s: Drei Level, ?-Blöcke und Power-ups warten.') {
+function resetGame(message = 'Los geht’s: Vier Welten mit zwölf Stages, ?-Blöcken und Power-ups warten.') {
   game = createGame();
   controls.left = false;
   controls.right = false;
@@ -278,11 +288,17 @@ function handleStateFeedback(previous) {
 
   if (game.levelIndex !== previous.levelIndex) {
     const level = getLevel(game);
-    setStatus(`Level ${previous.levelIndex + 1} geschafft! Weiter mit Level ${game.levelIndex + 1}: ${level.name}. Punkte, Leben und Power-up bleiben erhalten.`);
+    const previousPosition = campaignPosition(previous.levelIndex);
+    const nextPosition = campaignPosition(game.levelIndex);
+    if (nextPosition.world !== previousPosition.world) {
+      setStatus(`Welt ${previousPosition.world} geschafft! Weiter mit Welt ${nextPosition.world}-${nextPosition.stage}: ${level.name}. Punkte, Leben und Power-up bleiben erhalten.`);
+    } else {
+      setStatus(`Welt ${previousPosition.world}-${previousPosition.stage} geschafft! Weiter mit ${nextPosition.world}-${nextPosition.stage}: ${level.name}. Punkte, Leben und Power-up bleiben erhalten.`);
+    }
   } else if (game.status === 'won' && previous.status !== 'won') {
-    setStatus(`Alle ${LEVEL_COUNT} Level geschafft! ${game.score} Punkte – starke Runde.`);
+    setStatus(`Alle ${LEVEL_COUNT} Stages geschafft! ${game.score} Punkte – Kampagne gemeistert.`);
   } else if (game.status === 'lost' && previous.status !== 'lost') {
-    setStatus('Runde verloren. Starte eine neue Runde und versuche die drei Level noch einmal.');
+    setStatus('Runde verloren. Starte eine neue Kampagne und versuche die zwölf Stages noch einmal.');
   } else if (game.power !== previous.power) {
     if (game.power === 'flower') setStatus('Blume eingesammelt! Mit X/K oder Ball-Taste Gegner treffen.');
     else if (game.power === 'mushroom' && previous.power === 'small') setStatus('Pilz eingesammelt! Der nächste Gegnertreffer kostet kein Leben.');
@@ -344,7 +360,7 @@ fireButton.addEventListener('pointerdown', (event) => {
   event.preventDefault();
   queueFire();
 });
-newGameButton.addEventListener('click', () => resetGame('Neue Runde gestartet. Drei Level mit ?-Blöcken – los geht’s.'));
+newGameButton.addEventListener('click', () => resetGame('Neue Kampagne gestartet. Zwölf Stages mit ?-Blöcken – los geht’s.'));
 
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase();
@@ -362,7 +378,7 @@ window.addEventListener('keydown', (event) => {
     if (!event.repeat) queueFire();
   } else if (key === 'r') {
     event.preventDefault();
-    resetGame('Neue Runde gestartet. Drei Level mit ?-Blöcken – los geht’s.');
+    resetGame('Neue Kampagne gestartet. Zwölf Stages mit ?-Blöcken – los geht’s.');
   }
 });
 
