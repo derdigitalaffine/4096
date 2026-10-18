@@ -339,10 +339,11 @@ function frame(now) {
   game = stepGame(game, { ...controls, jump: jumpQueued, fire: fireQueued }, delta);
   jumpQueued = false;
   fireQueued = false;
+  const playerTransition = game.levelIndex !== previous.levelIndex || game.lives < previous.lives;
+  if (playerTransition) releaseDirectionalHolds();
   handleStateFeedback(previous);
   updateHud();
-  const snapCamera = game.levelIndex !== previous.levelIndex || game.lives < previous.lives;
-  renderGame(delta, { snapCamera });
+  renderGame(delta, { snapCamera: playerTransition });
   requestAnimationFrame(frame);
 }
 
