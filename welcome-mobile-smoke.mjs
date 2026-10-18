@@ -6,6 +6,7 @@ import { createServer as createNetServer } from 'node:net';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
+import { GAMES } from './games.js';
 
 const ROOT = resolve('.');
 const MIME_TYPES = {
@@ -132,7 +133,7 @@ class DevToolsClient {
         resolve: resolveEvent,
         timeoutId: setTimeout(() => {
           const index = waiters.indexOf(waiter);
-          if (index >= 0) waiters.splice(index, 1);
+          if (index >= 0) waiters.splice(indexOf(waiter), 1);
           reject(new Error(`Timeout beim Warten auf ${method}`));
         }, timeout),
       };
@@ -228,7 +229,7 @@ try {
   assert.equal(layout.innerHeight, 640);
   assert.ok(layout.scrollWidth <= layout.innerWidth + 1, `Welcome-Page hat horizontalen Overflow: ${layout.scrollWidth}px bei ${layout.innerWidth}px Viewport.`);
   assert.ok(layout.scrollHeight > layout.innerHeight, 'Welcome-Page sollte die Spiele- und Installationsbereiche vertikal scrollbar zugänglich machen.');
-  assert.equal(layout.cards.length, 4, 'Welcome-Page zeigt mobil nicht vier Spielkarten.');
+  assert.equal(layout.cards.length, GAMES.length, `Welcome-Page zeigt mobil ${layout.cards.length} statt ${GAMES.length} registrierter Spielkarten.`);
   assert.equal(layout.installCards.length, 2, 'Welcome-Page zeigt mobil nicht beide Installationskarten.');
   assert.ok(layout.primary.height >= 44 && layout.primary.width >= 44, `Primäres Touchziel ist zu klein: ${JSON.stringify(layout.primary)}`);
 
@@ -255,7 +256,7 @@ try {
   })()`);
   assert.equal(footerReachable, true, 'Footer/Seitenende ist im 360x640-Viewport nicht erreichbar.');
 
-  console.log('browser-smoke: tromu welcome 360x640 layout + touch targets + scroll reachability passed');
+  console.log(`browser-smoke: tromu welcome ${GAMES.length} registry cards 360x640 layout + touch targets + scroll reachability passed`);
 } catch (error) {
   const browserDetails = browserStderr.trim() ? `\nBrowser stderr:\n${browserStderr.trim()}` : '';
   throw new Error(`${error.message}${browserDetails}`, { cause: error });
