@@ -1,0 +1,167 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #040914;
+  color: #f3f8ff;
+  --panel: #0b1830;
+  --panel-strong: #102443;
+  --border: #31517a;
+  --muted: #9fb5d2;
+  --accent: #64d8ff;
+  --accent-strong: #b5f4ff;
+  --danger: #ff7c8f;
+  --focus: #fff29a;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 18% 12%, rgb(100 216 255 / 0.14), transparent 22rem),
+    radial-gradient(circle at 80% 24%, rgb(192 123 255 / 0.11), transparent 24rem),
+    linear-gradient(#07101f, #03060e 65%);
+}
+
+button, a { font: inherit; }
+button {
+  min-height: 44px;
+  border: 2px solid #426b96;
+  border-radius: 9px;
+  padding: 0.5rem 0.75rem;
+  background: #dfeeff;
+  color: #07101f;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button:active { transform: translateY(1px); filter: brightness(0.94); }
+button:focus-visible, a:focus-visible, #shooter-canvas:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+.shooter-shell {
+  width: min(100% - 1.25rem, 940px);
+  margin: 0 auto;
+  padding: 1rem 0 max(1rem, env(safe-area-inset-bottom));
+}
+
+.topbar { display: flex; gap: 1rem; align-items: end; justify-content: space-between; }
+.eyebrow { margin: 0 0 0.2rem; color: var(--accent-strong); font-size: 0.72rem; font-weight: 950; letter-spacing: 0.1em; text-transform: uppercase; }
+h1 { margin: 0; font-size: clamp(2rem, 7vw, 4rem); line-height: 0.96; letter-spacing: -0.04em; }
+.tagline { margin: 0.4rem 0 0; color: var(--muted); max-width: 38rem; }
+
+.game-nav { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: flex-end; }
+.game-nav a {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.42rem 0.72rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: #f3f8ff;
+  text-decoration: none;
+  font-weight: 850;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(70px, 1fr)) minmax(140px, auto);
+  gap: 0.45rem;
+  margin: 0.8rem 0 0.65rem;
+}
+.stats > div, .connection {
+  min-height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgb(11 24 48 / 0.93);
+}
+.stats > div { display: grid; place-content: center; text-align: center; padding: 0.25rem 0.5rem; }
+.stats span { color: var(--muted); font-size: 0.66rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; }
+.stats strong { font-size: 1.08rem; font-variant-numeric: tabular-nums; }
+.connection { display: grid; place-items: center; padding: 0.3rem 0.55rem; color: var(--muted); font-size: 0.75rem; text-align: center; }
+.connection[data-ready="true"] { color: #a6f0bc; }
+.connection[data-warning="true"] { color: #ffb88c; }
+
+.play-area { display: grid; grid-template-columns: auto minmax(210px, 1fr); gap: 1rem; align-items: center; justify-content: center; }
+#shooter-canvas {
+  width: min(58vw, 320px);
+  aspect-ratio: 320 / 420;
+  display: block;
+  border: 3px solid #5e8cc0;
+  border-radius: 12px;
+  background: #050b18;
+  box-shadow: 0 18px 42px rgb(0 0 0 / 0.34), inset 0 0 0 1px #183456;
+  touch-action: none;
+}
+.control-deck { display: grid; gap: 0.7rem; width: min(100%, 340px); }
+.round-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.45rem; }
+#pause-game { background: #132844; color: #f3f8ff; }
+.fire { background: #ff8e9d; border-color: #ffc0c8; color: #28050c; }
+.touch-controls { display: grid; grid-template-columns: repeat(4, minmax(44px, 1fr)); gap: 0.4rem; }
+.touch-controls button { min-height: 54px; font-size: 1.25rem; padding: 0.25rem; }
+
+.status { min-height: 1.3rem; margin: 0.65rem 0 0; text-align: center; color: #d9efff; font-weight: 850; }
+.instructions { margin: 0.4rem auto 0; max-width: 48rem; color: var(--muted); text-align: center; font-size: 0.84rem; }
+footer { margin-top: 0.65rem; color: #7391b1; text-align: center; font-size: 0.75rem; }
+
+@media (max-width: 680px) {
+  body { overflow: hidden; }
+  .shooter-shell {
+    width: min(100% - 0.5rem, 520px);
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    gap: 0.16rem;
+    padding: max(0.22rem, env(safe-area-inset-top)) 0 max(0.22rem, env(safe-area-inset-bottom));
+    overflow: hidden;
+  }
+  .topbar { display: grid; gap: 0.24rem; align-items: start; }
+  .title-block { min-height: 24px; display: flex; align-items: center; justify-content: center; }
+  .eyebrow, .tagline { display: none; }
+  h1 { font-size: 1.32rem; line-height: 1; text-align: center; }
+  .game-nav {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.2rem;
+  }
+  .game-nav a {
+    min-width: 0;
+    min-height: 44px;
+    padding: 0.2rem 0.08rem;
+    border-radius: 7px;
+    font-size: 0.56rem;
+    line-height: 1.02;
+    text-align: center;
+  }
+  .stats { grid-template-columns: repeat(5, 1fr); gap: 0.2rem; margin: 0; }
+  .stats > div, .connection { min-height: 44px; border-radius: 7px; padding: 0.14rem 0.08rem; }
+  .stats span { font-size: 0.49rem; }
+  .stats strong { font-size: 0.88rem; }
+  .connection { min-width: 0; font-size: 0.5rem; line-height: 1.02; }
+  .play-area {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 0.22rem;
+    align-items: center;
+    justify-items: center;
+  }
+  #shooter-canvas { width: min(47vw, 178px); max-height: 250px; border-width: 2px; border-radius: 8px; }
+  .control-deck { width: min(100%, 340px); gap: 0.22rem; }
+  .round-actions, .touch-controls { gap: 0.22rem; }
+  .round-actions button, .touch-controls button { min-height: 44px; height: 44px; padding: 0.2rem; font-size: 0.72rem; }
+  .touch-controls button { font-size: 1.02rem; }
+  .status { min-height: 18px; margin: 0; font-size: 0.68rem; line-height: 1.1; }
+  .instructions, footer { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+  button:active { transform: none; }
+}
