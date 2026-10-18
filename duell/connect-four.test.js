@@ -52,7 +52,7 @@ test('vertikale und diagonale Linien werden erkannt', () => {
   diagonal[boardIndex(4, 1)] = PLAYER_ONE;
   diagonal[boardIndex(3, 2)] = PLAYER_ONE;
   diagonal[boardIndex(2, 3)] = PLAYER_ONE;
-  assert.deepEqual(findWinningLine(diagonal, PLAYER_ONE), [35, 29, 23, 17]);
+  assert.deepEqual(findWinningLine(diagonal, PLAYER_ONE), [17, 23, 29, 35]);
 });
 
 test('vollständiges Board ohne Viererlinie endet Remis', () => {
