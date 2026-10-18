@@ -138,3 +138,33 @@ test('navigationResponse reuses the cached subpage when only search params diffe
   const response = await context.navigationResponse(requestedRoute);
   assert.equal(await response.text(), 'cached sudoku');
 });
+
+test('navigationResponse redirects a cached no-slash directory route to its canonical URL', async () => {
+  const cachedRoute = `${origin}/sudoku/`;
+  const requestedRoute = `${origin}/sudoku?source=shortcut`;
+  const { context } = loadWorker({
+    entries: [
+      [cachedRoute, new Response('cached sudoku')],
+      ['./index.html', new Response('cached root')],
+    ],
+    fetchImpl: async () => {
+      throw new TypeError('offline');
+    },
+  });
+
+  const response = await context.navigationResponse(requestedRoute);
+  assert.equal(response.status, 302);
+  assert.equal(response.headers.get('location'), `${origin}/sudoku/?source=shortcut`);
+});
+
+test('navigationResponse does not canonicalize an unknown no-slash route without a cached directory shell', async () => {
+  const { context } = loadWorker({
+    entries: [['./index.html', new Response('cached root')]],
+    fetchImpl: async () => {
+      throw new TypeError('offline');
+    },
+  });
+
+  const response = await context.navigationResponse(`${origin}/unknown-route`);
+  assert.equal(await response.text(), 'cached root');
+});
