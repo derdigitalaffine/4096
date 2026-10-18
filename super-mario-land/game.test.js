@@ -6,7 +6,9 @@ import {
   LEVELS,
   PLAYER_HEIGHT,
   PLAYER_WIDTH,
+  WORLD_COUNT,
   WORLD_HEIGHT,
+  campaignPosition,
   collectedCoins,
   createGame,
   getLevel,
@@ -26,9 +28,17 @@ function hitQuestionBlock(state, blockIndex = 0) {
   return stepGame(state, {}, 0.05);
 }
 
-test('new Super Mario Land round starts in level one with three lives', () => {
+function reachGoal(state) {
+  state.player = { ...state.player, x: getLevel(state).goalX - PLAYER_WIDTH };
+  return stepGame(state, {}, 0);
+}
+
+test('new Super Mario Land campaign starts in world 1-1 with three lives', () => {
   const state = createGame();
-  assert.equal(LEVEL_COUNT, 3);
+  assert.equal(LEVEL_COUNT, 12);
+  assert.equal(WORLD_COUNT, 4);
+  assert.deepEqual(campaignPosition(0), { world: 1, stage: 1, number: 1 });
+  assert.deepEqual(campaignPosition(11), { world: 4, stage: 3, number: 12 });
   assert.equal(state.levelIndex, 0);
   assert.equal(state.status, 'playing');
   assert.equal(state.lives, 3);
@@ -38,11 +48,20 @@ test('new Super Mario Land round starts in level one with three lives', () => {
   assert.equal(progressPercent(state), 2);
 });
 
-test('all three levels have distinct playable layouts and question blocks', () => {
-  assert.deepEqual(LEVELS.map((level) => level.name), ['Grüner Pfad', 'Höhenweg', 'Festungslauf']);
-  assert.equal(new Set(LEVELS.map((level) => level.width)).size, 3);
+test('campaign has four worlds with three distinct original stages each', () => {
+  assert.deepEqual(LEVELS.map((level) => level.name), [
+    'Wiesenpfad', 'Höhenbrücke', 'Steintor',
+    'Dünenweg', 'Säulenpfad', 'Pyramidenkern',
+    'Inselufer', 'Wolkenklippen', 'Himmelsbastion',
+    'Nachtgarten', 'Maschinenwall', 'Sternenfestung',
+  ]);
+  assert.equal(new Set(LEVELS.map((level) => level.width)).size, 12);
 
-  for (const level of LEVELS) {
+  for (const [index, level] of LEVELS.entries()) {
+    const position = campaignPosition(index);
+    assert.equal(level.world, position.world);
+    assert.equal(level.stage, position.stage);
+    assert.equal(level.kind, position.stage === 3 ? 'fortress' : position.stage === 2 ? 'height' : 'route');
     assert.ok(level.solids.length >= 10, `${level.name} hat zu wenig Plattformen/Bodenflächen.`);
     assert.ok(level.coins.length >= 16, `${level.name} hat zu wenig Münzen.`);
     assert.ok(level.enemies.length >= 5, `${level.name} hat zu wenig Gegner.`);
@@ -159,14 +178,14 @@ test('landing on an enemy defeats it and bounces the player', () => {
   assert.equal(next.lives, 3);
 });
 
-test('falling out of a later level costs one life and resets power without resetting level progress', () => {
-  const state = createGame(2);
+test('falling out of a later world costs one life and keeps campaign progress', () => {
+  const state = createGame(7);
   state.score = 900;
   state.power = 'flower';
   state.player = { ...state.player, y: WORLD_HEIGHT + 70, onGround: false };
 
   const next = stepGame(state, {}, 0);
-  assert.equal(next.levelIndex, 2);
+  assert.equal(next.levelIndex, 7);
   assert.equal(next.lives, 2);
   assert.equal(next.score, 900);
   assert.equal(next.power, 'small');
@@ -174,45 +193,32 @@ test('falling out of a later level costs one life and resets power without reset
   assert.equal(next.player.x, 64);
 });
 
-test('reaching the first goal starts level two and carries score, lives and power', () => {
-  const state = createGame();
+test('crossing a world boundary carries score, lives and power into the next world', () => {
+  const state = createGame(2);
   state.score = 500;
   state.lives = 2;
   state.power = 'flower';
-  state.player = { ...state.player, x: getLevel(state).goalX - PLAYER_WIDTH };
 
-  const next = stepGame(state, {}, 0);
+  const next = reachGoal(state);
   assert.equal(next.status, 'playing');
-  assert.equal(next.levelIndex, 1);
+  assert.equal(next.levelIndex, 3);
+  assert.deepEqual(campaignPosition(next.levelIndex), { world: 2, stage: 1, number: 4 });
   assert.equal(next.lives, 2);
   assert.equal(next.power, 'flower');
   assert.ok(next.score >= 1500);
   assert.equal(next.player.x, 64);
   assert.equal(collectedCoins(next), 0);
-  assert.equal(next.coins.length, LEVELS[1].coins.length);
-  assert.equal(next.blocks.length, LEVELS[1].blocks.length);
+  assert.equal(next.coins.length, LEVELS[3].coins.length);
 });
 
-test('reaching the second goal starts level three with accumulated score', () => {
-  const state = createGame(1);
-  state.score = 2400;
-  state.player = { ...state.player, x: getLevel(state).goalX - PLAYER_WIDTH };
+test('only world 4-3 wins the complete twelve-stage campaign', () => {
+  const penultimate = reachGoal(createGame(10));
+  assert.equal(penultimate.status, 'playing');
+  assert.equal(penultimate.levelIndex, 11);
 
-  const next = stepGame(state, {}, 0);
-  assert.equal(next.status, 'playing');
-  assert.equal(next.levelIndex, 2);
-  assert.ok(next.score >= 3400);
-  assert.equal(next.lives, 3);
-  assert.equal(next.enemies.length, LEVELS[2].enemies.length);
-});
-
-test('only the final goal wins the complete round and freezes terminal state', () => {
-  const state = createGame(2);
-  state.player = { ...state.player, x: getLevel(state).goalX - PLAYER_WIDTH };
-
-  const won = stepGame(state, {}, 0);
-  assert.equal(won.levelIndex, 2);
+  const won = reachGoal(penultimate);
+  assert.equal(won.levelIndex, 11);
   assert.equal(won.status, 'won');
-  assert.ok(won.score >= 1000);
+  assert.ok(won.score >= 2000);
   assert.equal(stepGame(won, { left: true }, 0.05), won);
 });
