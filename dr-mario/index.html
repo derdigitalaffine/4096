@@ -22,7 +22,8 @@
         <p class="tagline">Kombiniere Farben: Vier gleiche Felder in einer Reihe beseitigen Viren.</p>
       </div>
       <nav class="game-nav" aria-label="Spiele">
-        <a href="../">4096</a>
+        <a href="../">Spielewelt</a>
+        <a href="../4096/">4096</a>
         <a href="../sudoku/">Sudoku</a>
         <a href="../super-mario-land/">Super Mario Land</a>
       </nav>
@@ -40,20 +41,11 @@
 
     <section class="game-layout" aria-label="Dr.-Mario-Spiel">
       <div class="bottle-frame">
-        <div
-          id="bottle"
-          class="bottle"
-          role="grid"
-          aria-label="Dr.-Mario-Spielfeld, 8 Spalten und 16 Reihen."
-          tabindex="0"
-        ></div>
+        <div id="bottle" class="bottle" role="grid" aria-label="Dr.-Mario-Spielfeld, 8 Spalten und 16 Reihen." tabindex="0"></div>
       </div>
-
       <div class="side-panel">
         <button id="new-game" type="button">Neue Runde</button>
-        <p class="instructions">
-          Steuere die fallende Kapsel mit Pfeiltasten oder WASD. Drehen: ↑ oder W. Sofort ablegen: Leertaste oder Enter.
-        </p>
+        <p class="instructions">Steuere die fallende Kapsel mit Pfeiltasten oder WASD. Drehen: ↑ oder W. Sofort ablegen: Leertaste oder Enter.</p>
         <div class="touch-controls" aria-label="Kapselsteuerung">
           <button id="move-left" type="button" aria-label="Nach links">←</button>
           <button id="rotate" type="button" aria-label="Kapsel drehen">↻</button>
@@ -65,12 +57,8 @@
     </section>
 
     <p id="game-status" class="status" aria-live="polite" aria-atomic="true"></p>
-
-    <footer>
-      <p>Keine Anmeldung, keine Tracker. Dein Spielstand bleibt ausschließlich auf diesem Gerät.</p>
-    </footer>
+    <footer><p>Keine Anmeldung, keine Tracker. Dein Spielstand bleibt ausschließlich auf diesem Gerät.</p></footer>
   </main>
-
   <script type="module" src="./app.js"></script>
 </body>
 </html>
