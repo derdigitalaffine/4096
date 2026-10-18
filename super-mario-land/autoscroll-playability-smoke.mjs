@@ -150,6 +150,17 @@ async function evaluate(client, expression) {
   return result.result.value;
 }
 
+async function waitForValue(client, expression, expected, timeout = 15_000) {
+  const deadline = Date.now() + timeout;
+  let lastValue;
+  while (Date.now() < deadline) {
+    lastValue = await evaluate(client, expression);
+    if (lastValue === expected) return lastValue;
+    await sleep(100);
+  }
+  throw new Error(`Timeout: erwartet ${JSON.stringify(expected)}, zuletzt ${JSON.stringify(lastValue)}.`);
+}
+
 async function stopBrowser(browser) {
   if (browser.exitCode !== null) return;
   browser.kill('SIGTERM');
@@ -190,7 +201,7 @@ try {
   const navigation = await client.send('Page.navigate', { url });
   assert.equal(navigation.errorText, undefined, `Super-Mario-Land-Navigation fehlgeschlagen: ${navigation.errorText}`);
   await navigated;
-  assert.equal(await evaluate(client, 'document.readyState'), 'complete');
+  await waitForValue(client, 'document.readyState', 'complete');
   assert.deepEqual(await evaluate(client, '({ width: innerWidth, height: innerHeight })'), { width: 360, height: 640 });
 
   const playability = await evaluate(client, `(async () => {
