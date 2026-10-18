@@ -1,5 +1,5 @@
 import { connectionStatus } from './connectivity.js';
-import { GAMES } from './games.js';
+import { GAMES, routeHref } from './games.js';
 
 const connectionElement = document.querySelector('#connection-status');
 const installButton = document.querySelector('#install-app');
@@ -11,7 +11,7 @@ function renderGameCards() {
   GAMES.forEach((game, index) => {
     const card = document.createElement('a');
     card.className = 'game-card';
-    card.href = game.route;
+    card.href = routeHref(game.route);
     card.dataset.gameId = game.id;
 
     const number = document.createElement('span');
