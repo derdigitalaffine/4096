@@ -80,8 +80,8 @@ export const LEVELS = Object.freeze([
   }),
   stage({
     world: 2, stage: 3, name: 'Strömungslauf', environment: 'tide', width: 3440, goalX: 3280, parTime: 140, autoScroll: true, finale: true,
-    solids: [ground(0, 464), ground(576, 400), ground(1088, 432), ground(1632, 400), ground(2144, 432), ground(2688, 752), ledge(160, 304, 128), ledge(608, 256, 96), ledge(832, 192, 96), ledge(1120, 304, 128), ledge(1408, 224, 96), ledge(1664, 272, 128), ledge(1920, 192, 96), ledge(2176, 304, 128), ledge(2464, 224, 96), ledge(2720, 272, 128), ledge(3008, 192, 128)],
-    blocks: [{ x: 480, y: 272, powerup: 'mushroom' }, { x: 2592, y: 256, powerup: 'flower' }],
+    solids: [ground(0, 448), ground(576, 384), ground(1088, 416), ground(1632, 384), ground(2144, 416), ground(2688, 752), ledge(160, 304, 128), ledge(608, 256, 96), ledge(832, 192, 96), ledge(1120, 304, 128), ledge(1408, 224, 96), ledge(1664, 272, 128), ledge(1920, 192, 96), ledge(2176, 304, 128), ledge(2464, 224, 96), ledge(2720, 272, 128), ledge(3008, 192, 128)],
+    blocks: [{ x: 96, y: 272, powerup: 'mushroom' }, { x: 2176, y: 256, powerup: 'flower' }],
     coins: [...coinLine(128, 334, 2), ...coinLine(192, 258, 2), ...coinLine(608, 210, 2), ...coinLine(832, 146, 2), ...coinLine(1152, 258, 2), ...coinLine(1440, 178, 2), ...coinLine(1696, 226, 2), ...coinLine(1952, 146, 2), ...coinLine(2208, 258, 2), ...coinLine(2752, 226, 2), ...coinLine(3040, 146, 2)],
     enemies: enemies(368, 672, 912, 1200, 1488, 1744, 2016, 2256, 2528, 2816, 3136),
   }),
@@ -122,8 +122,8 @@ export const LEVELS = Object.freeze([
   }),
   stage({
     world: 4, stage: 3, name: 'Wolkensturm', environment: 'sky', width: 3600, goalX: 3440, parTime: 150, autoScroll: true, finale: true,
-    solids: [ground(0, 400), ground(512, 368), ground(992, 368), ground(1472, 368), ground(1952, 368), ground(2432, 368), ground(2912, 688), ledge(128, 288, 96), ledge(544, 224, 96), ledge(768, 160, 96), ledge(1024, 272, 128), ledge(1280, 192, 96), ledge(1504, 240, 128), ledge(1760, 160, 96), ledge(1984, 272, 128), ledge(2240, 192, 96), ledge(2464, 240, 128), ledge(2720, 160, 96), ledge(2944, 272, 128), ledge(3200, 192, 128)],
-    blocks: [{ x: 416, y: 272, powerup: 'mushroom' }, { x: 2816, y: 224, powerup: 'flower' }],
+    solids: [ground(0, 384), ground(512, 352), ground(992, 352), ground(1472, 352), ground(1952, 352), ground(2432, 352), ground(2912, 688), ledge(128, 288, 96), ledge(544, 224, 96), ledge(768, 160, 96), ledge(1024, 272, 128), ledge(1280, 192, 96), ledge(1504, 240, 128), ledge(1760, 160, 96), ledge(1984, 272, 128), ledge(2240, 192, 96), ledge(2464, 240, 128), ledge(2720, 160, 96), ledge(2944, 272, 128), ledge(3200, 192, 128)],
+    blocks: [{ x: 96, y: 272, powerup: 'mushroom' }, { x: 1984, y: 224, powerup: 'flower' }],
     coins: [...coinLine(96, 334, 2), ...coinLine(160, 242, 2), ...coinLine(544, 178, 2), ...coinLine(768, 114, 2), ...coinLine(1056, 226, 2), ...coinLine(1312, 146, 2), ...coinLine(1536, 194, 2), ...coinLine(1792, 114, 2), ...coinLine(2016, 226, 2), ...coinLine(2272, 146, 2), ...coinLine(2496, 194, 2), ...coinLine(2752, 114, 2), ...coinLine(2976, 226, 2), ...coinLine(3232, 146, 2)],
     enemies: enemies(288, 576, 832, 1088, 1344, 1568, 1824, 2048, 2304, 2528, 2784, 3040, 3296),
   }),
