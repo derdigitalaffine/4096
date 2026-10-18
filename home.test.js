@@ -11,9 +11,9 @@ test('Tromu welcome page renders the registered games and explicit install guida
   assert.match(html, /Willkommen in der Tromu Spielewelt\./);
   assert.match(html, /id="game-grid"[^>]*class="game-grid"/);
   assert.equal((html.match(/class="game-card"/g) ?? []).length, 0, 'Spielkarten sollen nicht zusätzlich statisch dupliziert werden.');
-  assert.match(app, /import \{ GAMES \} from '\.\/games\.js'/);
+  assert.match(app, /import \{ GAMES, routeHref \} from '\.\/games\.js'/);
   assert.match(app, /GAMES\.forEach/);
-  assert.match(app, /card\.href = game\.route/);
+  assert.match(app, /card\.href = routeHref\(game\.route\)/);
   assert.match(app, /title\.textContent = game\.name/);
   assert.match(app, /description\.textContent = game\.description/);
   assert.ok(GAMES.length >= 4);
