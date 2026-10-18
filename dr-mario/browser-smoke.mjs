@@ -242,6 +242,12 @@ try {
   await client.send('Page.enable');
   await client.send('Runtime.enable');
   await client.send('Network.enable');
+  await client.send('Emulation.setDeviceMetricsOverride', {
+    width: 360,
+    height: 640,
+    deviceScaleFactor: 1,
+    mobile: true,
+  });
 
   const navigated = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === url);
   const navigation = await client.send('Page.navigate', { url });
@@ -253,6 +259,33 @@ try {
   assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Dr. Mario wird nicht vom Service Worker kontrolliert.');
   assert.equal(await evaluate(client, "document.querySelectorAll('.dm-cell').length"), 128, 'Dr.-Mario-Flasche hat nicht 128 Zellen.');
   assert.equal(await evaluate(client, "document.querySelector('#bottle')?.getAttribute('role')"), 'grid', 'Dr.-Mario-Flasche verlor ihre Grid-Semantik.');
+
+  const mobileLayout = await evaluate(client, `(() => {
+    const rect = (selector) => {
+      const node = document.querySelector(selector);
+      if (!node) return null;
+      const box = node.getBoundingClientRect();
+      return { top: box.top, bottom: box.bottom, left: box.left, right: box.right };
+    };
+    return {
+      innerWidth,
+      innerHeight,
+      scrollHeight: document.scrollingElement.scrollHeight,
+      bottle: rect('#bottle'),
+      newGame: rect('#new-game'),
+      hardDrop: rect('#hard-drop'),
+      status: rect('#game-status'),
+    };
+  })()`);
+  assert.equal(mobileLayout.innerWidth, 360, 'Dr.-Mario-Mobile-Smoke läuft nicht mit 360 CSS-Pixeln Breite.');
+  assert.equal(mobileLayout.innerHeight, 640, 'Dr.-Mario-Mobile-Smoke läuft nicht mit 640 CSS-Pixeln Höhe.');
+  assert.ok(mobileLayout.scrollHeight <= mobileLayout.innerHeight + 1, `Dr. Mario erzwingt auf 360x640 vertikales Scrollen (${mobileLayout.scrollHeight}px > ${mobileLayout.innerHeight}px).`);
+  for (const [name, box] of Object.entries({ bottle: mobileLayout.bottle, newGame: mobileLayout.newGame, hardDrop: mobileLayout.hardDrop, status: mobileLayout.status })) {
+    assert.ok(box, `${name} fehlt im mobilen Dr.-Mario-Layout.`);
+    assert.ok(box.top >= -1 && box.bottom <= mobileLayout.innerHeight + 1, `${name} liegt außerhalb des mobilen Viewports: ${JSON.stringify(box)}`);
+    assert.ok(box.left >= -1 && box.right <= mobileLayout.innerWidth + 1, `${name} liegt horizontal außerhalb des mobilen Viewports: ${JSON.stringify(box)}`);
+  }
+  console.log('browser-smoke: dr-mario 360x640 fits without scrolling');
   console.log('browser-smoke: dr-mario online + service-worker ready + 128 cells');
 
   const savedProbe = await evaluate(client, `(() => {

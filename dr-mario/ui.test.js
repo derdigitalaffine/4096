@@ -29,6 +29,17 @@ test('Dr. Mario has touch controls and keyboard bindings', () => {
   assert.match(styles, /@media \(max-width: 680px\)/);
 });
 
+test('Dr. Mario keeps the playable mobile surface inside one dynamic viewport', () => {
+  const styles = readFileSync('dr-mario/styles.css', 'utf8');
+  const mobileBlock = styles.match(/@media \(max-width: 680px\) \{([\s\S]*?)\n\}/)?.[1] ?? '';
+
+  assert.match(mobileBlock, /height:\s*100dvh/);
+  assert.match(mobileBlock, /grid-template-rows:\s*auto auto minmax\(0, 1fr\) auto/);
+  assert.match(mobileBlock, /grid-template-columns:\s*minmax\(0, 1fr\) 102px/);
+  assert.match(mobileBlock, /\.instructions\s*\{[^}]*display:\s*none/s);
+  assert.match(mobileBlock, /footer\s*\{[^}]*display:\s*none/s);
+});
+
 test('Dr. Mario renders 8x16 cells, persists locally and shares service-worker readiness', () => {
   const app = readFileSync('dr-mario/app.js', 'utf8');
   assert.match(app, /WIDTH \* HEIGHT/);
