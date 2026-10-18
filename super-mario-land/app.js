@@ -5,6 +5,7 @@ import {
   createGame,
   getLevel,
   progressPercent,
+  stageLabel,
   stepGame,
 } from './game.js';
 
@@ -29,11 +30,17 @@ const BEST_KEY = 'super-mario-land-best-v1';
 const VIEW_WIDTH = canvas.width;
 const VIEW_HEIGHT = canvas.height;
 const controls = { left: false, right: false };
-const LEVEL_THEMES = [
-  { sky: '#9bbc0f', hills: '#8bac0f', clouds: '#306230' },
-  { sky: '#8bac0f', hills: '#9bbc0f', clouds: '#306230' },
-  { sky: '#9bbc0f', hills: '#306230', clouds: '#8bac0f' },
-];
+const LEVEL_THEMES = {
+  desert: { sky: '#9bbc0f', hills: '#8bac0f', clouds: '#306230' },
+  ruins: { sky: '#8bac0f', hills: '#306230', clouds: '#0f380f' },
+  coast: { sky: '#9bbc0f', hills: '#8bac0f', clouds: '#306230', water: true },
+  tide: { sky: '#8bac0f', hills: '#306230', clouds: '#0f380f', water: true },
+  stone: { sky: '#9bbc0f', hills: '#306230', clouds: '#8bac0f' },
+  cave: { sky: '#306230', hills: '#0f380f', clouds: '#8bac0f' },
+  bamboo: { sky: '#9bbc0f', hills: '#8bac0f', clouds: '#306230' },
+  mountain: { sky: '#8bac0f', hills: '#306230', clouds: '#9bbc0f' },
+  sky: { sky: '#9bbc0f', hills: '#8bac0f', clouds: '#0f380f' },
+};
 let jumpQueued = false;
 let fireQueued = false;
 let game = createGame();
@@ -63,16 +70,10 @@ function powerLabel(power) {
   return { small: 'Klein', mushroom: 'Pilz', flower: 'Blume' }[power] ?? 'Klein';
 }
 
-function setStatus(message) {
-  statusElement.textContent = message;
-}
+function setStatus(message) { statusElement.textContent = message; }
 
 function updateConnection() {
-  connectionElement.textContent = connectionStatus({
-    online: navigator.onLine,
-    offlineReady,
-    offlineError,
-  });
+  connectionElement.textContent = connectionStatus({ online: navigator.onLine, offlineReady, offlineError });
   connectionElement.dataset.offlineReady = String(offlineReady);
   connectionElement.dataset.warning = String(offlineError || (!navigator.onLine && !offlineReady));
 }
@@ -83,10 +84,9 @@ function updateHud() {
   coinsElement.textContent = `${collectedCoins(game)}/${level.coins.length}`;
   livesElement.textContent = String(game.lives);
   bestElement.textContent = String(bestScore);
-  levelElement.textContent = `${game.levelIndex + 1}/${LEVEL_COUNT}`;
+  levelElement.textContent = `${stageLabel(game)} · ${game.levelIndex + 1}/${LEVEL_COUNT}`;
   progressElement.textContent = `${progressPercent(game)}%`;
   powerElement.textContent = powerLabel(game.power);
-
   const terminal = game.status !== 'playing';
   leftButton.disabled = terminal;
   rightButton.disabled = terminal;
@@ -94,15 +94,14 @@ function updateHud() {
   fireButton.disabled = terminal || game.power !== 'flower';
 }
 
-function drawBackground(cameraX, levelIndex) {
-  const theme = LEVEL_THEMES[levelIndex % LEVEL_THEMES.length];
+function drawBackground(cameraX, level) {
+  const theme = LEVEL_THEMES[level.environment] ?? LEVEL_THEMES.desert;
   context.fillStyle = theme.sky;
   context.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
-
   context.fillStyle = theme.hills;
   for (let index = -1; index < 7; index += 1) {
     const x = index * 180 - ((cameraX * 0.18) % 180);
-    const peak = 230 - levelIndex * 12 + (index % 2) * 18;
+    const peak = 230 - (level.world - 1) * 8 + (index % 2) * 18;
     context.beginPath();
     context.moveTo(x, 360);
     context.lineTo(x + 90, peak);
@@ -110,28 +109,37 @@ function drawBackground(cameraX, levelIndex) {
     context.closePath();
     context.fill();
   }
-
   context.fillStyle = theme.clouds;
   for (let index = 0; index < 8; index += 1) {
     const x = index * 150 - ((cameraX * 0.08) % 150);
-    const y = 72 + (index % 3) * 28 + levelIndex * 6;
+    const y = 68 + (index % 3) * 28 + level.stage * 4;
     context.fillRect(x, y, 54, 12);
     context.fillRect(x + 12, y - 10, 32, 10);
+  }
+  if (theme.water) {
+    context.fillStyle = '#306230';
+    context.fillRect(0, 344, VIEW_WIDTH, 40);
+    context.fillStyle = '#8bac0f';
+    for (let x = -32 - (cameraX % 64); x < VIEW_WIDTH + 32; x += 64) context.fillRect(x, 352, 32, 4);
+  }
+  if (level.environment === 'bamboo') {
+    context.fillStyle = '#306230';
+    for (let x = 24 - (cameraX * 0.12 % 96); x < VIEW_WIDTH; x += 96) {
+      context.fillRect(x, 88, 8, 230);
+      context.fillRect(x - 12, 140, 20, 5);
+      context.fillRect(x + 8, 210, 18, 5);
+    }
   }
 }
 
 function drawSolid(solid, cameraX) {
   const x = Math.round(solid.x - cameraX);
   if (x + solid.width < 0 || x > VIEW_WIDTH) return;
-
   context.fillStyle = '#306230';
   context.fillRect(x, solid.y, solid.width, solid.height);
   context.fillStyle = '#0f380f';
   context.fillRect(x, solid.y, solid.width, 5);
-
-  for (let px = x + 8; px < x + solid.width; px += 32) {
-    context.fillRect(px, solid.y + 14, 4, 4);
-  }
+  for (let px = x + 8; px < x + solid.width; px += 32) context.fillRect(px, solid.y + 14, 4, 4);
 }
 
 function drawQuestionBlock(block, cameraX) {
@@ -221,7 +229,6 @@ function drawPlayer(cameraX) {
   const y = Math.round(player.y);
   const flip = player.facing < 0;
   const powered = game.power !== 'small';
-
   context.fillStyle = '#0f380f';
   if (powered) context.fillRect(x + 2, y - 4, 20, 4);
   context.fillRect(x + 4, y, 16, 5);
@@ -240,7 +247,7 @@ function drawPlayer(cameraX) {
 function renderGame() {
   const level = getLevel(game);
   const cameraX = Math.max(0, Math.min(level.width - VIEW_WIDTH, game.player.x - VIEW_WIDTH * 0.34));
-  drawBackground(cameraX, game.levelIndex);
+  drawBackground(cameraX, level);
   for (const solid of level.solids) drawSolid(solid, cameraX);
   for (const block of game.blocks) drawQuestionBlock(block, cameraX);
   for (const coin of game.coins) drawCoin(coin, cameraX);
@@ -249,17 +256,17 @@ function renderGame() {
   for (const enemy of game.enemies) drawEnemy(enemy, cameraX);
   drawGoal(level.goalX, cameraX);
   drawPlayer(cameraX);
-
   canvas.dataset.questionBlocks = String(game.blocks.length);
   canvas.dataset.usedBlocks = String(game.blocks.filter((block) => block.used).length);
   canvas.dataset.power = game.power;
-
+  canvas.dataset.stage = level.id;
+  canvas.dataset.autoScroll = String(level.autoScroll);
   context.fillStyle = '#0f380f';
-  context.font = 'bold 16px ui-monospace, monospace';
-  context.fillText(`LEVEL ${game.levelIndex + 1}/${LEVEL_COUNT} · ZIEL ${Math.max(0, Math.ceil((level.goalX - game.player.x) / 32))}`, 12, 24);
+  context.font = 'bold 15px ui-monospace, monospace';
+  context.fillText(`STAGE ${level.id} · ${level.name.toUpperCase()} · ZIEL ${Math.max(0, Math.ceil((level.goalX - game.player.x) / 32))}`, 12, 24);
 }
 
-function resetGame(message = 'Los geht’s: Drei Level, ?-Blöcke und Power-ups warten.') {
+function resetGame(message = 'Los geht’s: Vier Welten mit zwölf eigenen Stages warten.') {
   game = createGame();
   controls.left = false;
   controls.right = false;
@@ -275,14 +282,15 @@ function handleStateFeedback(previous) {
     bestScore = game.score;
     persistBestScore();
   }
-
   if (game.levelIndex !== previous.levelIndex) {
+    const previousLevel = getLevel(previous);
     const level = getLevel(game);
-    setStatus(`Level ${previous.levelIndex + 1} geschafft! Weiter mit Level ${game.levelIndex + 1}: ${level.name}. Punkte, Leben und Power-up bleiben erhalten.`);
+    const special = level.autoScroll ? ' Diese Stage treibt automatisch vorwärts.' : '';
+    setStatus(`Stage ${previousLevel.id} geschafft! Weiter mit ${level.id}: ${level.name}. Punkte, Leben und Power-up bleiben erhalten.${special}`);
   } else if (game.status === 'won' && previous.status !== 'won') {
-    setStatus(`Alle ${LEVEL_COUNT} Level geschafft! ${game.score} Punkte – starke Runde.`);
+    setStatus(`Alle ${LEVEL_COUNT} Stages in vier Welten geschafft! ${game.score} Punkte – starke Runde.`);
   } else if (game.status === 'lost' && previous.status !== 'lost') {
-    setStatus('Runde verloren. Starte eine neue Runde und versuche die drei Level noch einmal.');
+    setStatus('Runde verloren. Starte neu und versuche die vier Welten noch einmal.');
   } else if (game.power !== previous.power) {
     if (game.power === 'flower') setStatus('Blume eingesammelt! Mit X/K oder Ball-Taste Gegner treffen.');
     else if (game.power === 'mushroom' && previous.power === 'small') setStatus('Pilz eingesammelt! Der nächste Gegnertreffer kostet kein Leben.');
@@ -306,17 +314,9 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-function setDirection(key, active) {
-  controls[key] = active && game.status === 'playing';
-}
-
-function queueJump() {
-  if (game.status === 'playing') jumpQueued = true;
-}
-
-function queueFire() {
-  if (game.status === 'playing' && game.power === 'flower') fireQueued = true;
-}
+function setDirection(key, active) { controls[key] = active && game.status === 'playing'; }
+function queueJump() { if (game.status === 'playing') jumpQueued = true; }
+function queueFire() { if (game.status === 'playing' && game.power === 'flower') fireQueued = true; }
 
 function bindHoldButton(button, direction) {
   const start = (event) => {
@@ -336,15 +336,9 @@ function bindHoldButton(button, direction) {
 
 bindHoldButton(leftButton, 'left');
 bindHoldButton(rightButton, 'right');
-jumpButton.addEventListener('pointerdown', (event) => {
-  event.preventDefault();
-  queueJump();
-});
-fireButton.addEventListener('pointerdown', (event) => {
-  event.preventDefault();
-  queueFire();
-});
-newGameButton.addEventListener('click', () => resetGame('Neue Runde gestartet. Drei Level mit ?-Blöcken – los geht’s.'));
+jumpButton.addEventListener('pointerdown', (event) => { event.preventDefault(); queueJump(); });
+fireButton.addEventListener('pointerdown', (event) => { event.preventDefault(); queueFire(); });
+newGameButton.addEventListener('click', () => resetGame('Neue Runde gestartet. Vier Welten, zwölf Stages – los geht’s.'));
 
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase();
@@ -362,7 +356,7 @@ window.addEventListener('keydown', (event) => {
     if (!event.repeat) queueFire();
   } else if (key === 'r') {
     event.preventDefault();
-    resetGame('Neue Runde gestartet. Drei Level mit ?-Blöcken – los geht’s.');
+    resetGame('Neue Runde gestartet. Vier Welten, zwölf Stages – los geht’s.');
   }
 });
 
@@ -384,7 +378,6 @@ if ('serviceWorker' in navigator) {
     offlineReady = true;
     updateConnection();
   });
-
   navigator.serviceWorker.register('../sw.js')
     .then(() => navigator.serviceWorker.ready)
     .then(() => {
