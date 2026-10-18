@@ -224,8 +224,12 @@ try {
   assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Super Mario Land wird nicht vom Service Worker kontrolliert.');
   assert.equal(await evaluate(client, "document.querySelector('#game-canvas')?.width"), 800, 'Super-Mario-Land-Canvas hat nicht die erwartete interne Breite.');
   assert.equal(await evaluate(client, "document.querySelector('#game-canvas')?.height"), 450, 'Super-Mario-Land-Canvas hat nicht die erwartete interne Höhe.');
-  assert.equal(await evaluate(client, "document.querySelectorAll('.touch-controls button').length"), 3, 'Super Mario Land hat nicht drei mobile Steuertasten.');
+  assert.equal(await evaluate(client, "document.querySelectorAll('.touch-controls button').length"), 4, 'Super Mario Land hat nicht vier mobile Steuertasten.');
   assert.equal(await evaluate(client, "document.querySelector('#level')?.textContent"), '1/3', 'Super Mario Land zeigt den Drei-Level-Vertrag nicht im HUD.');
+  assert.equal(await evaluate(client, "document.querySelector('#power')?.textContent"), 'Klein', 'Power-up-HUD startet nicht im kleinen Zustand.');
+  assert.equal(await evaluate(client, "document.querySelector('#game-canvas')?.dataset.questionBlocks"), '2', 'Canvas meldet nicht zwei ?-Blöcke im ersten Level.');
+  assert.equal(await evaluate(client, "document.querySelector('#game-canvas')?.dataset.power"), 'small', 'Canvas-Power-up-Zustand ist beim Start inkonsistent.');
+  assert.equal(await evaluate(client, "document.querySelector('#fire')?.disabled"), true, 'Blumenangriff darf ohne Blume nicht aktiv sein.');
 
   const mobileLayout = await evaluate(client, `(() => {
     const rect = (selector) => {
@@ -237,29 +241,78 @@ try {
     return {
       innerWidth,
       innerHeight,
+      scrollWidth: document.documentElement.scrollWidth,
+      scrollHeight: document.documentElement.scrollHeight,
       canvas: rect('#game-canvas'),
       level: rect('#level'),
+      power: rect('#power'),
       jump: rect('#jump'),
+      fire: rect('#fire'),
       status: rect('#game-status'),
     };
   })()`);
-  for (const [name, box] of Object.entries({ canvas: mobileLayout.canvas, level: mobileLayout.level, jump: mobileLayout.jump, status: mobileLayout.status })) {
+  assert.ok(mobileLayout.scrollWidth <= mobileLayout.innerWidth + 1, `Super Mario Land scrollt horizontal auf 360px: ${JSON.stringify(mobileLayout)}`);
+  assert.ok(mobileLayout.scrollHeight <= mobileLayout.innerHeight + 1, `Super Mario Land scrollt vertikal auf 640px: ${JSON.stringify(mobileLayout)}`);
+  for (const [name, box] of Object.entries({ canvas: mobileLayout.canvas, level: mobileLayout.level, power: mobileLayout.power, jump: mobileLayout.jump, fire: mobileLayout.fire, status: mobileLayout.status })) {
     assert.ok(box, `${name} fehlt im mobilen Super-Mario-Land-Layout.`);
     assert.ok(box.top >= -1 && box.bottom <= mobileLayout.innerHeight + 1, `${name} liegt außerhalb des 360x640-Viewports: ${JSON.stringify(box)}`);
     assert.ok(box.left >= -1 && box.right <= mobileLayout.innerWidth + 1, `${name} liegt horizontal außerhalb des 360x640-Viewports: ${JSON.stringify(box)}`);
   }
+
+  const powerupProbe = await evaluate(client, `(async () => {
+    const rules = await import('./game.js');
+    const hitBlock = (state, blockIndex) => {
+      const block = state.blocks[blockIndex];
+      state.player = { ...state.player, x: block.x + 4, y: block.y + block.height + 1, vy: -400, onGround: false };
+      return rules.stepGame(state, {}, 0.05);
+    };
+
+    let mushroom = hitBlock(rules.createGame(), 0);
+    const mushroomBlock = { used: mushroom.blocks[0].used, item: mushroom.powerups[0]?.type, count: mushroom.powerups.length };
+    mushroom.player = { ...mushroom.player, x: mushroom.powerups[0].x, y: mushroom.powerups[0].y, vy: 0, onGround: false };
+    mushroom = rules.stepGame(mushroom, {}, 0);
+    const mushroomPower = mushroom.power;
+    const enemy = mushroom.enemies[0];
+    mushroom.player = { ...mushroom.player, x: enemy.x, y: enemy.y, vy: 0, onGround: false };
+    mushroom = rules.stepGame(mushroom, {}, 0);
+    const protectedHit = { power: mushroom.power, lives: mushroom.lives };
+
+    let flower = hitBlock(rules.createGame(), 1);
+    flower.player = { ...flower.player, x: flower.powerups[0].x, y: flower.powerups[0].y, vy: 0, onGround: false };
+    flower = rules.stepGame(flower, {}, 0);
+    flower.player = { ...flower.player, x: 64, y: rules.GROUND_Y - rules.PLAYER_HEIGHT, vy: 0, onGround: true, facing: 1 };
+    flower.enemies[0] = { ...flower.enemies[0], x: flower.player.x + rules.PLAYER_WIDTH + 1, y: rules.GROUND_Y - 24 };
+    flower = rules.stepGame(flower, { fire: true }, 0);
+
+    return {
+      mushroomBlock,
+      mushroomPower,
+      protectedHit,
+      flowerPower: flower.power,
+      flowerEnemyAlive: flower.enemies[0].alive,
+      blocksPerLevel: rules.LEVELS.map((level) => level.blocks.length),
+    };
+  })()`);
+  assert.deepEqual(powerupProbe.mushroomBlock, { used: true, item: 'mushroom', count: 1 });
+  assert.equal(powerupProbe.mushroomPower, 'mushroom');
+  assert.deepEqual(powerupProbe.protectedHit, { power: 'small', lives: 3 });
+  assert.equal(powerupProbe.flowerPower, 'flower');
+  assert.equal(powerupProbe.flowerEnemyAlive, false, 'Blumenball besiegt den Gegner im echten Browser-Regelmodul nicht.');
+  assert.deepEqual(powerupProbe.blocksPerLevel, [2, 2, 2]);
+  console.log('browser-smoke: super-mario-land question blocks + mushroom + flower rules passed');
 
   const multilevelProbe = await evaluate(client, `(async () => {
     const rules = await import('./game.js');
     let state = rules.createGame();
     state.lives = 2;
     state.score = 400;
+    state.power = 'flower';
     state.player = { ...state.player, x: rules.getLevel(state).goalX - rules.PLAYER_WIDTH };
     state = rules.stepGame(state, {}, 0);
-    const afterFirst = { levelIndex: state.levelIndex, lives: state.lives, score: state.score, status: state.status };
+    const afterFirst = { levelIndex: state.levelIndex, lives: state.lives, score: state.score, power: state.power, status: state.status };
     state.player = { ...state.player, x: rules.getLevel(state).goalX - rules.PLAYER_WIDTH };
     state = rules.stepGame(state, {}, 0);
-    const afterSecond = { levelIndex: state.levelIndex, lives: state.lives, score: state.score, status: state.status };
+    const afterSecond = { levelIndex: state.levelIndex, lives: state.lives, score: state.score, power: state.power, status: state.status };
     state.player = { ...state.player, x: rules.getLevel(state).goalX - rules.PLAYER_WIDTH };
     state = rules.stepGame(state, {}, 0);
     return { levelCount: rules.LEVEL_COUNT, afterFirst, afterSecond, finalStatus: state.status, finalLevel: state.levelIndex };
@@ -267,9 +320,11 @@ try {
   assert.equal(multilevelProbe.levelCount, 3, 'Browser-Regelmodul enthält nicht drei Level.');
   assert.deepEqual(multilevelProbe.afterFirst.levelIndex, 1);
   assert.equal(multilevelProbe.afterFirst.lives, 2, 'Leben wurden beim ersten Levelwechsel nicht übernommen.');
+  assert.equal(multilevelProbe.afterFirst.power, 'flower', 'Power-up wurde beim ersten Levelwechsel nicht übernommen.');
   assert.equal(multilevelProbe.afterFirst.status, 'playing');
   assert.equal(multilevelProbe.afterSecond.levelIndex, 2);
   assert.equal(multilevelProbe.afterSecond.lives, 2, 'Leben wurden beim zweiten Levelwechsel nicht übernommen.');
+  assert.equal(multilevelProbe.afterSecond.power, 'flower', 'Power-up wurde beim zweiten Levelwechsel nicht übernommen.');
   assert.ok(multilevelProbe.afterSecond.score > multilevelProbe.afterFirst.score, 'Punkte wurden über Levelwechsel nicht fortgeschrieben.');
   assert.equal(multilevelProbe.finalLevel, 2);
   assert.equal(multilevelProbe.finalStatus, 'won', 'Erst das dritte Ziel muss die Gesamtrunde gewinnen.');
@@ -297,6 +352,8 @@ try {
   assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Super-Mario-Land-Offline-Reload verlor Service-Worker-Kontrolle.');
   assert.equal(await evaluate(client, "document.querySelector('#game-canvas')?.width"), 800, 'Offline-Super-Mario-Land verlor die Spieloberfläche.');
   assert.equal(await evaluate(client, "document.querySelector('#level')?.textContent"), '1/3', 'Offline-Reload verlor die Mehrlevel-Anzeige.');
+  assert.equal(await evaluate(client, "document.querySelector('#power')?.textContent"), 'Klein', 'Offline-Reload verlor die Power-up-Anzeige.');
+  assert.equal(await evaluate(client, "document.querySelector('#game-canvas')?.dataset.questionBlocks"), '2', 'Offline-Reload verlor die ?-Blöcke.');
   assert.equal(await evaluate(client, "document.querySelector('#jump')?.disabled"), false, 'Super Mario Land ist nach Offline-Reload nicht spielbereit.');
   console.log('browser-smoke: super-mario-land offline reload passed');
 } catch (error) {
