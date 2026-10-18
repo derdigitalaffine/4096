@@ -206,6 +206,9 @@ const browserPath = findBrowser();
 const debugPort = await freePort();
 const profileDir = await mkdtemp(join(tmpdir(), '4096-dr-mario-smoke-'));
 const { server, url } = await startStaticServer();
+const sudokuUrl = new URL('../sudoku/', url).href;
+const drMarioNoSlashUrl = url.slice(0, -1);
+const sudokuNoSlashUrl = sudokuUrl.slice(0, -1);
 const browser = spawn(browserPath, [
   '--headless=new',
   '--no-sandbox',
@@ -303,6 +306,30 @@ try {
   })()`);
   assert.deepEqual(restoredProbe, savedProbe, 'Dr.-Mario-Spielstand ging beim Offline-Reload im lokalen Storage verloren.');
   console.log('browser-smoke: dr-mario offline reload + save restore passed');
+
+  const canonicalDrMario = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === url);
+  const drMarioNoSlashNavigation = await client.send('Page.navigate', { url: drMarioNoSlashUrl });
+  assert.equal(drMarioNoSlashNavigation.errorText, undefined, `Offline-Dr.-Mario-No-Slash-Navigation fehlgeschlagen: ${drMarioNoSlashNavigation.errorText}`);
+  await canonicalDrMario;
+
+  await waitForValue(client, 'document.readyState', 'complete');
+  await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Offline · spielbereit');
+  assert.equal(await evaluate(client, 'location.href'), url, 'Dr.-Mario-No-Slash-Navigation wurde nicht auf die kanonische Slash-Route umgeleitet.');
+  assert.equal(await evaluate(client, "document.querySelectorAll('.dm-cell').length"), 128, 'Kanonisierte Dr.-Mario-Route verlor die Spieloberfläche.');
+  assert.equal(await evaluate(client, "document.querySelector('#score')?.textContent"), '4242', 'Kanonisierte Dr.-Mario-Route verlor den lokalen Spielstand.');
+  console.log('browser-smoke: dr-mario offline no-slash canonicalization passed');
+
+  const canonicalSudoku = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === sudokuUrl);
+  const sudokuNoSlashNavigation = await client.send('Page.navigate', { url: sudokuNoSlashUrl });
+  assert.equal(sudokuNoSlashNavigation.errorText, undefined, `Offline-Sudoku-No-Slash-Navigation fehlgeschlagen: ${sudokuNoSlashNavigation.errorText}`);
+  await canonicalSudoku;
+
+  await waitForValue(client, 'document.readyState', 'complete');
+  await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Offline · spielbereit');
+  assert.equal(await evaluate(client, 'location.href'), sudokuUrl, 'Sudoku-No-Slash-Navigation wurde nicht auf die kanonische Slash-Route umgeleitet.');
+  assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Kanonisierte Sudoku-Route verlor Service-Worker-Kontrolle.');
+  assert.equal(await evaluate(client, "document.querySelectorAll('.sudoku-cell').length"), 81, 'Kanonisierte Sudoku-Route erhielt nicht die Sudoku-Shell.');
+  console.log('browser-smoke: sudoku offline no-slash canonicalization passed');
 } catch (error) {
   const browserDetails = browserStderr.trim() ? `\nBrowser stderr:\n${browserStderr.trim()}` : '';
   throw new Error(`${error.message}${browserDetails}`, { cause: error });
