@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { createServer } from 'node:http';
+import { createServer as createNetServer } from 'node:net';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
@@ -16,6 +17,19 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml',
   '.webmanifest': 'application/manifest+json',
 };
+const sleep = (milliseconds) => new Promise((resolveSleep) => setTimeout(resolveSleep, milliseconds));
+
+async function freePort() {
+  return new Promise((resolvePort, reject) => {
+    const server = createNetServer();
+    server.unref();
+    server.on('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const { port } = server.address();
+      server.close(() => resolvePort(port));
+    });
+  });
+}
 
 function findBrowser() {
   const candidates = [
@@ -67,52 +81,182 @@ async function startStaticServer() {
   };
 }
 
-async function dumpRenderedDom(browserPath, url, profileDir) {
-  const browser = spawn(browserPath, [
-    '--headless=new',
-    '--no-sandbox',
-    '--disable-background-networking',
-    '--disable-component-update',
-    '--disable-default-apps',
-    '--disable-gpu',
-    '--no-default-browser-check',
-    '--no-first-run',
-    '--run-all-compositor-stages-before-draw',
-    '--virtual-time-budget=5000',
-    '--dump-dom',
-    `--user-data-dir=${profileDir}`,
-    url,
-  ], { stdio: ['ignore', 'pipe', 'pipe'] });
+async function waitForJson(url, timeout = 10_000) {
+  const deadline = Date.now() + timeout;
+  let lastError = 'not started';
 
-  let stdout = '';
-  let stderr = '';
-  browser.stdout.on('data', (chunk) => { stdout += chunk.toString(); });
-  browser.stderr.on('data', (chunk) => {
-    stderr += chunk.toString();
-    if (stderr.length > 12_000) stderr = stderr.slice(-12_000);
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(url);
+      if (response.ok) return response.json();
+      lastError = `HTTP ${response.status}`;
+    } catch (error) {
+      lastError = error.message;
+    }
+    await sleep(100);
+  }
+
+  throw new Error(`Timeout bei ${url}: ${lastError}`);
+}
+
+class DevToolsClient {
+  constructor(webSocketUrl) {
+    if (typeof WebSocket !== 'function') {
+      throw new Error('Der Browser-Smoke benötigt Node.js 22+ mit globalem WebSocket.');
+    }
+
+    this.nextId = 0;
+    this.pending = new Map();
+    this.eventWaiters = new Map();
+    this.socket = new WebSocket(webSocketUrl);
+    this.opened = new Promise((resolveOpen, reject) => {
+      this.socket.addEventListener('open', resolveOpen, { once: true });
+      this.socket.addEventListener('error', () => reject(new Error('DevTools-WebSocket konnte nicht geöffnet werden.')), { once: true });
+    });
+    this.socket.addEventListener('message', (event) => this.handleMessage(JSON.parse(event.data)));
+  }
+
+  handleMessage(message) {
+    if (message.id) {
+      const pending = this.pending.get(message.id);
+      if (!pending) return;
+      this.pending.delete(message.id);
+      if (message.error) pending.reject(new Error(`${message.error.message} (${message.error.code})`));
+      else pending.resolve(message.result);
+      return;
+    }
+
+    const waiters = this.eventWaiters.get(message.method) ?? [];
+    for (const waiter of [...waiters]) {
+      if (!waiter.predicate(message.params)) continue;
+      waiters.splice(waiters.indexOf(waiter), 1);
+      clearTimeout(waiter.timeoutId);
+      waiter.resolve(message.params);
+      break;
+    }
+  }
+
+  async send(method, params = {}) {
+    await this.opened;
+    const id = ++this.nextId;
+    return new Promise((resolveSend, reject) => {
+      this.pending.set(id, { resolve: resolveSend, reject });
+      this.socket.send(JSON.stringify({ id, method, params }));
+    });
+  }
+
+  waitForEvent(method, predicate = () => true, timeout = 10_000) {
+    return new Promise((resolveEvent, reject) => {
+      const waiters = this.eventWaiters.get(method) ?? [];
+      const waiter = {
+        predicate,
+        resolve: resolveEvent,
+        timeoutId: setTimeout(() => {
+          const index = waiters.indexOf(waiter);
+          if (index >= 0) waiters.splice(index, 1);
+          reject(new Error(`Timeout beim Warten auf ${method}`));
+        }, timeout),
+      };
+      waiters.push(waiter);
+      this.eventWaiters.set(method, waiters);
+    });
+  }
+
+  close() {
+    this.socket.close();
+  }
+}
+
+async function evaluate(client, expression) {
+  const result = await client.send('Runtime.evaluate', {
+    expression,
+    returnByValue: true,
+    awaitPromise: true,
   });
+  if (result.exceptionDetails) {
+    throw new Error(result.exceptionDetails.exception?.description ?? result.exceptionDetails.text ?? 'Browser-Auswertung fehlgeschlagen.');
+  }
+  return result.result.value;
+}
 
-  const [code, signal] = await once(browser, 'close');
-  assert.equal(code, 0, `Chrome-DOM-Smoke fehlgeschlagen${signal ? ` (${signal})` : ''}:\n${stderr.trim()}`);
-  return stdout;
+async function waitForValue(client, expression, expected, timeout = 15_000) {
+  const deadline = Date.now() + timeout;
+  let lastValue;
+
+  while (Date.now() < deadline) {
+    lastValue = await evaluate(client, expression);
+    if (lastValue === expected) return lastValue;
+    await sleep(100);
+  }
+
+  throw new Error(`Timeout: erwartet ${JSON.stringify(expected)}, zuletzt ${JSON.stringify(lastValue)}.`);
+}
+
+async function stopBrowser(browser) {
+  if (browser.exitCode !== null) return;
+  browser.kill('SIGTERM');
+  await Promise.race([once(browser, 'exit'), sleep(2_000)]);
+  if (browser.exitCode === null) {
+    browser.kill('SIGKILL');
+    await Promise.race([once(browser, 'exit'), sleep(1_000)]);
+  }
 }
 
 const browserPath = findBrowser();
+const debugPort = await freePort();
 const profileDir = await mkdtemp(join(tmpdir(), '4096-dr-mario-smoke-'));
 const { server, url } = await startStaticServer();
+const browser = spawn(browserPath, [
+  '--headless=new',
+  '--no-sandbox',
+  '--disable-background-networking',
+  '--disable-component-update',
+  '--disable-default-apps',
+  '--disable-gpu',
+  '--no-default-browser-check',
+  '--no-first-run',
+  `--remote-debugging-port=${debugPort}`,
+  '--remote-debugging-address=127.0.0.1',
+  `--user-data-dir=${profileDir}`,
+  'about:blank',
+], { stdio: ['ignore', 'ignore', 'pipe'] });
+
+let browserStderr = '';
+browser.stderr.on('data', (chunk) => {
+  browserStderr += chunk.toString();
+  if (browserStderr.length > 12_000) browserStderr = browserStderr.slice(-12_000);
+});
+
+let client;
 
 try {
-  const dom = await dumpRenderedDom(browserPath, url, profileDir);
-  const cells = dom.match(/class="dm-cell(?:\s|")/g) ?? [];
+  await waitForJson(`http://127.0.0.1:${debugPort}/json/version`);
+  const targetResponse = await fetch(`http://127.0.0.1:${debugPort}/json/new?about:blank`, { method: 'PUT' });
+  assert.equal(targetResponse.ok, true, `DevTools target failed: HTTP ${targetResponse.status}`);
+  const target = await targetResponse.json();
 
-  assert.equal(cells.length, 128, `Dr.-Mario-Flasche hat ${cells.length} statt 128 gerenderte Zellen.`);
-  assert.match(dom, /id="bottle"[^>]*role="grid"/);
-  assert.match(dom, /id="connection-status"[^>]*data-offline-ready="true"/);
-  assert.match(dom, /Online · offline bereit/);
-  assert.match(dom, /id="viruses"[^>]*>\d+</);
+  client = new DevToolsClient(target.webSocketDebuggerUrl);
+  await client.send('Page.enable');
+  await client.send('Runtime.enable');
+
+  const navigated = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === url);
+  const navigation = await client.send('Page.navigate', { url });
+  assert.equal(navigation.errorText, undefined, `Dr.-Mario-Navigation fehlgeschlagen: ${navigation.errorText}`);
+  await navigated;
+
+  await waitForValue(client, 'document.readyState', 'complete');
+  await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Online · offline bereit');
+  assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Dr. Mario wird nicht vom Service Worker kontrolliert.');
+  assert.equal(await evaluate(client, "document.querySelectorAll('.dm-cell').length"), 128, 'Dr.-Mario-Flasche hat nicht 128 Zellen.');
+  assert.equal(await evaluate(client, "document.querySelector('#bottle')?.getAttribute('role')"), 'grid', 'Dr.-Mario-Flasche verlor ihre Grid-Semantik.');
 
   console.log('browser-smoke: dr-mario online + service-worker ready + 128 cells');
+} catch (error) {
+  const browserDetails = browserStderr.trim() ? `\nBrowser stderr:\n${browserStderr.trim()}` : '';
+  throw new Error(`${error.message}${browserDetails}`, { cause: error });
 } finally {
+  client?.close();
+  await stopBrowser(browser);
   await new Promise((resolveClose) => server.close(resolveClose));
   try {
     await rm(profileDir, { recursive: true, force: true, maxRetries: 8, retryDelay: 100 });
