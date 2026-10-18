@@ -1,11 +1,9 @@
 import { connectionStatus } from '../connectivity.js';
 import {
-  GOAL_X,
-  LEVEL_COINS,
-  LEVEL_SOLIDS,
-  WORLD_WIDTH,
+  LEVEL_COUNT,
   collectedCoins,
   createGame,
+  getLevel,
   progressPercent,
   stepGame,
 } from './game.js';
@@ -16,6 +14,7 @@ const scoreElement = document.querySelector('#score');
 const coinsElement = document.querySelector('#coins');
 const livesElement = document.querySelector('#lives');
 const bestElement = document.querySelector('#best');
+const levelElement = document.querySelector('#level');
 const progressElement = document.querySelector('#progress');
 const statusElement = document.querySelector('#game-status');
 const connectionElement = document.querySelector('#connection-status');
@@ -28,6 +27,11 @@ const BEST_KEY = 'super-mario-land-best-v1';
 const VIEW_WIDTH = canvas.width;
 const VIEW_HEIGHT = canvas.height;
 const controls = { left: false, right: false };
+const LEVEL_THEMES = [
+  { sky: '#9bbc0f', hills: '#8bac0f', clouds: '#306230' },
+  { sky: '#8bac0f', hills: '#9bbc0f', clouds: '#306230' },
+  { sky: '#9bbc0f', hills: '#306230', clouds: '#8bac0f' },
+];
 let jumpQueued = false;
 let game = createGame();
 let lastFrame = performance.now();
@@ -67,10 +71,12 @@ function updateConnection() {
 }
 
 function updateHud() {
+  const level = getLevel(game);
   scoreElement.textContent = String(game.score);
-  coinsElement.textContent = `${collectedCoins(game)}/${LEVEL_COINS.length}`;
+  coinsElement.textContent = `${collectedCoins(game)}/${level.coins.length}`;
   livesElement.textContent = String(game.lives);
   bestElement.textContent = String(bestScore);
+  levelElement.textContent = `${game.levelIndex + 1}/${LEVEL_COUNT}`;
   progressElement.textContent = `${progressPercent(game)}%`;
 
   const terminal = game.status !== 'playing';
@@ -79,25 +85,27 @@ function updateHud() {
   jumpButton.disabled = terminal;
 }
 
-function drawBackground(cameraX) {
-  context.fillStyle = '#9bbc0f';
+function drawBackground(cameraX, levelIndex) {
+  const theme = LEVEL_THEMES[levelIndex % LEVEL_THEMES.length];
+  context.fillStyle = theme.sky;
   context.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
 
-  context.fillStyle = '#8bac0f';
+  context.fillStyle = theme.hills;
   for (let index = -1; index < 7; index += 1) {
     const x = index * 180 - ((cameraX * 0.18) % 180);
+    const peak = 230 - levelIndex * 12 + (index % 2) * 18;
     context.beginPath();
     context.moveTo(x, 360);
-    context.lineTo(x + 90, 230);
+    context.lineTo(x + 90, peak);
     context.lineTo(x + 180, 360);
     context.closePath();
     context.fill();
   }
 
-  context.fillStyle = '#306230';
+  context.fillStyle = theme.clouds;
   for (let index = 0; index < 8; index += 1) {
     const x = index * 150 - ((cameraX * 0.08) % 150);
-    const y = 72 + (index % 3) * 28;
+    const y = 72 + (index % 3) * 28 + levelIndex * 6;
     context.fillRect(x, y, 54, 12);
     context.fillRect(x + 12, y - 10, 32, 10);
   }
@@ -141,8 +149,8 @@ function drawEnemy(enemy, cameraX) {
   context.fillRect(x + enemy.width - 10, enemy.y + 9, 4, 4);
 }
 
-function drawGoal(cameraX) {
-  const x = Math.round(GOAL_X - cameraX);
+function drawGoal(goalX, cameraX) {
+  const x = Math.round(goalX - cameraX);
   if (x < -40 || x > VIEW_WIDTH + 40) return;
   context.fillStyle = '#0f380f';
   context.fillRect(x, 152, 5, 232);
@@ -168,20 +176,21 @@ function drawPlayer(cameraX) {
 }
 
 function renderGame() {
-  const cameraX = Math.max(0, Math.min(WORLD_WIDTH - VIEW_WIDTH, game.player.x - VIEW_WIDTH * 0.34));
-  drawBackground(cameraX);
-  for (const solid of LEVEL_SOLIDS) drawSolid(solid, cameraX);
+  const level = getLevel(game);
+  const cameraX = Math.max(0, Math.min(level.width - VIEW_WIDTH, game.player.x - VIEW_WIDTH * 0.34));
+  drawBackground(cameraX, game.levelIndex);
+  for (const solid of level.solids) drawSolid(solid, cameraX);
   for (const coin of game.coins) drawCoin(coin, cameraX);
   for (const enemy of game.enemies) drawEnemy(enemy, cameraX);
-  drawGoal(cameraX);
+  drawGoal(level.goalX, cameraX);
   drawPlayer(cameraX);
 
   context.fillStyle = '#0f380f';
   context.font = 'bold 16px ui-monospace, monospace';
-  context.fillText(`ZIEL ${Math.max(0, Math.ceil((GOAL_X - game.player.x) / 32))}`, 12, 24);
+  context.fillText(`LEVEL ${game.levelIndex + 1}/${LEVEL_COUNT} · ZIEL ${Math.max(0, Math.ceil((level.goalX - game.player.x) / 32))}`, 12, 24);
 }
 
-function resetGame(message = 'Los geht’s: Laufe nach rechts, sammle Münzen und erreiche die Fahne.') {
+function resetGame(message = `Los geht’s: Drei Level warten. Erreiche in jedem Level die Fahne.`) {
   game = createGame();
   controls.left = false;
   controls.right = false;
@@ -197,10 +206,13 @@ function handleStateFeedback(previous) {
     persistBestScore();
   }
 
-  if (game.status === 'won' && previous.status !== 'won') {
-    setStatus(`Ziel erreicht! ${collectedCoins(game)} Münzen gesammelt, ${game.score} Punkte.`);
+  if (game.levelIndex !== previous.levelIndex) {
+    const level = getLevel(game);
+    setStatus(`Level ${previous.levelIndex + 1} geschafft! Weiter mit Level ${game.levelIndex + 1}: ${level.name}. Punkte und Leben bleiben erhalten.`);
+  } else if (game.status === 'won' && previous.status !== 'won') {
+    setStatus(`Alle ${LEVEL_COUNT} Level geschafft! ${game.score} Punkte – starke Runde.`);
   } else if (game.status === 'lost' && previous.status !== 'lost') {
-    setStatus('Runde verloren. Starte eine neue Runde und versuche es noch einmal.');
+    setStatus('Runde verloren. Starte eine neue Runde und versuche die drei Level noch einmal.');
   } else if (game.lives < previous.lives && game.status === 'playing') {
     setStatus(`Treffer! Noch ${game.lives} Leben übrig.`);
   }
@@ -248,7 +260,7 @@ jumpButton.addEventListener('pointerdown', (event) => {
   event.preventDefault();
   queueJump();
 });
-newGameButton.addEventListener('click', () => resetGame('Neue Runde gestartet. Erreiche die Fahne am Ende des Levels.'));
+newGameButton.addEventListener('click', () => resetGame('Neue Runde gestartet. Drei Level, drei Fahnen – los geht’s.'));
 
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase();
@@ -263,7 +275,7 @@ window.addEventListener('keydown', (event) => {
     if (!event.repeat) queueJump();
   } else if (key === 'r') {
     event.preventDefault();
-    resetGame('Neue Runde gestartet. Erreiche die Fahne am Ende des Levels.');
+    resetGame('Neue Runde gestartet. Drei Level, drei Fahnen – los geht’s.');
   }
 });
 
