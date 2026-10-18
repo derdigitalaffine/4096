@@ -12,7 +12,7 @@ test('Dr. Mario page stays local and exposes game navigation', () => {
   assert.match(html, /id="game-status"[^>]*aria-live="polite"/);
 });
 
-test('Dr. Mario has touch controls and keyboard bindings', () => {
+test('Dr. Mario has touch controls and keyboard bindings without stealing native control activation', () => {
   const html = readFileSync('dr-mario/index.html', 'utf8');
   const app = readFileSync('dr-mario/app.js', 'utf8');
   const styles = readFileSync('dr-mario/styles.css', 'utf8');
@@ -25,6 +25,8 @@ test('Dr. Mario has touch controls and keyboard bindings', () => {
   assert.match(app, /ArrowDown/);
   assert.match(app, /ArrowUp/);
   assert.match(app, /Enter/);
+  assert.match(app, /function isInteractiveTarget\(target\)/);
+  assert.match(app, /isInteractiveTarget\(event\.target\)/);
   assert.match(styles, /button\s*\{[^}]*min-height:\s*44px/s);
   assert.match(styles, /@media \(max-width: 680px\)/);
 });
