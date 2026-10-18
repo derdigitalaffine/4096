@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v15';
+const CACHE_NAME = '4096-shell-v16';
 const APP_SHELL = [
   './',
   './index.html',
@@ -18,6 +18,17 @@ const APP_SHELL = [
   './sudoku/styles.css',
   './sudoku/app.js',
   './sudoku/game.js',
+  './dr-tromu/',
+  './dr-tromu/index.html',
+  './dr-tromu/styles.css',
+  './dr-tromu/app.js',
+  './dr-tromu/game.js',
+  './super-tromu-land/',
+  './super-tromu-land/index.html',
+  './super-tromu-land/styles.css',
+  './super-tromu-land/app.js',
+  './super-tromu-land/game.js',
+  './super-tromu-land/view.js',
   './dr-mario/',
   './dr-mario/index.html',
   './dr-mario/styles.css',
@@ -28,6 +39,7 @@ const APP_SHELL = [
   './super-mario-land/styles.css',
   './super-mario-land/app.js',
   './super-mario-land/game.js',
+  './super-mario-land/view.js',
   './manifest.webmanifest',
   './icon.svg',
   './icon-192.png',
