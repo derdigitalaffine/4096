@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const html = readFileSync('index.html', 'utf8');
+const html = readFileSync('4096/index.html', 'utf8');
 const app = readFileSync('app.js', 'utf8');
 const css = readFileSync('styles.css', 'utf8');
 
