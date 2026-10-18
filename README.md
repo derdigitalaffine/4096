@@ -1,9 +1,10 @@
-# 4096 + Sudoku
+# 4096 + Sudoku + Dr. Mario
 
-Dieses Repository ist direkt der Webroot für zwei lokale, offlinefähige Browser-Spiele ohne Runtime-Dependencies, Anmeldung oder Tracker:
+Dieses Repository ist direkt der Webroot für drei lokale, offlinefähige Browser-Spiele ohne Runtime-Dependencies, Anmeldung oder Tracker:
 
 - **4096** unter `/` – gleiche Zahlen zusammenschieben und 4096 erreichen.
 - **Sudoku** unter `/sudoku/` – mobile-first 9×9-Sudoku mit Leicht/Mittel/Schwer, Notizen, Undo, Timer und lokaler Fortsetzung.
+- **Dr. Mario** unter `/dr-mario/` – mobile-first Kapselpuzzle mit drei Farben, Viren, Vierer-Matches, Kaskaden und lokaler Fortsetzung.
 
 ## Lokal starten
 
@@ -13,7 +14,7 @@ Für lokale Entwicklung genügt ein statischer Server, zum Beispiel:
 python3 -m http.server 8080
 ```
 
-Danach `http://localhost:8080` öffnen. `localhost` ist ein sicherer Browserkontext und erlaubt Service Worker/PWA-Tests. Von 4096 führt der Button **Sudoku** direkt zur Unterseite; Sudoku bietet einen Rückweg zu 4096.
+Danach `http://localhost:8080` öffnen. `localhost` ist ein sicherer Browserkontext und erlaubt Service Worker/PWA-Tests. Von 4096 führen die Buttons **Sudoku** und **Dr. Mario** zu den Unterseiten; beide Spielseiten bieten Navigation zurück in den gemeinsamen Webroot.
 
 ### 4096-Steuerung
 
@@ -35,6 +36,17 @@ Spielstand, letzter Undo-Snapshot und Bestwert werden lokal gespeichert, wenn Br
 
 Sudoku speichert Aufgabe, Einträge, Notizen, Auswahl, Fehlerzahl und Timer lokal und stellt einen gültigen Spielstand nach Reload wieder her. Beschädigter oder nicht kompatibler Storage fällt auf eine frische Aufgabe zurück.
 
+### Dr.-Mario-Steuerung
+
+- Pfeil links/rechts oder `A`/`D`: Kapsel bewegen
+- Pfeil hoch oder `W`: Kapsel drehen
+- Pfeil runter oder `S`: schneller fallen
+- `Leertaste` oder `Enter`: Kapsel sofort ablegen
+- Touch: dieselben Aktionen über die großen Steuerbuttons
+- Vier oder mehr gleichfarbige Felder horizontal oder vertikal werden entfernt; alle Viren müssen verschwinden
+
+Dr. Mario speichert Flasche, aktive und nächste Kapsel, Score und Viruszahl lokal. Beschädigter Storage wird verworfen und durch eine neue Runde ersetzt.
+
 ## Tests
 
 Es gibt keine npm-Runtime-Dependencies. Für die normalen Checks wird Node.js 20 oder neuer benötigt.
@@ -44,7 +56,7 @@ npm test
 npm run check
 ```
 
-`npm run check` prüft die Syntax beider Spiele sowie alle Node-Regressionen. Dazu gehören unter anderem 4096-Move-/Merge-/Win-/Persistenzregeln, Sudoku-Einheiten/Kandidaten/Konflikte, die Eindeutigkeit aller sechs Sudoku-Aufgaben, Accessibility-/Responsive-Verträge und Service-Worker-/Webroot-Verträge.
+`npm run check` prüft die Syntax aller drei Spiele sowie alle Node-Regressionen. Dazu gehören unter anderem 4096-Move-/Merge-/Win-/Persistenzregeln, Sudoku-Einheiten/Kandidaten/Konflikte, Dr.-Mario-Matches/Rotation/Schwerkraft/Sieg, Accessibility-/Responsive-Verträge und Service-Worker-/Webroot-Verträge.
 
 Zusätzlich gibt es einen echten Browser-Smoke-Test. Dafür werden Node.js 22+ und ein lokales Chrome/Chromium benötigt (`CHROME_BIN` kann explizit gesetzt werden):
 
@@ -52,21 +64,21 @@ Zusätzlich gibt es einen echten Browser-Smoke-Test. Dafür werden Node.js 22+ u
 npm run smoke
 ```
 
-Der Smoke startet selbst einen lokalen Webroot und prüft in Headless Chrome den realen Mehrseitenpfad: 4096 online bis Service-Worker-Bereitschaft und Manifest-Parsing, Sudoku online mit 81 Zellen, anschließend echten Sudoku-Offline-Reload und danach eine Offline-Navigation zurück zu 4096. In GitHub Actions laufen `npm run check` und `npm run smoke` als Pflichtpfade.
+Der Smoke startet selbst einen lokalen Webroot und prüft in Headless Chrome den realen Mehrseitenpfad: 4096 online bis Service-Worker-Bereitschaft und Manifest-Parsing, Sudoku online mit Eingabe/Persistenz, anschließend echten Sudoku-Offline-Reload, eine Offline-Query-Navigation und die Offline-Navigation zurück zu 4096. In GitHub Actions laufen `npm run check` und `npm run smoke` als Pflichtpfade.
 
 ## PWA / Offline
 
-`manifest.webmanifest` beschreibt die installierbare Root-PWA. `sw.js` precacht die kritischen Dateien **beider** Spiele. Navigationen werden pro Request getrennt gecacht, damit `/sudoku/` niemals den Root-Fallback von 4096 überschreibt. Solange Netzwerk verfügbar ist, werden Navigation und lokale Assets network-first geladen und erfolgreiche Antworten aktualisieren ihren Cacheeintrag; bei Netzfehlern oder fehlerhaften Serverantworten fällt die App auf den passenden Cache zurück.
+`manifest.webmanifest` beschreibt die installierbare Root-PWA. `sw.js` precacht die kritischen Dateien **aller drei** Spiele. Navigationen werden pro Request getrennt gecacht, damit Unterseiten niemals den Root-Fallback von 4096 überschreiben. Solange Netzwerk verfügbar ist, werden Navigation und lokale Assets network-first geladen und erfolgreiche Antworten aktualisieren ihren Cacheeintrag; bei Netzfehlern oder fehlerhaften Serverantworten fällt die App auf den passenden Cache zurück.
 
 Die Connection-Zeile unterscheidet Vorbereitung, echte Offline-Bereitschaft und Fehler. Erst `Online · offline bereit` bestätigt, dass der Service Worker bereit ist; offline bestätigt `Offline · spielbereit`, dass ein Reload aus dem lokalen Shell möglich ist.
 
 Für einen manuellen Mehrseiten-Offline-Smoke:
 
 1. Root online laden und auf `Online · offline bereit` warten.
-2. Sudoku öffnen und prüfen, dass auch dort `Online · offline bereit` steht.
-3. Netzwerk in DevTools auf Offline setzen und Sudoku neu laden.
-4. Prüfen, dass Sudoku mit `Offline · spielbereit` und vollständigem 9×9-Grid startet.
-5. Offline zurück zu `/` navigieren und 4096 weiter bedienen.
+2. Sudoku und Dr. Mario öffnen und prüfen, dass auch dort `Online · offline bereit` steht.
+3. Netzwerk in DevTools auf Offline setzen und die aktive Unterseite neu laden.
+4. Prüfen, dass deren vollständige Spieloberfläche mit `Offline · spielbereit` startet.
+5. Offline zwischen `/`, `/sudoku/` und `/dr-mario/` navigieren.
 
 ## Architektur
 
@@ -87,6 +99,13 @@ Für einen manuellen Mehrseiten-Offline-Smoke:
 - `sudoku/index.html` / `sudoku/styles.css` – mobile-first Oberfläche und semantisches 9×9-Grid
 - `sudoku/*.test.js` – Aufgaben-Eindeutigkeit, Regel- und UI-Verträge
 
+### Dr. Mario
+
+- `dr-mario/game.js` – pure Kapsel-, Match-, Virus-, Schwerkraft- und Sieglogik
+- `dr-mario/app.js` – Browserzustand, Auto-Drop, Persistenz, Keyboard/Touch und Offline-Status
+- `dr-mario/index.html` / `dr-mario/styles.css` – responsive 8×16-Flasche und mobile Steuerung
+- `dr-mario/*.test.js` – Kernregeln sowie UI-/Offline-Verträge
+
 ### Gemeinsame PWA-/Qualitätsschicht
 
 - `sw.js` / `manifest.webmanifest` / Icons – gemeinsame Offline-/Installationsschicht
@@ -95,4 +114,4 @@ Für einen manuellen Mehrseiten-Offline-Smoke:
 
 ## Deployment
 
-`main` wird direkt als Webroot ausgeliefert. Es gibt keinen Buildschritt und kein `dist/`. Der Webserver muss Verzeichnis-URLs wie `/sudoku/` auf deren `index.html` auflösen und korrekte MIME-Typen liefern. Außerhalb von `localhost` ist HTTPS für Service Worker und Installation erforderlich.
+`main` wird direkt als Webroot ausgeliefert. Es gibt keinen Buildschritt und kein `dist/`. Der Webserver muss Verzeichnis-URLs wie `/sudoku/` und `/dr-mario/` auf deren `index.html` auflösen und korrekte MIME-Typen liefern. Außerhalb von `localhost` ist HTTPS für Service Worker und Installation erforderlich.

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#171717">
+  <meta name="description" content="Dr. Mario – lokales, offlinefähiges Kapsel-Puzzlespiel.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Dr. Mario</title>
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="dm-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Offline PWA · Kapselpuzzle</p>
+        <h1>Dr. Mario</h1>
+        <p class="tagline">Ordne Farben. Vier in einer Reihe beseitigen Viren.</p>
+      </div>
+      <nav class="game-nav" aria-label="Spiele">
+        <a href="../">4096</a>
+        <a href="../sudoku/">Sudoku</a>
+      </nav>
+    </header>
+
+    <section class="stats" aria-label="Spielstatus">
+      <div class="stat-card"><span>Score</span><strong id="score">0</strong></div>
+      <div class="stat-card"><span>Viren</span><strong id="viruses">0</strong></div>
+      <div class="stat-card next-card">
+        <span>Nächste Kapsel</span>
+        <span id="next-pill" class="next-pill" aria-label="Nächste Kapsel"></span>
+      </div>
+      <span id="connection-status" class="connection" aria-live="polite">Online</span>
+    </section>
+
+    <section class="game-layout" aria-label="Dr.-Mario-Spiel">
+      <div class="bottle-frame">
+        <div
+          id="bottle"
+          class="bottle"
+          role="grid"
+          aria-label="Dr.-Mario-Spielfeld, 8 Spalten und 16 Reihen."
+          tabindex="0"
+        ></div>
+      </div>
+
+      <div class="side-panel">
+        <button id="new-game" type="button">Neue Runde</button>
+        <p class="instructions">
+          Bewege die fallende Kapsel mit Pfeiltasten oder WASD. Pfeil hoch/W dreht, Leertaste oder Enter legt sofort ab.
+        </p>
+        <div class="touch-controls" aria-label="Kapselsteuerung">
+          <button id="move-left" type="button" aria-label="Nach links">←</button>
+          <button id="rotate" type="button" aria-label="Kapsel drehen">↻</button>
+          <button id="move-right" type="button" aria-label="Nach rechts">→</button>
+          <button id="move-down" type="button" aria-label="Schneller nach unten">↓</button>
+          <button id="hard-drop" class="wide" type="button">Ablegen</button>
+        </div>
+      </div>
+    </section>
+
+    <p id="game-status" class="status" aria-live="polite" aria-atomic="true"></p>
+
+    <footer>
+      <p>Keine Anmeldung. Keine Tracker. Der Spielstand bleibt lokal auf diesem Gerät.</p>
+    </footer>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
