@@ -34,7 +34,8 @@ button {
   touch-action: manipulation;
 }
 
-button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+button:active,
+button[data-pressed="true"] { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 button:focus-visible, a:focus-visible, canvas:focus-visible { outline: 4px solid var(--paper); outline-offset: 3px; }
 button.secondary { background: var(--paper); }
@@ -202,5 +203,6 @@ footer { margin-top: 0.8rem; color: #d8e3b2; font-size: 0.74rem; text-align: cen
 }
 
 @media (prefers-reduced-motion: reduce) {
-  button:active { transform: none; }
+  button:active,
+  button[data-pressed="true"] { transform: none; }
 }
