@@ -8,6 +8,7 @@ import {
   stageLabel,
   stepGame,
 } from './game.js';
+import { cameraTargetX, nextCameraX, pixelCameraX } from './view.js';
 
 const canvas = document.querySelector('#game-canvas');
 const context = canvas.getContext('2d');
@@ -30,6 +31,7 @@ const BEST_KEY = 'super-mario-land-best-v1';
 const VIEW_WIDTH = canvas.width;
 const VIEW_HEIGHT = canvas.height;
 const controls = { left: false, right: false };
+const reducedMotionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)') ?? { matches: false };
 const LEVEL_THEMES = {
   desert: { sky: '#9bbc0f', hills: '#8bac0f', clouds: '#306230' },
   ruins: { sky: '#8bac0f', hills: '#306230', clouds: '#0f380f' },
@@ -45,6 +47,7 @@ let jumpQueued = false;
 let fireQueued = false;
 let game = createGame();
 let lastFrame = performance.now();
+let cameraX = 0;
 let bestScore = loadBestScore();
 let offlineReady = Boolean(navigator.serviceWorker?.controller);
 let offlineError = false;
@@ -70,37 +73,51 @@ function powerLabel(power) {
   return { small: 'Klein', mushroom: 'Pilz', flower: 'Blume' }[power] ?? 'Klein';
 }
 
-function setStatus(message) { statusElement.textContent = message; }
+function setTextIfChanged(element, value) {
+  const text = String(value);
+  if (element.textContent !== text) element.textContent = text;
+}
+
+function setDataIfChanged(element, key, value) {
+  const text = String(value);
+  if (element.dataset[key] !== text) element.dataset[key] = text;
+}
+
+function setDisabledIfChanged(button, disabled) {
+  if (button.disabled !== disabled) button.disabled = disabled;
+}
+
+function setStatus(message) { setTextIfChanged(statusElement, message); }
 
 function updateConnection() {
-  connectionElement.textContent = connectionStatus({ online: navigator.onLine, offlineReady, offlineError });
-  connectionElement.dataset.offlineReady = String(offlineReady);
-  connectionElement.dataset.warning = String(offlineError || (!navigator.onLine && !offlineReady));
+  setTextIfChanged(connectionElement, connectionStatus({ online: navigator.onLine, offlineReady, offlineError }));
+  setDataIfChanged(connectionElement, 'offlineReady', offlineReady);
+  setDataIfChanged(connectionElement, 'warning', offlineError || (!navigator.onLine && !offlineReady));
 }
 
 function updateHud() {
   const level = getLevel(game);
-  scoreElement.textContent = String(game.score);
-  coinsElement.textContent = `${collectedCoins(game)}/${level.coins.length}`;
-  livesElement.textContent = String(game.lives);
-  bestElement.textContent = String(bestScore);
-  levelElement.textContent = `${stageLabel(game)} · ${game.levelIndex + 1}/${LEVEL_COUNT}`;
-  progressElement.textContent = `${progressPercent(game)}%`;
-  powerElement.textContent = powerLabel(game.power);
+  setTextIfChanged(scoreElement, game.score);
+  setTextIfChanged(coinsElement, `${collectedCoins(game)}/${level.coins.length}`);
+  setTextIfChanged(livesElement, game.lives);
+  setTextIfChanged(bestElement, bestScore);
+  setTextIfChanged(levelElement, `${stageLabel(game)} · ${game.levelIndex + 1}/${LEVEL_COUNT}`);
+  setTextIfChanged(progressElement, `${progressPercent(game)}%`);
+  setTextIfChanged(powerElement, powerLabel(game.power));
   const terminal = game.status !== 'playing';
-  leftButton.disabled = terminal;
-  rightButton.disabled = terminal;
-  jumpButton.disabled = terminal;
-  fireButton.disabled = terminal || game.power !== 'flower';
+  setDisabledIfChanged(leftButton, terminal);
+  setDisabledIfChanged(rightButton, terminal);
+  setDisabledIfChanged(jumpButton, terminal);
+  setDisabledIfChanged(fireButton, terminal || game.power !== 'flower');
 }
 
-function drawBackground(cameraX, level) {
+function drawBackground(camera, level) {
   const theme = LEVEL_THEMES[level.environment] ?? LEVEL_THEMES.desert;
   context.fillStyle = theme.sky;
   context.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
   context.fillStyle = theme.hills;
   for (let index = -1; index < 7; index += 1) {
-    const x = index * 180 - ((cameraX * 0.18) % 180);
+    const x = index * 180 - ((camera * 0.18) % 180);
     const peak = 230 - (level.world - 1) * 8 + (index % 2) * 18;
     context.beginPath();
     context.moveTo(x, 360);
@@ -111,7 +128,7 @@ function drawBackground(cameraX, level) {
   }
   context.fillStyle = theme.clouds;
   for (let index = 0; index < 8; index += 1) {
-    const x = index * 150 - ((cameraX * 0.08) % 150);
+    const x = index * 150 - ((camera * 0.08) % 150);
     const y = 68 + (index % 3) * 28 + level.stage * 4;
     context.fillRect(x, y, 54, 12);
     context.fillRect(x + 12, y - 10, 32, 10);
@@ -120,11 +137,11 @@ function drawBackground(cameraX, level) {
     context.fillStyle = '#306230';
     context.fillRect(0, 344, VIEW_WIDTH, 40);
     context.fillStyle = '#8bac0f';
-    for (let x = -32 - (cameraX % 64); x < VIEW_WIDTH + 32; x += 64) context.fillRect(x, 352, 32, 4);
+    for (let x = -32 - (camera % 64); x < VIEW_WIDTH + 32; x += 64) context.fillRect(x, 352, 32, 4);
   }
   if (level.environment === 'bamboo') {
     context.fillStyle = '#306230';
-    for (let x = 24 - (cameraX * 0.12 % 96); x < VIEW_WIDTH; x += 96) {
+    for (let x = 24 - (camera * 0.12 % 96); x < VIEW_WIDTH; x += 96) {
       context.fillRect(x, 88, 8, 230);
       context.fillRect(x - 12, 140, 20, 5);
       context.fillRect(x + 8, 210, 18, 5);
@@ -132,8 +149,8 @@ function drawBackground(cameraX, level) {
   }
 }
 
-function drawSolid(solid, cameraX) {
-  const x = Math.round(solid.x - cameraX);
+function drawSolid(solid, camera) {
+  const x = Math.round(solid.x - camera);
   if (x + solid.width < 0 || x > VIEW_WIDTH) return;
   context.fillStyle = '#306230';
   context.fillRect(x, solid.y, solid.width, solid.height);
@@ -142,8 +159,8 @@ function drawSolid(solid, cameraX) {
   for (let px = x + 8; px < x + solid.width; px += 32) context.fillRect(px, solid.y + 14, 4, 4);
 }
 
-function drawQuestionBlock(block, cameraX) {
-  const x = Math.round(block.x - cameraX);
+function drawQuestionBlock(block, camera) {
+  const x = Math.round(block.x - camera);
   if (x + block.width < 0 || x > VIEW_WIDTH) return;
   context.fillStyle = '#0f380f';
   context.fillRect(x, block.y, block.width, block.height);
@@ -161,9 +178,9 @@ function drawQuestionBlock(block, cameraX) {
   }
 }
 
-function drawCoin(coin, cameraX) {
+function drawCoin(coin, camera) {
   if (coin.collected) return;
-  const x = Math.round(coin.x - cameraX);
+  const x = Math.round(coin.x - camera);
   if (x < -20 || x > VIEW_WIDTH + 20) return;
   context.fillStyle = '#0f380f';
   context.beginPath();
@@ -173,9 +190,9 @@ function drawCoin(coin, cameraX) {
   context.fillRect(x - 2, coin.y - 5, 4, 10);
 }
 
-function drawPowerup(item, cameraX) {
+function drawPowerup(item, camera) {
   if (item.collected) return;
-  const x = Math.round(item.x - cameraX);
+  const x = Math.round(item.x - camera);
   if (x + item.width < 0 || x > VIEW_WIDTH) return;
   context.fillStyle = '#0f380f';
   if (item.type === 'flower') {
@@ -192,8 +209,8 @@ function drawPowerup(item, cameraX) {
   }
 }
 
-function drawProjectile(projectile, cameraX) {
-  const x = Math.round(projectile.x - cameraX);
+function drawProjectile(projectile, camera) {
+  const x = Math.round(projectile.x - camera);
   if (x + projectile.width < 0 || x > VIEW_WIDTH) return;
   context.fillStyle = '#0f380f';
   context.fillRect(x, projectile.y, projectile.width, projectile.height);
@@ -201,9 +218,9 @@ function drawProjectile(projectile, cameraX) {
   context.fillRect(x + 3, projectile.y + 3, projectile.width - 6, projectile.height - 6);
 }
 
-function drawEnemy(enemy, cameraX) {
+function drawEnemy(enemy, camera) {
   if (!enemy.alive) return;
-  const x = Math.round(enemy.x - cameraX);
+  const x = Math.round(enemy.x - camera);
   if (x + enemy.width < 0 || x > VIEW_WIDTH) return;
   context.fillStyle = '#0f380f';
   context.fillRect(x + 3, enemy.y + 5, enemy.width - 6, enemy.height - 5);
@@ -213,8 +230,8 @@ function drawEnemy(enemy, cameraX) {
   context.fillRect(x + enemy.width - 10, enemy.y + 9, 4, 4);
 }
 
-function drawGoal(goalX, cameraX) {
-  const x = Math.round(goalX - cameraX);
+function drawGoal(goalX, camera) {
+  const x = Math.round(goalX - camera);
   if (x < -40 || x > VIEW_WIDTH + 40) return;
   context.fillStyle = '#0f380f';
   context.fillRect(x, 152, 5, 232);
@@ -223,9 +240,9 @@ function drawGoal(goalX, cameraX) {
   context.fillRect(x - 18, 156, 14, 8);
 }
 
-function drawPlayer(cameraX) {
+function drawPlayer(camera) {
   const player = game.player;
-  const x = Math.round(player.x - cameraX);
+  const x = Math.round(player.x - camera);
   const y = Math.round(player.y);
   const flip = player.facing < 0;
   const powered = game.power !== 'small';
@@ -244,23 +261,32 @@ function drawPlayer(cameraX) {
   }
 }
 
-function renderGame() {
+function renderGame(deltaSeconds = 0, { snapCamera = false } = {}) {
   const level = getLevel(game);
-  const cameraX = Math.max(0, Math.min(level.width - VIEW_WIDTH, game.player.x - VIEW_WIDTH * 0.34));
-  drawBackground(cameraX, level);
-  for (const solid of level.solids) drawSolid(solid, cameraX);
-  for (const block of game.blocks) drawQuestionBlock(block, cameraX);
-  for (const coin of game.coins) drawCoin(coin, cameraX);
-  for (const item of game.powerups) drawPowerup(item, cameraX);
-  for (const projectile of game.projectiles) drawProjectile(projectile, cameraX);
-  for (const enemy of game.enemies) drawEnemy(enemy, cameraX);
-  drawGoal(level.goalX, cameraX);
-  drawPlayer(cameraX);
-  canvas.dataset.questionBlocks = String(game.blocks.length);
-  canvas.dataset.usedBlocks = String(game.blocks.filter((block) => block.used).length);
-  canvas.dataset.power = game.power;
-  canvas.dataset.stage = level.id;
-  canvas.dataset.autoScroll = String(level.autoScroll);
+  const targetCameraX = cameraTargetX(game.player.x, level.width, VIEW_WIDTH);
+  if (snapCamera || reducedMotionQuery.matches) cameraX = targetCameraX;
+  else cameraX = nextCameraX(cameraX, targetCameraX, deltaSeconds);
+  const camera = pixelCameraX(cameraX);
+
+  drawBackground(camera, level);
+  for (const solid of level.solids) drawSolid(solid, camera);
+  for (const block of game.blocks) drawQuestionBlock(block, camera);
+  for (const coin of game.coins) drawCoin(coin, camera);
+  for (const item of game.powerups) drawPowerup(item, camera);
+  for (const projectile of game.projectiles) drawProjectile(projectile, camera);
+  for (const enemy of game.enemies) drawEnemy(enemy, camera);
+  drawGoal(level.goalX, camera);
+  drawPlayer(camera);
+
+  setDataIfChanged(canvas, 'questionBlocks', game.blocks.length);
+  setDataIfChanged(canvas, 'usedBlocks', game.blocks.filter((block) => block.used).length);
+  setDataIfChanged(canvas, 'power', game.power);
+  setDataIfChanged(canvas, 'stage', level.id);
+  setDataIfChanged(canvas, 'autoScroll', level.autoScroll);
+  setDataIfChanged(canvas, 'cameraX', camera);
+  setDataIfChanged(canvas, 'cameraTarget', pixelCameraX(targetCameraX));
+  setDataIfChanged(canvas, 'cameraMode', reducedMotionQuery.matches ? 'instant' : 'smooth');
+
   context.fillStyle = '#0f380f';
   context.font = 'bold 15px ui-monospace, monospace';
   context.fillText(`STAGE ${level.id} · ${level.name.toUpperCase()} · ZIEL ${Math.max(0, Math.ceil((level.goalX - game.player.x) / 32))}`, 12, 24);
@@ -272,9 +298,10 @@ function resetGame(message = 'Los geht’s: Vier Welten mit zwölf eigenen Stage
   controls.right = false;
   jumpQueued = false;
   fireQueued = false;
+  cameraX = 0;
   setStatus(message);
   updateHud();
-  renderGame();
+  renderGame(0, { snapCamera: true });
 }
 
 function handleStateFeedback(previous) {
@@ -310,7 +337,8 @@ function frame(now) {
   fireQueued = false;
   handleStateFeedback(previous);
   updateHud();
-  renderGame();
+  const snapCamera = game.levelIndex !== previous.levelIndex || game.lives < previous.lives;
+  renderGame(delta, { snapCamera });
   requestAnimationFrame(frame);
 }
 
