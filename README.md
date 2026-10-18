@@ -10,6 +10,7 @@ Aktuell registriert sind:
 - **Super Tromu Land** unter `/super-tromu-land/` – seitlich scrollendes Jump ’n’ Run mit vier Welten und zwölf eigenen Stages von `1-1` bis `4-3`.
 - **Tromu Snake** unter `/snake/` – schnelles Score-Arcade mit Classic-, Speed- und Maze-Modus, Pickups, Combos und lokalen Highscores.
 - **Tromu Sokoban** unter `/sokoban/` – zehn eigene Push-Puzzle mit Mehrfach-Undo, Level-Fortschritt und Bestwerten für Züge/Schübe.
+- **Tromu Breakout** unter `/breakout/` – fünf kurze Arcade-Level mit Paddle, drei Power-ups, Leben und lokalem Bestwert.
 
 Frühere Pfade `/dr-mario/` und `/super-mario-land/` bleiben als nicht beworbene Kompatibilitätsalias erhalten. Alle regulären Produktlinks verwenden die Tromu-Namen.
 
@@ -50,7 +51,7 @@ Für einen weiteren Direct-Webroot-Spielpfad gilt dieser Vertrag:
 
 ## PWA / Offline
 
-`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells und die weiterhin unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v20`**.
+`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells und die weiterhin unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v21`**.
 
 Navigationen werden network-first geladen und erfolgreiche Antworten aktualisieren den Cache. Offline wird zuerst die passende gecachte Navigation verwendet; extensionlose bekannte Unterseiten können auf ihre gecachte Slash-Route umgeleitet werden. Der Root-Fallback bleibt die Welcome-Page.
 
@@ -118,6 +119,16 @@ Bestwerte werden getrennt für Classic, Speed und Maze lokal gespeichert. Besch�
 
 Fortsetzung, Freischaltung und Bestwerte werden lokal gespeichert. Pro Level gewinnt zuerst die geringere Zahl an Schüben, bei Gleichstand die geringere Zahl an Zügen. Beschädigter oder gesperrter Storage fällt sicher auf Level 1 zurück.
 
+### Tromu Breakout
+
+- Links/rechts: Pfeiltasten oder `A`/`D`
+- Leertaste oder **Start** setzt den Ball in Bewegung
+- `P` oder **Pause** hält die Physik an; `R` oder **Restart** startet eine neue Runde
+- Touch funktioniert über große Links/Rechts-Ziele sowie direktes Ziehen des Paddles im Canvas
+- fünf eigene kurze Level enthalten normale Blöcke sowie **W** (breiteres Paddle), **S** (langsamer Ball) und **M** (Multiball)
+
+Punkte und Leben laufen über Levelgrenzen weiter. Der lokale Bestwert wird fortlaufend gespeichert; beschädigter oder gesperrter Storage fällt sicher auf `0` zurück.
+
 ## Tests
 
 Es gibt keine npm-Runtime-Abhängigkeiten. Für Node-Checks wird Node.js 20 oder neuer benötigt:
@@ -147,6 +158,7 @@ Dabei werden unter anderem geprüft:
 - Super-Tromu-Land-Kampagne, Power-ups, Auto-Scroll, Touch/Tastatur und Offline-Reload
 - Tromu-Snake-Mobile-Fit, Classic/Speed/Maze, Touch/Tastatur, Highscore-Recovery und Offline-Reload
 - Tromu-Sokoban-Mobile-Fit, Tastatur/Touch, Mehrfach-Undo, Progress/Bestwerte, Storage-Recovery und Offline-Reload
+- Tromu-Breakout-Mobile-Fit, Tastatur/Touch-Drag, Pause, Bestwert-Recovery und Offline-Reload
 
 In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 
@@ -173,6 +185,7 @@ In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 - Super Tromu Land: `super-tromu-land/`
 - Tromu Snake: `snake/` mit purem `game.js`, fehlertolerantem `storage.js`, Browserzustand in `app.js` und eigenem Mobile-/Offline-Smoke
 - Tromu Sokoban: `sokoban/` mit zehn Levels in `levels.js`, purem `game.js`, validiertem `storage.js`, Browserzustand in `app.js` und eigenem Mobile-/Offline-Smoke
+- Tromu Breakout: `breakout/` mit fünf Levels in `levels.js`, purer Kollision/Physik in `game.js`, robustem Bestwert-Storage, Canvas-Browserzustand und eigenem Mobile-/Offline-Smoke
 
 Jedes Spiel bleibt ohne Bundler direkt aus seinem Webroot-Pfad ausführbar. Spiel-spezifische Regeln und Browser-Smokes bleiben beim jeweiligen Spiel; nur katalogweite Metadaten und Navigation liegen zentral.
 

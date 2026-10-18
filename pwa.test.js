@@ -131,7 +131,7 @@ test('service worker precaches shared registry modules and every registered game
     './manifest.webmanifest', ...iconFiles.map((file) => `./${file}`),
   ];
   for (const ref of refs) assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')), `Service Worker precacht ${ref} nicht.`);
-  assert.match(worker, /4096-shell-v20/);
+  assert.match(worker, /4096-shell-v21/);
 });
 
 test('4096 terminal dialog wires description, inert background and focus containment', () => {

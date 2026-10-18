@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10151d">
+  <meta name="description" content="Tromu Breakout – fünf kurze Arcade-Level mit Power-ups, Bestwert und Offline-PWA.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Tromu Breakout</title>
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body data-game-id="breakout">
+  <main class="breakout-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Offline-PWA · Arcade</p>
+        <h1>Tromu Breakout</h1>
+      </div>
+      <nav class="game-nav" aria-label="Spiele" data-game-nav></nav>
+    </header>
+
+    <section class="stats" aria-label="Spielstand">
+      <div><span>Level</span><strong id="level">1/5</strong></div>
+      <div><span>Punkte</span><strong id="score">0</strong></div>
+      <div><span>Leben</span><strong id="lives">3</strong></div>
+      <div><span>Best</span><strong id="best-score">0</strong></div>
+    </section>
+
+    <section class="game-panel" aria-label="Breakout-Spiel">
+      <canvas id="breakout-canvas" width="320" height="420" role="img" tabindex="0" aria-label="Breakout-Spielfeld"></canvas>
+      <div class="controls" aria-label="Breakout-Steuerung">
+        <button id="move-left" type="button" aria-label="Paddle nach links">←</button>
+        <button id="move-right" type="button" aria-label="Paddle nach rechts">→</button>
+        <button id="launch-ball" type="button">Start</button>
+        <button id="pause-game" type="button">Pause</button>
+        <button id="restart-game" type="button">Restart</button>
+        <button id="next-level" type="button" hidden>Nächstes</button>
+      </div>
+    </section>
+
+    <p id="game-status" class="status" aria-live="polite" aria-atomic="true">Start drücken oder Leertaste nutzen.</p>
+    <p class="power-hint">Power-ups: <strong>W</strong> breit · <strong>S</strong> langsam · <strong>M</strong> Multiball</p>
+    <div class="meta-row">
+      <span id="connection-status" class="connection" aria-live="polite">Online · Offline wird vorbereitet</span>
+      <span class="shortcuts">←/→ oder A/D · Leertaste · P · R · Touch/Drag</span>
+    </div>
+  </main>
+  <script type="module" src="../game-nav.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
