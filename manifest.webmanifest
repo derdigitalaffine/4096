@@ -1,15 +1,15 @@
 {
   "id": "./",
-  "name": "4096",
-  "short_name": "4096",
-  "description": "Verbinde gleiche Zahlen und erreiche 4096 – komplett offline spielbar.",
+  "name": "Tromu Spielewelt",
+  "short_name": "Tromu Spiele",
+  "description": "Vier lokale Browser-Spiele in einer offlinefähigen, installierbaren Spielewelt.",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#11110f",
-  "theme_color": "#171717",
+  "background_color": "#0d0a18",
+  "theme_color": "#19152b",
   "icons": [
     {
       "src": "./icon-192.png",

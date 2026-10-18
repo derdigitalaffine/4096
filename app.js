@@ -335,7 +335,7 @@ if ('serviceWorker' in navigator) {
 
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('./sw.js');
+      const registration = await navigator.serviceWorker.register(new URL('./sw.js', import.meta.url));
       registration.update().catch(() => {});
       await navigator.serviceWorker.ready;
       offlineReady = true;

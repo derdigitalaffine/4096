@@ -7,13 +7,13 @@ const app = readFileSync('sudoku/app.js', 'utf8');
 const css = readFileSync('sudoku/styles.css', 'utf8');
 const rootHtml = readFileSync('index.html', 'utf8');
 
-test('game navigation exposes touch-sized local targets across the webroot', () => {
-  assert.match(rootHtml, /class="nav-link"[^>]*href="\.\/sudoku\/"[^>]*>Sudoku</);
-  assert.match(rootHtml, /class="nav-link"[^>]*href="\.\/super-mario-land\/"[^>]*>Super Mario Land</);
-  const rootCss = readFileSync('styles.css', 'utf8');
-  assert.match(rootCss, /button, \.nav-link\s*\{[\s\S]*?min-height:\s*44px/);
+test('game navigation exposes touch-sized local targets across the Tromu webroot', () => {
+  for (const [href, label] of [['./4096/', '4096'], ['./sudoku/', 'Sudoku'], ['./dr-mario/', 'Dr. Mario'], ['./super-mario-land/', 'Super Mario Land']]) {
+    const escapedHref = href.replaceAll('.', '\\.');
+    assert.match(rootHtml, new RegExp(`class="game-card"[^>]*href="${escapedHref}"[\\s\\S]*?<strong>${label}<\\/strong>`));
+  }
 
-  for (const [href, label] of [['../', '4096'], ['../dr-mario/', 'Dr. Mario'], ['../super-mario-land/', 'Super Mario Land']]) {
+  for (const [href, label] of [['../', 'Spielewelt'], ['../4096/', '4096'], ['../dr-mario/', 'Dr. Mario'], ['../super-mario-land/', 'Super Mario Land']]) {
     const escapedHref = href.replaceAll('.', '\\.');
     assert.match(html, new RegExp(`class="back-link"[^>]*href="${escapedHref}"[^>]*>${label}`));
   }

@@ -22,7 +22,8 @@
         <p class="tagline">Drei Level mit eigener Grafik: Laufe, springe, sammle Münzen und erreiche in jedem Abschnitt die Fahne.</p>
       </div>
       <nav class="game-nav" aria-label="Spiele">
-        <a href="../">4096</a>
+        <a href="../">Spielewelt</a>
+        <a href="../4096/">4096</a>
         <a href="../sudoku/">Sudoku</a>
         <a href="../dr-mario/">Dr. Mario</a>
       </nav>
@@ -39,14 +40,7 @@
     </section>
 
     <section class="game-panel" aria-label="Super-Mario-Land-Spiel">
-      <canvas
-        id="game-canvas"
-        width="800"
-        height="450"
-        role="img"
-        aria-label="Seitlich scrollendes Jump-’n’-Run mit drei aufeinanderfolgenden Leveln, Plattformen, Münzen, Gegnern und Ziel-Fahnen."
-      ></canvas>
-
+      <canvas id="game-canvas" width="800" height="450" role="img" aria-label="Seitlich scrollendes Jump-’n’-Run mit drei aufeinanderfolgenden Leveln, Plattformen, Münzen, Gegnern und Ziel-Fahnen."></canvas>
       <div class="controls">
         <button id="new-game" class="secondary" type="button">Neue Runde</button>
         <div class="touch-controls" aria-label="Jump-’n’-Run-Steuerung">
@@ -55,16 +49,12 @@
           <button id="jump" type="button">Springen</button>
         </div>
       </div>
-
       <p class="instructions">Tastatur: ←/→ oder A/D zum Laufen, ↑/W/Leertaste zum Springen, R für eine neue Runde. Punkte und Leben werden ins nächste Level übernommen.</p>
       <p id="game-status" class="status" aria-live="polite" aria-atomic="true"></p>
     </section>
 
-    <footer>
-      <p>Eigene Canvas-Grafik, keine fremden Spielassets. Keine Anmeldung und keine Tracker.</p>
-    </footer>
+    <footer><p>Eigene Canvas-Grafik, keine fremden Spielassets. Keine Anmeldung und keine Tracker.</p></footer>
   </main>
-
   <script type="module" src="./app.js"></script>
 </body>
 </html>

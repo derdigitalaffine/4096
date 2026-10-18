@@ -18,7 +18,8 @@
     <header class="topbar">
       <div>
         <nav class="game-nav" aria-label="Spiele">
-          <a class="back-link" href="../">4096</a>
+          <a class="back-link" href="../">Spielewelt</a>
+          <a class="back-link" href="../4096/">4096</a>
           <a class="back-link" href="../dr-mario/">Dr. Mario</a>
           <a class="back-link" href="../super-mario-land/">Super Mario Land</a>
         </nav>
@@ -28,14 +29,8 @@
       </div>
 
       <div class="game-meta" aria-label="Spielstatus">
-        <div class="meta-card">
-          <span>Zeit</span>
-          <strong id="timer">00:00</strong>
-        </div>
-        <div class="meta-card">
-          <span>Fehler</span>
-          <strong id="mistakes">0</strong>
-        </div>
+        <div class="meta-card"><span>Zeit</span><strong id="timer">00:00</strong></div>
+        <div class="meta-card"><span>Fehler</span><strong id="mistakes">0</strong></div>
       </div>
     </header>
 
@@ -55,31 +50,20 @@
     <section class="game-area" aria-label="Sudoku-Spiel">
       <div id="sudoku-grid" class="sudoku-grid" role="grid" aria-label="Sudoku 9 mal 9"></div>
       <p id="sudoku-status" class="sr-only" aria-live="polite" aria-atomic="true"></p>
-
       <div class="keypad" aria-label="Zahleneingabe">
-        <button type="button" data-number="1">1</button>
-        <button type="button" data-number="2">2</button>
-        <button type="button" data-number="3">3</button>
-        <button type="button" data-number="4">4</button>
-        <button type="button" data-number="5">5</button>
-        <button type="button" data-number="6">6</button>
-        <button type="button" data-number="7">7</button>
-        <button type="button" data-number="8">8</button>
-        <button type="button" data-number="9">9</button>
+        <button type="button" data-number="1">1</button><button type="button" data-number="2">2</button><button type="button" data-number="3">3</button>
+        <button type="button" data-number="4">4</button><button type="button" data-number="5">5</button><button type="button" data-number="6">6</button>
+        <button type="button" data-number="7">7</button><button type="button" data-number="8">8</button><button type="button" data-number="9">9</button>
       </div>
-
       <div class="action-row" aria-label="Bearbeitung">
         <button id="notes-mode" class="secondary" type="button" aria-pressed="false" aria-keyshortcuts="N">Notizen</button>
         <button id="erase" class="secondary" type="button" aria-keyshortcuts="Delete Backspace">Löschen</button>
         <button id="undo" class="secondary" type="button" aria-keyshortcuts="Control+Z Meta+Z" disabled>Rückgängig</button>
       </div>
-
       <p class="hint">Tippe ein Feld und eine Zahl. Tastatur: 1–9 · Pfeile · N für Notizen · Strg/⌘+Z.</p>
     </section>
 
-    <footer>
-      <p>Dein Sudoku bleibt lokal auf diesem Gerät. Keine Anmeldung, keine Tracker.</p>
-    </footer>
+    <footer><p>Dein Sudoku bleibt lokal auf diesem Gerät. Keine Anmeldung, keine Tracker.</p></footer>
   </main>
 
   <div id="completion-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="completion-title" aria-describedby="completion-message" hidden>
@@ -89,7 +73,8 @@
       <p id="completion-message"></p>
       <div class="dialog-actions">
         <button id="overlay-new-game" type="button">Neue Aufgabe</button>
-        <a class="button-link secondary" href="../">4096 spielen</a>
+        <a class="button-link secondary" href="../4096/">4096 spielen</a>
+        <a class="button-link secondary" href="../">Spielewelt</a>
       </div>
     </div>
   </div>
