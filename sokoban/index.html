@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17130f">
+  <meta name="description" content="Tromu Sokoban – zehn handgebaute Push-Puzzle mit Undo, lokaler Fortsetzung und Offline-PWA.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Tromu Sokoban</title>
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body data-game-id="sokoban">
+  <main class="sokoban-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Offline-PWA · Push Puzzle</p>
+        <h1>Tromu Sokoban</h1>
+      </div>
+      <nav class="game-nav" aria-label="Spiele" data-game-nav></nav>
+    </header>
+
+    <section class="statusbar" aria-label="Levelstatus">
+      <div><span>Level</span><strong id="level-number">1/10</strong></div>
+      <div><span>Züge</span><strong id="moves">0</strong></div>
+      <div><span>Schübe</span><strong id="pushes">0</strong></div>
+      <div class="best"><span>Best</span><strong id="best-score">–</strong></div>
+    </section>
+
+    <section class="toolbar" aria-label="Rundensteuerung">
+      <label class="level-picker">Puzzle
+        <select id="level-select" aria-label="Freigeschaltetes Puzzle wählen"></select>
+      </label>
+      <button id="undo-move" type="button" aria-keyshortcuts="Control+Z Meta+Z">Undo</button>
+      <button id="restart-level" type="button">Restart</button>
+      <button id="next-level" type="button" hidden>Nächstes</button>
+    </section>
+
+    <section class="play-area" aria-label="Sokoban-Spiel">
+      <div id="sokoban-board" class="sokoban-board" role="grid" tabindex="0" aria-label="Sokoban-Spielfeld"></div>
+      <div class="touch-controls" aria-label="Sokoban-Steuerung">
+        <button id="move-up" class="up" type="button" data-direction="up" aria-label="Nach oben">↑</button>
+        <button id="move-left" type="button" data-direction="left" aria-label="Nach links">←</button>
+        <button id="move-down" type="button" data-direction="down" aria-label="Nach unten">↓</button>
+        <button id="move-right" type="button" data-direction="right" aria-label="Nach rechts">→</button>
+      </div>
+    </section>
+
+    <p id="game-status" class="status" aria-live="polite" aria-atomic="true">Kisten auf alle Zielpunkte schieben.</p>
+    <p id="lesson" class="lesson"></p>
+    <div class="meta-row">
+      <span id="connection-status" class="connection" aria-live="polite">Online · Offline wird vorbereitet</span>
+      <span class="shortcuts">Pfeile/WASD · Strg/⌘+Z · R</span>
+    </div>
+  </main>
+  <script type="module" src="../game-nav.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

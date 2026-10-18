@@ -44,6 +44,13 @@ export const GAMES = Object.freeze([
     description: 'Schnelles Score-Arcade mit Classic-, Speed- und Maze-Modus, Pickups und Combos.',
     shell: ['/snake/', '/snake/index.html', '/snake/styles.css', '/snake/app.js', '/snake/game.js', '/snake/storage.js'],
   }),
+  freezeGame({
+    id: 'sokoban',
+    name: 'Tromu Sokoban',
+    route: '/sokoban/',
+    description: 'Zehn eigene Push-Puzzle mit Mehrfach-Undo, Level-Fortschritt und lokalen Bestwerten.',
+    shell: ['/sokoban/', '/sokoban/index.html', '/sokoban/styles.css', '/sokoban/app.js', '/sokoban/game.js', '/sokoban/levels.js', '/sokoban/storage.js'],
+  }),
 ]);
 
 export const GAME_COUNT = GAMES.length;
