@@ -8,6 +8,7 @@ Aktuell registriert sind:
 - **Sudoku** unter `/sudoku/` – mobile-first 9×9-Sudoku mit drei Schwierigkeitsstufen, Notizen, Undo, Timer und lokaler Fortsetzung.
 - **Dr. Tromu** unter `/dr-tromu/` – Kapselpuzzle mit Viren, Vierer-Matches, Kaskaden und lokaler Fortsetzung.
 - **Super Tromu Land** unter `/super-tromu-land/` – seitlich scrollendes Jump ’n’ Run mit vier Welten und zwölf eigenen Stages von `1-1` bis `4-3`.
+- **Tromu Snake** unter `/snake/` – schnelles Score-Arcade mit Classic-, Speed- und Maze-Modus, Pickups, Combos und lokalen Highscores.
 
 Frühere Pfade `/dr-mario/` und `/super-mario-land/` bleiben als nicht beworbene Kompatibilitätsalias erhalten. Alle regulären Produktlinks verwenden die Tromu-Namen.
 
@@ -32,7 +33,7 @@ Danach `http://localhost:8080` öffnen. `localhost` ist ein sicherer Browserkont
 - optionale `legacyRoutes`
 - `shell`: die Dateien und Routen, die für den Offline-Vertrag des Spiels erforderlich sind
 
-`home.js` rendert die Spielkarten der Welcome-Page direkt aus `GAMES`. `game-nav.js` erzeugt auf jeder kanonischen Spielseite aus derselben Registry den Rückweg zur Spielewelt sowie die Links zu allen anderen registrierten Spielen. Dadurch müssen neue Spiele nicht mehr in mehreren HTML-Linklisten nachgetragen werden.
+`home.js` rendert die Spielkarten der Welcome-Page direkt aus `GAMES`. `game-nav.js` erzeugt auf jeder kanonischen Spielseite aus derselben Registry den Rückweg zur Spielewelt sowie die Links zu allen anderen registrierten Spielen. Registry-Routen werden relativ zum tatsächlichen Webroot aufgelöst, damit die Spielewelt sowohl am Domain-Root als auch unter einem Deployment-Prefix funktioniert.
 
 ### Neues Spiel hinzufügen
 
@@ -48,7 +49,7 @@ Für einen weiteren Direct-Webroot-Spielpfad gilt dieser Vertrag:
 
 ## PWA / Offline
 
-`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells und die weiterhin unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v17`**.
+`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells und die weiterhin unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v19`**.
 
 Navigationen werden network-first geladen und erfolgreiche Antworten aktualisieren den Cache. Offline wird zuerst die passende gecachte Navigation verwendet; extensionlose bekannte Unterseiten können auf ihre gecachte Slash-Route umgeleitet werden. Der Root-Fallback bleibt die Welcome-Page.
 
@@ -94,6 +95,18 @@ Dr. Tromu speichert Flasche, aktive und nächste Kapsel, Punkte und Viruszahl lo
 
 Die Kampagne umfasst vier Welten mit je drei Stages. In `1-3` ist das Rohr vor der mittleren Lücke auf 80 Pixel abgesenkt. `2-3` und `4-3` sind Auto-Scroll-Finale. Pilz und Blume liefern Treffer-Schutz beziehungsweise Ball-Angriff; Punkte, Leben und Power-up-Zustand werden beim Stagewechsel weitergegeben.
 
+### Tromu Snake
+
+- Pfeiltasten oder WASD; auf Touch über das Vier-Richtungs-D-Pad
+- `P`: Pause/Weiter
+- `R`: neue Runde
+- **Classic**: konstantes Grundtempo ohne Hindernisse
+- **Speed**: höheres Starttempo und weitere Beschleunigung nach Pickups
+- **Maze**: eigenes Hindernisfeld bei mittlerem Tempo
+- schnelle Pickups innerhalb des Combo-Fensters erhöhen den Multiplikator bis `×5`
+
+Bestwerte werden getrennt für Classic, Speed und Maze lokal gespeichert. Beschädigter oder gesperrter Storage blockiert den Spielstart nicht.
+
 ## Tests
 
 Es gibt keine npm-Runtime-Abhängigkeiten. Für Node-Checks wird Node.js 20 oder neuer benötigt:
@@ -117,9 +130,11 @@ Dabei werden unter anderem geprüft:
 - Anzahl und Darstellung der Registry-Spielkarten auf 360×640
 - gemeinsame Navigation aller registrierten kanonischen Spielseiten auf 360×640
 - Touchzielgrößen, sichtbarer Tastaturfokus und Offline-Aktivierung per Enter
+- Deployment unter einem Webroot-Prefix inklusive Offline-Navigation
 - 4096- und Sudoku-Persistenz
 - Dr.-Tromu-Mobile-Fit, Offline-Reload und Storage-Recovery
 - Super-Tromu-Land-Kampagne, Power-ups, Auto-Scroll, Touch/Tastatur und Offline-Reload
+- Tromu-Snake-Mobile-Fit, Classic/Speed/Maze, Touch/Tastatur, Highscore-Recovery und Offline-Reload
 
 In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 
@@ -135,6 +150,7 @@ In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 - `browser-smoke.mjs` – Welcome-/Mehrseiten-Acceptance
 - `welcome-mobile-smoke.mjs` – echter 360×640-Audit der Welcome-Page
 - `game-navigation-smoke.mjs` – registry-basierte Navigation, Touchziele, Fokus und Offline-Enter-Zyklus
+- `subpath-navigation-smoke.mjs` – Webroot-Prefix-Navigation online/offline
 - `offline-routing-smoke.mjs` – Offline-No-Slash-Acceptance für kritische Spielrouten
 
 ### Spiele
@@ -143,6 +159,7 @@ In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 - Sudoku: `sudoku/`
 - Dr. Tromu: `dr-tromu/`
 - Super Tromu Land: `super-tromu-land/`
+- Tromu Snake: `snake/` mit purem `game.js`, fehlertolerantem `storage.js`, Browserzustand in `app.js` und eigenem Mobile-/Offline-Smoke
 
 Jedes Spiel bleibt ohne Bundler direkt aus seinem Webroot-Pfad ausführbar. Spiel-spezifische Regeln und Browser-Smokes bleiben beim jeweiligen Spiel; nur katalogweite Metadaten und Navigation liegen zentral.
 
