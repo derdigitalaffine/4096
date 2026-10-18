@@ -50,6 +50,33 @@ const ROUTES = [
   },
 ];
 
+const OFFLINE_ENTER_CYCLE = [
+  {
+    sourceLabel: '4096',
+    navSelector: '.controls .nav-link',
+    targetPath: '/sudoku/',
+    targetReadyExpression: "document.querySelectorAll('.sudoku-cell').length === 81",
+  },
+  {
+    sourceLabel: 'Sudoku',
+    navSelector: '.game-nav a',
+    targetPath: '/dr-mario/',
+    targetReadyExpression: "document.querySelectorAll('.dm-cell').length === 128",
+  },
+  {
+    sourceLabel: 'Dr. Mario',
+    navSelector: '.game-nav a',
+    targetPath: '/super-mario-land/',
+    targetReadyExpression: "Boolean(document.querySelector('#game-canvas'))",
+  },
+  {
+    sourceLabel: 'Super Mario Land',
+    navSelector: '.game-nav a',
+    targetPath: '/4096/',
+    targetReadyExpression: "document.querySelectorAll('.tile').length === 16",
+  },
+];
+
 async function freePort() {
   return new Promise((resolvePort, reject) => {
     const server = createNetServer();
@@ -199,6 +226,30 @@ async function pressTab(client) {
   await sleep(30);
 }
 
+async function pressEnter(client) {
+  await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
+  await client.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
+}
+
+async function focusNavPath(client, selector, targetPath, label) {
+  await evaluate(client, 'document.activeElement?.blur()');
+  for (let index = 0; index < 30; index += 1) {
+    await pressTab(client);
+    const focus = await evaluate(client, `(() => {
+      const active = document.activeElement;
+      if (!active?.matches?.(${JSON.stringify(selector)})) return null;
+      return {
+        pathname: new URL(active.href).pathname,
+        focusVisible: active.matches(':focus-visible'),
+      };
+    })()`);
+    if (focus?.pathname !== targetPath) continue;
+    assert.equal(focus.focusVisible, true, `${label}: Offline-Ziel ${targetPath} hat vor Enter keinen sichtbaren Tastaturfokus.`);
+    return;
+  }
+  throw new Error(`${label}: Offline-Ziel ${targetPath} wurde per Tab nicht erreicht.`);
+}
+
 async function stopBrowser(browser) {
   if (browser.exitCode !== null) return;
   browser.kill('SIGTERM');
@@ -298,6 +349,37 @@ try {
     assert.ok(visited.every(({ focusVisible }) => focusVisible), `${route.label}: mindestens ein per Tab erreichtes Navigationsziel hat keinen sichtbaren Tastaturfokus.`);
 
     console.log(`browser-smoke: ${route.label} four-game navigation 360x640 + keyboard focus passed`);
+  }
+
+  const startUrl = new URL('4096/', url).href;
+  const startNavigated = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === startUrl, 15_000);
+  const startNavigation = await client.send('Page.navigate', { url: startUrl });
+  assert.equal(startNavigation.errorText, undefined, `Offline-Enter-Start fehlgeschlagen: ${startNavigation.errorText}`);
+  await startNavigated;
+  await waitForTruthy(client, "document.querySelectorAll('.tile').length === 16");
+  await waitForTruthy(client, "Boolean(navigator.serviceWorker?.controller)");
+  await waitForTruthy(client, "navigator.serviceWorker?.ready.then((registration) => Boolean(registration.active))");
+
+  await client.send('Network.emulateNetworkConditions', {
+    offline: true,
+    latency: 0,
+    downloadThroughput: 0,
+    uploadThroughput: 0,
+    connectionType: 'none',
+  });
+  await waitForTruthy(client, 'navigator.onLine === false');
+
+  for (const step of OFFLINE_ENTER_CYCLE) {
+    await focusNavPath(client, step.navSelector, step.targetPath, step.sourceLabel);
+    const targetUrl = new URL(step.targetPath.slice(1), url).href;
+    const enterNavigated = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === targetUrl, 15_000);
+    await pressEnter(client);
+    await enterNavigated;
+    await waitForTruthy(client, "document.readyState === 'complete'");
+    await waitForTruthy(client, step.targetReadyExpression);
+    assert.equal(await evaluate(client, 'location.pathname'), step.targetPath, `${step.sourceLabel}: Enter hat offline nicht zu ${step.targetPath} navigiert.`);
+    assert.equal(await evaluate(client, 'navigator.onLine'), false, `${step.sourceLabel}: Offline-Zustand ging beim Enter-Wechsel verloren.`);
+    console.log(`browser-smoke: ${step.sourceLabel} offline Enter -> ${step.targetPath} passed`);
   }
 } catch (error) {
   const browserDetails = browserStderr.trim() ? `\nBrowser stderr:\n${browserStderr.trim()}` : '';
