@@ -9,9 +9,12 @@ const app = readFileSync('home.js', 'utf8');
 test('Tromu welcome page presents all four games and explicit install guidance', () => {
   assert.match(html, /Willkommen in der Tromu Spielewelt\./);
   assert.equal((html.match(/class="game-card"/g) ?? []).length, 4);
-  for (const route of ['./4096/', './sudoku/', './dr-mario/', './super-mario-land/']) {
+  for (const route of ['./4096/', './sudoku/', './dr-tromu/', './super-tromu-land/']) {
     assert.match(html, new RegExp(`href="${route.replaceAll('.', '\\.')}"`));
   }
+  assert.match(html, /Dr\. Tromu/);
+  assert.match(html, /Super Tromu Land/);
+  assert.doesNotMatch(html, /Dr\. Mario|Super Mario Land/);
   assert.match(html, /offlinefähige PWA/i);
   assert.match(html, /Chrome/);
   assert.match(html, /Safari/);

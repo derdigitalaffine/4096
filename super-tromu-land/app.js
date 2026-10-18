@@ -1,0 +1,467 @@
+import { connectionStatus } from '../connectivity.js';
+import {
+  LEVEL_COUNT,
+  collectedCoins,
+  createGame,
+  getLevel,
+  progressPercent,
+  stageLabel,
+  stepGame,
+} from './game.js';
+import { cameraTargetX, nextCameraX, pixelCameraX } from './view.js';
+
+const canvas = document.querySelector('#game-canvas');
+const context = canvas.getContext('2d');
+const scoreElement = document.querySelector('#score');
+const coinsElement = document.querySelector('#coins');
+const livesElement = document.querySelector('#lives');
+const bestElement = document.querySelector('#best');
+const levelElement = document.querySelector('#level');
+const progressElement = document.querySelector('#progress');
+const powerElement = document.querySelector('#power');
+const statusElement = document.querySelector('#game-status');
+const connectionElement = document.querySelector('#connection-status');
+const newGameButton = document.querySelector('#new-game');
+const leftButton = document.querySelector('#move-left');
+const rightButton = document.querySelector('#move-right');
+const jumpButton = document.querySelector('#jump');
+const fireButton = document.querySelector('#fire');
+
+const BEST_KEY = 'super-mario-land-best-v1';
+const VIEW_WIDTH = canvas.width;
+const VIEW_HEIGHT = canvas.height;
+const controls = { left: false, right: false };
+const reducedMotionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)') ?? { matches: false };
+const LEVEL_THEMES = {
+  desert: { sky: '#9bbc0f', hills: '#8bac0f', clouds: '#306230' },
+  ruins: { sky: '#8bac0f', hills: '#306230', clouds: '#0f380f' },
+  coast: { sky: '#9bbc0f', hills: '#8bac0f', clouds: '#306230', water: true },
+  tide: { sky: '#8bac0f', hills: '#306230', clouds: '#0f380f', water: true },
+  stone: { sky: '#9bbc0f', hills: '#306230', clouds: '#8bac0f' },
+  cave: { sky: '#306230', hills: '#0f380f', clouds: '#8bac0f' },
+  bamboo: { sky: '#9bbc0f', hills: '#8bac0f', clouds: '#306230' },
+  mountain: { sky: '#8bac0f', hills: '#306230', clouds: '#9bbc0f' },
+  sky: { sky: '#9bbc0f', hills: '#8bac0f', clouds: '#0f380f' },
+};
+let jumpQueued = false;
+let fireQueued = false;
+let game = createGame();
+let lastFrame = performance.now();
+let cameraX = 0;
+let bestScore = loadBestScore();
+let offlineReady = Boolean(navigator.serviceWorker?.controller);
+let offlineError = false;
+let releaseDirectionalHolds = () => {
+  controls.left = false;
+  controls.right = false;
+};
+
+function loadBestScore() {
+  try {
+    const value = Number(localStorage.getItem(BEST_KEY));
+    return Number.isSafeInteger(value) && value >= 0 ? value : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function persistBestScore() {
+  try {
+    localStorage.setItem(BEST_KEY, String(bestScore));
+  } catch {
+    // Storage is optional; gameplay stays available without it.
+  }
+}
+
+function powerLabel(power) {
+  return { small: 'Klein', mushroom: 'Pilz', flower: 'Blume' }[power] ?? 'Klein';
+}
+
+function setTextIfChanged(element, value) {
+  const text = String(value);
+  if (element.textContent !== text) element.textContent = text;
+}
+
+function setDataIfChanged(element, key, value) {
+  const text = String(value);
+  if (element.dataset[key] !== text) element.dataset[key] = text;
+}
+
+function setDisabledIfChanged(button, disabled) {
+  if (button.disabled !== disabled) button.disabled = disabled;
+}
+
+function setStatus(message) { setTextIfChanged(statusElement, message); }
+
+function updateConnection() {
+  setTextIfChanged(connectionElement, connectionStatus({ online: navigator.onLine, offlineReady, offlineError }));
+  setDataIfChanged(connectionElement, 'offlineReady', offlineReady);
+  setDataIfChanged(connectionElement, 'warning', offlineError || (!navigator.onLine && !offlineReady));
+}
+
+function updateHud() {
+  const level = getLevel(game);
+  setTextIfChanged(scoreElement, game.score);
+  setTextIfChanged(coinsElement, `${collectedCoins(game)}/${level.coins.length}`);
+  setTextIfChanged(livesElement, game.lives);
+  setTextIfChanged(bestElement, bestScore);
+  setTextIfChanged(levelElement, `${stageLabel(game)} · ${game.levelIndex + 1}/${LEVEL_COUNT}`);
+  setTextIfChanged(progressElement, `${progressPercent(game)}%`);
+  setTextIfChanged(powerElement, powerLabel(game.power));
+  const terminal = game.status !== 'playing';
+  if (terminal) releaseDirectionalHolds();
+  setDisabledIfChanged(leftButton, terminal);
+  setDisabledIfChanged(rightButton, terminal);
+  setDisabledIfChanged(jumpButton, terminal);
+  setDisabledIfChanged(fireButton, terminal || game.power !== 'flower');
+}
+
+function drawBackground(camera, level) {
+  const theme = LEVEL_THEMES[level.environment] ?? LEVEL_THEMES.desert;
+  context.fillStyle = theme.sky;
+  context.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
+  context.fillStyle = theme.hills;
+  for (let index = -1; index < 7; index += 1) {
+    const x = index * 180 - ((camera * 0.18) % 180);
+    const peak = 230 - (level.world - 1) * 8 + (index % 2) * 18;
+    context.beginPath();
+    context.moveTo(x, 360);
+    context.lineTo(x + 90, peak);
+    context.lineTo(x + 180, 360);
+    context.closePath();
+    context.fill();
+  }
+  context.fillStyle = theme.clouds;
+  for (let index = 0; index < 8; index += 1) {
+    const x = index * 150 - ((camera * 0.08) % 150);
+    const y = 68 + (index % 3) * 28 + level.stage * 4;
+    context.fillRect(x, y, 54, 12);
+    context.fillRect(x + 12, y - 10, 32, 10);
+  }
+  if (theme.water) {
+    context.fillStyle = '#306230';
+    context.fillRect(0, 344, VIEW_WIDTH, 40);
+    context.fillStyle = '#8bac0f';
+    for (let x = -32 - (camera % 64); x < VIEW_WIDTH + 32; x += 64) context.fillRect(x, 352, 32, 4);
+  }
+  if (level.environment === 'bamboo') {
+    context.fillStyle = '#306230';
+    for (let x = 24 - (camera * 0.12 % 96); x < VIEW_WIDTH; x += 96) {
+      context.fillRect(x, 88, 8, 230);
+      context.fillRect(x - 12, 140, 20, 5);
+      context.fillRect(x + 8, 210, 18, 5);
+    }
+  }
+}
+
+function drawSolid(solid, camera) {
+  const x = Math.round(solid.x - camera);
+  if (x + solid.width < 0 || x > VIEW_WIDTH) return;
+  context.fillStyle = '#306230';
+  context.fillRect(x, solid.y, solid.width, solid.height);
+  context.fillStyle = '#0f380f';
+  context.fillRect(x, solid.y, solid.width, 5);
+  for (let px = x + 8; px < x + solid.width; px += 32) context.fillRect(px, solid.y + 14, 4, 4);
+}
+
+function drawQuestionBlock(block, camera) {
+  const x = Math.round(block.x - camera);
+  if (x + block.width < 0 || x > VIEW_WIDTH) return;
+  context.fillStyle = '#0f380f';
+  context.fillRect(x, block.y, block.width, block.height);
+  context.fillStyle = block.used ? '#306230' : '#9bbc0f';
+  context.fillRect(x + 3, block.y + 3, block.width - 6, block.height - 6);
+  context.strokeStyle = '#0f380f';
+  context.lineWidth = 2;
+  context.strokeRect(x + 7, block.y + 7, block.width - 14, block.height - 14);
+  if (!block.used) {
+    context.fillStyle = '#0f380f';
+    context.font = 'bold 22px ui-monospace, monospace';
+    context.textAlign = 'center';
+    context.fillText('?', x + block.width / 2, block.y + 24);
+    context.textAlign = 'start';
+  }
+}
+
+function drawCoin(coin, camera) {
+  if (coin.collected) return;
+  const x = Math.round(coin.x - camera);
+  if (x < -20 || x > VIEW_WIDTH + 20) return;
+  context.fillStyle = '#0f380f';
+  context.beginPath();
+  context.arc(x, coin.y, 8, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = '#9bbc0f';
+  context.fillRect(x - 2, coin.y - 5, 4, 10);
+}
+
+function drawPowerup(item, camera) {
+  if (item.collected) return;
+  const x = Math.round(item.x - camera);
+  if (x + item.width < 0 || x > VIEW_WIDTH) return;
+  context.fillStyle = '#0f380f';
+  if (item.type === 'flower') {
+    context.fillRect(x + 9, item.y + 10, 6, 14);
+    context.fillRect(x + 3, item.y + 3, 18, 15);
+    context.fillStyle = '#9bbc0f';
+    context.fillRect(x + 9, item.y + 7, 6, 6);
+  } else {
+    context.fillRect(x + 3, item.y + 2, 18, 12);
+    context.fillRect(x + 7, item.y + 12, 10, 12);
+    context.fillStyle = '#9bbc0f';
+    context.fillRect(x + 7, item.y + 5, 4, 4);
+    context.fillRect(x + 15, item.y + 5, 4, 4);
+  }
+}
+
+function drawProjectile(projectile, camera) {
+  const x = Math.round(projectile.x - camera);
+  if (x + projectile.width < 0 || x > VIEW_WIDTH) return;
+  context.fillStyle = '#0f380f';
+  context.fillRect(x, projectile.y, projectile.width, projectile.height);
+  context.fillStyle = '#9bbc0f';
+  context.fillRect(x + 3, projectile.y + 3, projectile.width - 6, projectile.height - 6);
+}
+
+function drawEnemy(enemy, camera) {
+  if (!enemy.alive) return;
+  const x = Math.round(enemy.x - camera);
+  if (x + enemy.width < 0 || x > VIEW_WIDTH) return;
+  context.fillStyle = '#0f380f';
+  context.fillRect(x + 3, enemy.y + 5, enemy.width - 6, enemy.height - 5);
+  context.fillRect(x, enemy.y + 12, enemy.width, enemy.height - 12);
+  context.fillStyle = '#9bbc0f';
+  context.fillRect(x + 6, enemy.y + 9, 4, 4);
+  context.fillRect(x + enemy.width - 10, enemy.y + 9, 4, 4);
+}
+
+function drawGoal(goalX, camera) {
+  const x = Math.round(goalX - camera);
+  if (x < -40 || x > VIEW_WIDTH + 40) return;
+  context.fillStyle = '#0f380f';
+  context.fillRect(x, 152, 5, 232);
+  context.fillRect(x - 22, 152, 22, 16);
+  context.fillStyle = '#306230';
+  context.fillRect(x - 18, 156, 14, 8);
+}
+
+function drawPlayer(camera) {
+  const player = game.player;
+  const x = Math.round(player.x - camera);
+  const y = Math.round(player.y);
+  const flip = player.facing < 0;
+  const powered = game.power !== 'small';
+  context.fillStyle = '#0f380f';
+  if (powered) context.fillRect(x + 2, y - 4, 20, 4);
+  context.fillRect(x + 4, y, 16, 5);
+  context.fillRect(x + (flip ? 7 : 5), y + 5, 13, 8);
+  context.fillRect(x + 3, y + 13, 18, 10);
+  context.fillRect(x + 1, y + 22, 8, 8);
+  context.fillRect(x + 15, y + 22, 8, 8);
+  context.fillStyle = game.power === 'flower' ? '#9bbc0f' : '#8bac0f';
+  context.fillRect(x + (flip ? 8 : 13), y + 8, 3, 3);
+  if (game.power === 'flower') {
+    context.fillRect(x + 5, y + 15, 4, 4);
+    context.fillRect(x + 15, y + 15, 4, 4);
+  }
+}
+
+function renderGame(deltaSeconds = 0, { snapCamera = false } = {}) {
+  const level = getLevel(game);
+  const targetCameraX = cameraTargetX(game.player.x, level.width, VIEW_WIDTH);
+  if (snapCamera || reducedMotionQuery.matches) cameraX = targetCameraX;
+  else cameraX = nextCameraX(cameraX, targetCameraX, deltaSeconds);
+  const camera = pixelCameraX(cameraX);
+
+  drawBackground(camera, level);
+  for (const solid of level.solids) drawSolid(solid, camera);
+  for (const block of game.blocks) drawQuestionBlock(block, camera);
+  for (const coin of game.coins) drawCoin(coin, camera);
+  for (const item of game.powerups) drawPowerup(item, camera);
+  for (const projectile of game.projectiles) drawProjectile(projectile, camera);
+  for (const enemy of game.enemies) drawEnemy(enemy, camera);
+  drawGoal(level.goalX, camera);
+  drawPlayer(camera);
+
+  setDataIfChanged(canvas, 'questionBlocks', game.blocks.length);
+  setDataIfChanged(canvas, 'usedBlocks', game.blocks.filter((block) => block.used).length);
+  setDataIfChanged(canvas, 'power', game.power);
+  setDataIfChanged(canvas, 'stage', level.id);
+  setDataIfChanged(canvas, 'autoScroll', level.autoScroll);
+  setDataIfChanged(canvas, 'cameraX', camera);
+  setDataIfChanged(canvas, 'cameraTarget', pixelCameraX(targetCameraX));
+  setDataIfChanged(canvas, 'cameraMode', reducedMotionQuery.matches ? 'instant' : 'smooth');
+
+  context.fillStyle = '#0f380f';
+  context.font = 'bold 15px ui-monospace, monospace';
+  context.fillText(`STAGE ${level.id} · ${level.name.toUpperCase()} · ZIEL ${Math.max(0, Math.ceil((level.goalX - game.player.x) / 32))}`, 12, 24);
+}
+
+function resetGame(message = 'Los geht’s: Vier Welten mit zwölf eigenen Stages warten.') {
+  releaseDirectionalHolds();
+  game = createGame();
+  jumpQueued = false;
+  fireQueued = false;
+  cameraX = 0;
+  setStatus(message);
+  updateHud();
+  renderGame(0, { snapCamera: true });
+}
+
+function handleStateFeedback(previous) {
+  if (game.score > bestScore) {
+    bestScore = game.score;
+    persistBestScore();
+  }
+  if (game.levelIndex !== previous.levelIndex) {
+    const previousLevel = getLevel(previous);
+    const level = getLevel(game);
+    const special = level.autoScroll ? ' Diese Stage treibt automatisch vorwärts.' : '';
+    setStatus(`Stage ${previousLevel.id} geschafft! Weiter mit ${level.id}: ${level.name}. Punkte, Leben und Power-up bleiben erhalten.${special}`);
+  } else if (game.status === 'won' && previous.status !== 'won') {
+    setStatus(`Alle ${LEVEL_COUNT} Stages in vier Welten geschafft! ${game.score} Punkte – starke Runde.`);
+  } else if (game.status === 'lost' && previous.status !== 'lost') {
+    setStatus('Runde verloren. Starte neu und versuche die vier Welten noch einmal.');
+  } else if (game.power !== previous.power) {
+    if (game.power === 'flower') setStatus('Blume eingesammelt! Mit X/K oder Ball-Taste Gegner treffen.');
+    else if (game.power === 'mushroom' && previous.power === 'small') setStatus('Pilz eingesammelt! Der nächste Gegnertreffer kostet kein Leben.');
+    else if (game.power === 'mushroom') setStatus('Treffer! Blumen-Kraft verloren, Pilzschutz bleibt.');
+    else setStatus('Treffer! Pilzschutz verbraucht, aber kein Leben verloren.');
+  } else if (game.lives < previous.lives && game.status === 'playing') {
+    setStatus(`Treffer! Noch ${game.lives} Leben übrig.`);
+  }
+}
+
+function frame(now) {
+  const delta = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000));
+  lastFrame = now;
+  const previous = game;
+  game = stepGame(game, { ...controls, jump: jumpQueued, fire: fireQueued }, delta);
+  jumpQueued = false;
+  fireQueued = false;
+  const playerTransition = game.levelIndex !== previous.levelIndex || game.lives < previous.lives;
+  if (playerTransition) releaseDirectionalHolds();
+  handleStateFeedback(previous);
+  updateHud();
+  renderGame(delta, { snapCamera: playerTransition });
+  requestAnimationFrame(frame);
+}
+
+function setDirection(key, active) { controls[key] = active && game.status === 'playing'; }
+function queueJump() { if (game.status === 'playing') jumpQueued = true; }
+function queueFire() { if (game.status === 'playing' && game.power === 'flower') fireQueued = true; }
+
+function bindHoldButton(button, direction) {
+  let activePointerId = null;
+  setDataIfChanged(button, 'pressed', false);
+
+  const clear = (pointerId = activePointerId, { releaseCapture = true } = {}) => {
+    if (activePointerId === null || (pointerId !== null && pointerId !== activePointerId)) return false;
+    const capturedPointerId = activePointerId;
+    activePointerId = null;
+    setDirection(direction, false);
+    setDataIfChanged(button, 'pressed', false);
+    if (releaseCapture && button.hasPointerCapture?.(capturedPointerId)) {
+      try { button.releasePointerCapture(capturedPointerId); } catch {
+        // Pointer capture may already have been released by the browser.
+      }
+    }
+    return true;
+  };
+
+  const start = (event) => {
+    event.preventDefault();
+    if (game.status !== 'playing' || activePointerId !== null) return;
+    activePointerId = event.pointerId;
+    setDirection(direction, true);
+    setDataIfChanged(button, 'pressed', true);
+    try { button.setPointerCapture?.(event.pointerId); } catch {
+      // Gameplay still works when capture is unavailable.
+    }
+  };
+
+  const stop = (event) => {
+    if (event.pointerId !== activePointerId) return;
+    event.preventDefault();
+    clear(event.pointerId);
+  };
+
+  const lost = (event) => {
+    if (event.pointerId !== activePointerId) return;
+    clear(event.pointerId, { releaseCapture: false });
+  };
+
+  button.addEventListener('pointerdown', start);
+  button.addEventListener('pointerup', stop);
+  button.addEventListener('pointercancel', stop);
+  button.addEventListener('lostpointercapture', lost);
+  return () => clear();
+}
+
+const releaseLeftHold = bindHoldButton(leftButton, 'left');
+const releaseRightHold = bindHoldButton(rightButton, 'right');
+releaseDirectionalHolds = () => {
+  releaseLeftHold();
+  releaseRightHold();
+  controls.left = false;
+  controls.right = false;
+};
+
+jumpButton.addEventListener('pointerdown', (event) => { event.preventDefault(); queueJump(); });
+fireButton.addEventListener('pointerdown', (event) => { event.preventDefault(); queueFire(); });
+newGameButton.addEventListener('click', () => resetGame('Neue Runde gestartet. Vier Welten, zwölf Stages – los geht’s.'));
+
+window.addEventListener('keydown', (event) => {
+  const key = event.key.toLowerCase();
+  if (event.key === 'ArrowLeft' || key === 'a') {
+    event.preventDefault();
+    setDirection('left', true);
+  } else if (event.key === 'ArrowRight' || key === 'd') {
+    event.preventDefault();
+    setDirection('right', true);
+  } else if (event.key === 'ArrowUp' || event.key === ' ' || key === 'w') {
+    event.preventDefault();
+    if (!event.repeat) queueJump();
+  } else if (key === 'x' || key === 'k') {
+    event.preventDefault();
+    if (!event.repeat) queueFire();
+  } else if (key === 'r') {
+    event.preventDefault();
+    resetGame('Neue Runde gestartet. Vier Welten, zwölf Stages – los geht’s.');
+  }
+});
+
+window.addEventListener('keyup', (event) => {
+  const key = event.key.toLowerCase();
+  if (event.key === 'ArrowLeft' || key === 'a') setDirection('left', false);
+  if (event.key === 'ArrowRight' || key === 'd') setDirection('right', false);
+});
+
+window.addEventListener('blur', releaseDirectionalHolds);
+window.addEventListener('online', updateConnection);
+window.addEventListener('offline', updateConnection);
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    offlineReady = true;
+    updateConnection();
+  });
+  navigator.serviceWorker.register('../sw.js')
+    .then(() => navigator.serviceWorker.ready)
+    .then(() => {
+      offlineReady = true;
+      offlineError = false;
+      updateConnection();
+    })
+    .catch(() => {
+      offlineError = true;
+      updateConnection();
+    });
+}
+
+updateConnection();
+resetGame();
+requestAnimationFrame((now) => {
+  lastFrame = now;
+  requestAnimationFrame(frame);
+});

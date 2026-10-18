@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#306230">
+  <meta name="description" content="Super Tromu Land – lokales, offlinefähiges Jump ’n’ Run mit vier Welten und zwölf eigenen Stages.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Super Tromu Land</title>
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="sml-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Offline-PWA · Jump ’n’ Run</p>
+        <h1>Super Tromu Land</h1>
+        <p class="tagline">Vier Welten, zwölf eigene Stages von 1-1 bis 4-3: Wüsten, Küsten, Ruinen, Berge und zwei besondere Auto-Scroll-Finals.</p>
+      </div>
+      <nav class="game-nav" aria-label="Spiele">
+        <a href="../">Spielewelt</a>
+        <a href="../4096/">4096</a>
+        <a href="../sudoku/">Sudoku</a>
+        <a href="../dr-tromu/">Dr. Tromu</a>
+      </nav>
+    </header>
+
+    <section class="stats" aria-label="Spielstatus">
+      <div class="stat-card"><span>Punkte</span><strong id="score">0</strong></div>
+      <div class="stat-card"><span>Münzen</span><strong id="coins">0/20</strong></div>
+      <div class="stat-card"><span>Leben</span><strong id="lives">3</strong></div>
+      <div class="stat-card"><span>Kraft</span><strong id="power">Klein</strong></div>
+      <div class="stat-card"><span>Bestwert</span><strong id="best">0</strong></div>
+      <div class="stat-card"><span>Stage</span><strong id="level">1-1 · 1/12</strong></div>
+      <div class="stat-card"><span>Fortschritt</span><strong id="progress">0%</strong></div>
+      <span id="connection-status" class="connection" aria-live="polite">Online</span>
+    </section>
+
+    <section class="game-panel" aria-label="Super-Tromu-Land-Spiel">
+      <canvas id="game-canvas" width="800" height="450" role="img" aria-label="Seitlich scrollendes Jump-’n’-Run mit vier Welten und zwölf eigenen Stages, ?-Blöcken, Pilz- und Blumen-Power-ups, Münzen, Gegnern und Ziel-Fahnen."></canvas>
+      <div class="controls">
+        <button id="new-game" class="secondary" type="button">Neue Runde</button>
+        <div class="touch-controls" aria-label="Jump-’n’-Run-Steuerung">
+          <button id="move-left" type="button" aria-label="Nach links">←</button>
+          <button id="move-right" type="button" aria-label="Nach rechts">→</button>
+          <button id="jump" type="button">Springen</button>
+          <button id="fire" type="button" aria-label="Blumenball werfen" disabled>Ball</button>
+        </div>
+      </div>
+      <p class="instructions">Tastatur: ←/→ oder A/D laufen, ↑/W/Leertaste springen, X/K mit Blumen-Kraft einen Ball werfen, R neue Runde. Pilz schützt vor einem Treffer; Blume schaltet den Ball-Angriff frei. Die Stages 2-3 und 4-3 treiben als besondere Finale automatisch vorwärts.</p>
+      <p id="game-status" class="status" aria-live="polite" aria-atomic="true"></p>
+    </section>
+
+    <footer><p>Eigene Canvas-Grafik und eigene Levelgeometrien; keine kopierten Karten oder fremden Spielassets. Keine Anmeldung und keine Tracker.</p></footer>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
