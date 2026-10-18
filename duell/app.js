@@ -195,9 +195,14 @@ columnControls.addEventListener('click', (event) => {
 });
 
 columnControls.addEventListener('keydown', (event) => {
-  if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
   const button = event.target.closest('button[data-column]');
   if (!button) return;
+  if (event.key === 'Enter' || event.code === 'Space') {
+    event.preventDefault();
+    playConnectFour(Number(button.dataset.column), true);
+    return;
+  }
+  if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
   event.preventDefault();
   const delta = event.key === 'ArrowLeft' ? -1 : 1;
   const start = Number(button.dataset.column);
@@ -224,9 +229,16 @@ boardElement.addEventListener('click', (event) => {
 });
 
 boardElement.addEventListener('keydown', (event) => {
-  if (mode !== 'reversi' || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+  if (mode !== 'reversi') return;
   const cell = event.target.closest('button.duell-cell[data-index]');
   if (!cell) return;
+  if (event.key === 'Enter' || event.code === 'Space') {
+    event.preventDefault();
+    reversiFocus = Number(cell.dataset.index);
+    playReversiIndex(reversiFocus, true);
+    return;
+  }
+  if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
   event.preventDefault();
   const index = Number(cell.dataset.index);
   const row = Math.floor(index / SIZE);
