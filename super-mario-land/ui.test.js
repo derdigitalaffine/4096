@@ -60,6 +60,9 @@ test('Super Mario Land renders world-stage identity and twelve-stage progression
   assert.match(app, /setTextIfChanged\(levelElement, `\$\{stageLabel\(game\)\} · \$\{game\.levelIndex \+ 1\}\/\$\{LEVEL_COUNT\}`\)/);
   assert.match(app, /setTextIfChanged\(powerElement, powerLabel\(game\.power\)\)/);
   assert.match(app, /game\.levelIndex !== previous\.levelIndex/);
+  assert.match(app, /const playerTransition = game\.levelIndex !== previous\.levelIndex \|\| game\.lives < previous\.lives/);
+  assert.match(app, /if \(playerTransition\) releaseDirectionalHolds\(\)/);
+  assert.match(app, /renderGame\(delta, \{ snapCamera: playerTransition \}\)/);
   assert.match(app, /Punkte, Leben und Power-up bleiben erhalten/);
   assert.match(app, /Alle \$\{LEVEL_COUNT\} Stages in vier Welten geschafft/);
   assert.match(app, /level\.autoScroll/);
