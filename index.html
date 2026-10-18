@@ -3,82 +3,99 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#171717">
-  <meta name="description" content="4096 – eine schnelle, offlinefähige Zahlen-PWA.">
+  <meta name="theme-color" content="#19152b">
+  <meta name="description" content="Tromu Spielewelt – vier lokale, offlinefähige Browser-Spiele als installierbare PWA.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>4096</title>
+  <title>Tromu Spielewelt</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./home.css">
 </head>
 <body>
-  <main class="app-shell">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">Offline-PWA</p>
-        <h1>4096</h1>
-        <p class="tagline">Verbinde gleiche Zahlen und erreiche 4096.</p>
-      </div>
-
-      <div class="scoreboard" aria-label="Punktestand">
-        <div class="score-card">
-          <span>Punkte</span>
-          <strong id="score">0</strong>
-        </div>
-        <div class="score-card">
-          <span>Bestwert</span>
-          <strong id="best">0</strong>
-        </div>
+  <main class="world-shell">
+    <header class="hero">
+      <p class="pixel-kicker">TROMU // OFFLINE ARCADE</p>
+      <h1>Willkommen in der Tromu Spielewelt.</h1>
+      <p class="hero-copy">Vier Spiele, ein Webroot, keine Anmeldung und keine Tracker. Einmal online laden – danach ist die Spielewelt als offlinefähige PWA auch ohne Netz startklar.</p>
+      <div class="hero-actions">
+        <a class="pixel-button primary" href="#spiele">Spiel auswählen</a>
+        <button id="install-app" class="pixel-button" type="button" hidden>Spielewelt installieren</button>
+        <span id="connection-status" class="connection" aria-live="polite">Online</span>
       </div>
     </header>
 
-    <section class="controls" aria-label="Spielsteuerung">
-      <button id="new-game" type="button">Neues Spiel</button>
-      <button id="undo" class="secondary" type="button" aria-keyshortcuts="Control+Z Meta+Z" disabled>Rückgängig</button>
-      <button id="install-app" class="secondary" type="button" hidden>Installieren</button>
-      <a class="nav-link" href="./sudoku/">Sudoku</a>
-      <a class="nav-link" href="./dr-mario/">Dr. Mario</a>
-      <a class="nav-link" href="./super-mario-land/">Super Mario Land</a>
-      <span id="connection-status" class="connection" aria-live="polite">Online</span>
+    <section id="spiele" class="section-block" aria-labelledby="games-title">
+      <div class="section-heading">
+        <p class="pixel-kicker">SELECT GAME</p>
+        <h2 id="games-title">Spieleauswahl</h2>
+      </div>
+      <div class="game-grid">
+        <a class="game-card" href="./4096/">
+          <span class="game-number">01</span>
+          <strong>4096</strong>
+          <span>Schiebe gleiche Zahlen zusammen und knacke die 4096.</span>
+          <span class="play-label">START →</span>
+        </a>
+        <a class="game-card" href="./sudoku/">
+          <span class="game-number">02</span>
+          <strong>Sudoku</strong>
+          <span>Logik, Notizen, drei Schwierigkeitsstufen und lokaler Fortschritt.</span>
+          <span class="play-label">START →</span>
+        </a>
+        <a class="game-card" href="./dr-mario/">
+          <span class="game-number">03</span>
+          <strong>Dr. Mario</strong>
+          <span>Kapseln drehen, Farben verbinden und alle Viren beseitigen.</span>
+          <span class="play-label">START →</span>
+        </a>
+        <a class="game-card" href="./super-mario-land/">
+          <span class="game-number">04</span>
+          <strong>Super Mario Land</strong>
+          <span>Drei Jump-’n’-Run-Level mit Münzen, Gegnern und Ziel-Fahnen.</span>
+          <span class="play-label">START →</span>
+        </a>
+      </div>
     </section>
 
-    <section class="game-area" aria-label="4096 Spiel">
-      <div
-        id="board"
-        class="board"
-        role="grid"
-        aria-label="4 mal 4 Spielfeld. Score 0. Höchster Stein 0. Mit Pfeiltasten, WASD oder Wischgesten bewegen."
-        tabindex="0"
-      ></div>
-      <p id="game-status" class="sr-only" aria-live="polite" aria-atomic="true"></p>
-
-      <p class="hint">
-        <span class="desktop-hint">Pfeiltasten / WASD · Strg/⌘+Z rückgängig</span>
-        <span class="mobile-hint">Wischen · Rückgängig per Button</span>
-        · gleiche Werte verschmelzen einmal pro Zug.
-      </p>
+    <section class="section-block install-block" aria-labelledby="install-title">
+      <div class="section-heading">
+        <p class="pixel-kicker">INSTALL // PLAY OFFLINE</p>
+        <h2 id="install-title">Als App installieren</h2>
+      </div>
+      <p class="install-intro">Die Tromu Spielewelt ist eine offlinefähige PWA. Nach dem ersten vollständigen Laden kannst du sie vom Home-Bildschirm starten und die gecachten Spiele auch ohne Verbindung öffnen.</p>
+      <div class="install-grid">
+        <article class="install-card">
+          <span class="platform">ANDROID</span>
+          <h3>Chrome</h3>
+          <ol>
+            <li>Diese Seite in Chrome öffnen.</li>
+            <li>Menü <strong>⋮</strong> öffnen.</li>
+            <li><strong>„App installieren“</strong> oder <strong>„Zum Startbildschirm hinzufügen“</strong> wählen.</li>
+            <li>Installation bestätigen.</li>
+          </ol>
+        </article>
+        <article class="install-card">
+          <span class="platform">iOS / iPadOS</span>
+          <h3>Safari</h3>
+          <ol>
+            <li>Diese Seite in Safari öffnen.</li>
+            <li>Auf <strong>Teilen</strong> tippen.</li>
+            <li><strong>„Zum Home-Bildschirm“</strong> wählen.</li>
+            <li>Mit <strong>„Hinzufügen“</strong> bestätigen.</li>
+          </ol>
+        </article>
+      </div>
     </section>
 
-    <footer>
-      <p>Keine Anmeldung, keine Tracker. Dein Spielstand bleibt lokal auf diesem Gerät.</p>
+    <footer class="world-footer">
+      <span>LOCAL-FIRST</span>
+      <span>OFFLINE-PWA</span>
+      <span>NO TRACKERS</span>
     </footer>
   </main>
 
-  <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="overlay-title" aria-describedby="overlay-message" hidden>
-    <div class="dialog-card">
-      <p class="eyebrow">Runde</p>
-      <h2 id="overlay-title"></h2>
-      <p id="overlay-message"></p>
-      <div class="dialog-actions">
-        <button id="continue-game" type="button">Weiterspielen</button>
-        <button id="overlay-undo" class="secondary" type="button" disabled>Rückgängig</button>
-        <button id="overlay-new-game" class="secondary" type="button">Neue Runde</button>
-      </div>
-    </div>
-  </div>
-
-  <script type="module" src="./app.js"></script>
+  <script type="module" src="./home.js"></script>
 </body>
 </html>
