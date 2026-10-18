@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "check": "node --check game.js && node --check app.js && node --check sw.js && node --check sudoku/game.js && node --check sudoku/app.js && node --test",
+    "check": "node --check game.js && node --check app.js && node --check sw.js && node --check sudoku/game.js && node --check sudoku/app.js && node --check dr-mario/game.js && node --check dr-mario/app.js && node --test",
     "smoke": "node browser-smoke.mjs"
   },
   "engines": {
