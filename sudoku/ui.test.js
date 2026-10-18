@@ -1,22 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { GAMES } from '../games.js';
+import { navigationEntries } from '../game-nav.js';
 
 const html = readFileSync('sudoku/index.html', 'utf8');
 const app = readFileSync('sudoku/app.js', 'utf8');
 const css = readFileSync('sudoku/styles.css', 'utf8');
-const rootHtml = readFileSync('index.html', 'utf8');
 
-test('game navigation exposes touch-sized local targets across the Tromu webroot', () => {
-  for (const [href, label] of [['./4096/', '4096'], ['./sudoku/', 'Sudoku'], ['./dr-tromu/', 'Dr. Tromu'], ['./super-tromu-land/', 'Super Tromu Land']]) {
-    const escapedHref = href.replaceAll('.', '\\.');
-    assert.match(rootHtml, new RegExp(`class="game-card"[^>]*href="${escapedHref}"[\\s\\S]*?<strong>${label}<\\/strong>`));
-  }
-
-  for (const [href, label] of [['../', 'Spielewelt'], ['../4096/', '4096'], ['../dr-tromu/', 'Dr. Tromu'], ['../super-tromu-land/', 'Super Tromu Land']]) {
-    const escapedHref = href.replaceAll('.', '\\.');
-    assert.match(html, new RegExp(`class="back-link"[^>]*href="${escapedHref}"[^>]*>${label}`));
-  }
+test('game navigation derives all non-current targets from the shared registry', () => {
+  assert.match(html, /<body[^>]*data-game-id="sudoku"/);
+  assert.match(html, /<nav[^>]*class="game-nav"[^>]*data-game-nav[^>]*data-link-class="back-link"/);
+  assert.match(html, /\.\.\/game-nav\.js/);
+  assert.deepEqual(
+    navigationEntries('sudoku').map((entry) => entry.route),
+    ['/', ...GAMES.filter((game) => game.id !== 'sudoku').map((game) => game.route)],
+  );
   assert.match(css, /\.back-link\s*\{[\s\S]*?min-height:\s*44px/);
 });
 

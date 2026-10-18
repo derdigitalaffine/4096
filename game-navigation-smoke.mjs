@@ -6,8 +6,10 @@ import { createServer as createNetServer } from 'node:net';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
+import { GAMES } from './games.js';
 
 const ROOT = resolve('.');
+const NAV_SELECTOR = '.game-nav a';
 const MIME_TYPES = {
   '.css': 'text/css; charset=utf-8',
   '.html': 'text/html; charset=utf-8',
@@ -19,63 +21,7 @@ const MIME_TYPES = {
 };
 const sleep = (milliseconds) => new Promise((resolveSleep) => setTimeout(resolveSleep, milliseconds));
 
-const ROUTES = [
-  {
-    label: '4096',
-    path: '4096/',
-    navSelector: '.controls .nav-link',
-    readyExpression: "document.querySelectorAll('.tile').length === 16",
-    expectedPaths: ['/', '/sudoku/', '/dr-tromu/', '/super-tromu-land/'],
-  },
-  {
-    label: 'Sudoku',
-    path: 'sudoku/',
-    navSelector: '.game-nav a',
-    readyExpression: "document.querySelectorAll('.sudoku-cell').length === 81",
-    expectedPaths: ['/', '/4096/', '/dr-tromu/', '/super-tromu-land/'],
-  },
-  {
-    label: 'Dr. Tromu',
-    path: 'dr-tromu/',
-    navSelector: '.game-nav a',
-    readyExpression: "document.querySelectorAll('.dm-cell').length === 128",
-    expectedPaths: ['/', '/4096/', '/sudoku/', '/super-tromu-land/'],
-  },
-  {
-    label: 'Super Tromu Land',
-    path: 'super-tromu-land/',
-    navSelector: '.game-nav a',
-    readyExpression: "Boolean(document.querySelector('#game-canvas'))",
-    expectedPaths: ['/', '/4096/', '/sudoku/', '/dr-tromu/'],
-  },
-];
-
-const OFFLINE_ENTER_CYCLE = [
-  {
-    sourceLabel: '4096',
-    navSelector: '.controls .nav-link',
-    targetPath: '/sudoku/',
-    targetReadyExpression: "document.querySelectorAll('.sudoku-cell').length === 81",
-  },
-  {
-    sourceLabel: 'Sudoku',
-    navSelector: '.game-nav a',
-    targetPath: '/dr-tromu/',
-    targetReadyExpression: "document.querySelectorAll('.dm-cell').length === 128",
-  },
-  {
-    sourceLabel: 'Dr. Tromu',
-    navSelector: '.game-nav a',
-    targetPath: '/super-tromu-land/',
-    targetReadyExpression: "Boolean(document.querySelector('#game-canvas'))",
-  },
-  {
-    sourceLabel: 'Super Tromu Land',
-    navSelector: '.game-nav a',
-    targetPath: '/4096/',
-    targetReadyExpression: "document.querySelectorAll('.tile').length === 16",
-  },
-];
+const expectedPathsFor = (gameId) => ['/', ...GAMES.filter((game) => game.id !== gameId).map((game) => game.route)];
 
 async function freePort() {
   return new Promise((resolvePort, reject) => {
@@ -220,6 +166,14 @@ async function waitForTruthy(client, expression, timeout = 15_000) {
   throw new Error(`Timeout bei Browser-Bedingung: ${expression}`);
 }
 
+async function navigate(client, targetUrl, label) {
+  const navigated = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === targetUrl, 15_000);
+  const result = await client.send('Page.navigate', { url: targetUrl });
+  assert.equal(result.errorText, undefined, `${label}: Navigation fehlgeschlagen: ${result.errorText}`);
+  await navigated;
+  await waitForTruthy(client, "document.readyState === 'complete'");
+}
+
 async function pressTab(client) {
   await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9 });
   await client.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9 });
@@ -231,13 +185,14 @@ async function pressEnter(client) {
   await client.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
 }
 
-async function focusNavPath(client, selector, targetPath, label) {
+async function focusNavPath(client, targetPath, label) {
   await evaluate(client, 'document.activeElement?.blur()');
-  for (let index = 0; index < 30; index += 1) {
+  const maxTabs = Math.max(30, GAMES.length * 8);
+  for (let index = 0; index < maxTabs; index += 1) {
     await pressTab(client);
     const focus = await evaluate(client, `(() => {
       const active = document.activeElement;
-      if (!active?.matches?.(${JSON.stringify(selector)})) return null;
+      if (!active?.matches?.(${JSON.stringify(NAV_SELECTOR)})) return null;
       return {
         pathname: new URL(active.href).pathname,
         focusVisible: active.matches(':focus-visible'),
@@ -288,18 +243,15 @@ try {
   await client.send('Network.enable');
   await client.send('Emulation.setDeviceMetricsOverride', { width: 360, height: 640, deviceScaleFactor: 1, mobile: true });
 
-  for (const route of ROUTES) {
-    const pageUrl = new URL(route.path, url).href;
-    const navigated = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === pageUrl, 15_000);
-    const navigation = await client.send('Page.navigate', { url: pageUrl });
-    assert.equal(navigation.errorText, undefined, `${route.label}: Navigation fehlgeschlagen: ${navigation.errorText}`);
-    await navigated;
-    await waitForTruthy(client, "document.readyState === 'complete'");
-    await waitForTruthy(client, route.readyExpression);
+  for (const game of GAMES) {
+    const pageUrl = new URL(game.route.slice(1), url).href;
+    await navigate(client, pageUrl, game.name);
+    await waitForTruthy(client, `document.body.dataset.gameId === ${JSON.stringify(game.id)}`);
+    await waitForTruthy(client, `document.querySelectorAll(${JSON.stringify(NAV_SELECTOR)}).length === ${GAMES.length}`);
 
+    const expectedPaths = expectedPathsFor(game.id);
     const layout = await evaluate(client, `(() => {
-      const selector = ${JSON.stringify(route.navSelector)};
-      const links = [...document.querySelectorAll(selector)];
+      const links = [...document.querySelectorAll(${JSON.stringify(NAV_SELECTOR)})];
       return {
         innerWidth,
         scrollWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
@@ -318,45 +270,42 @@ try {
       };
     })()`);
 
-    assert.equal(layout.innerWidth, 360, `${route.label}: Browser läuft nicht im erwarteten 360px-Viewport.`);
-    assert.ok(layout.scrollWidth <= 361, `${route.label}: horizontale Seitenausdehnung ${layout.scrollWidth}px bei 360px Viewport.`);
-    assert.equal(layout.links.length, 4, `${route.label}: erwartet vier lokale Navigationsziele.`);
-    assert.deepEqual(layout.links.map(({ pathname }) => pathname), route.expectedPaths, `${route.label}: Navigationsziele oder Reihenfolge sind inkonsistent.`);
+    assert.equal(layout.innerWidth, 360, `${game.name}: Browser läuft nicht im erwarteten 360px-Viewport.`);
+    assert.ok(layout.scrollWidth <= 361, `${game.name}: horizontale Seitenausdehnung ${layout.scrollWidth}px bei 360px Viewport.`);
+    assert.equal(layout.links.length, GAMES.length, `${game.name}: Navigationsanzahl folgt nicht der Registry.`);
+    assert.deepEqual(layout.links.map(({ pathname }) => pathname), expectedPaths, `${game.name}: Navigationsziele oder Reihenfolge sind inkonsistent.`);
 
     for (const link of layout.links) {
-      assert.equal(new URL(link.href).origin, new URL(url).origin, `${route.label}: ${link.text} verlässt den lokalen Ursprung.`);
-      assert.ok(link.width >= 44, `${route.label}: Navigationsziel ${link.text} ist nur ${link.width.toFixed(1)}px breit.`);
-      assert.ok(link.height >= 44, `${route.label}: Navigationsziel ${link.text} ist nur ${link.height.toFixed(1)}px hoch.`);
-      assert.ok(link.left >= -1 && link.right <= 361, `${route.label}: Navigationsziel ${link.text} liegt horizontal außerhalb des Viewports.`);
+      assert.equal(new URL(link.href).origin, new URL(url).origin, `${game.name}: ${link.text} verlässt den lokalen Ursprung.`);
+      assert.ok(link.width >= 44, `${game.name}: Navigationsziel ${link.text} ist nur ${link.width.toFixed(1)}px breit.`);
+      assert.ok(link.height >= 44, `${game.name}: Navigationsziel ${link.text} ist nur ${link.height.toFixed(1)}px hoch.`);
+      assert.ok(link.left >= -1 && link.right <= 361, `${game.name}: Navigationsziel ${link.text} liegt horizontal außerhalb des Viewports.`);
     }
 
     await evaluate(client, 'document.activeElement?.blur()');
     const visited = [];
-    for (let index = 0; index < 20 && visited.length < 4; index += 1) {
+    const maxTabs = Math.max(30, GAMES.length * 8);
+    for (let index = 0; index < maxTabs && visited.length < expectedPaths.length; index += 1) {
       await pressTab(client);
       const focus = await evaluate(client, `(() => {
         const active = document.activeElement;
-        const nav = active?.matches?.(${JSON.stringify(route.navSelector)});
-        return nav ? {
+        if (!active?.matches?.(${JSON.stringify(NAV_SELECTOR)})) return null;
+        return {
           pathname: new URL(active.href).pathname,
           focusVisible: active.matches(':focus-visible'),
-        } : null;
+        };
       })()`);
       if (focus && !visited.some(({ pathname }) => pathname === focus.pathname)) visited.push(focus);
     }
 
-    assert.deepEqual(visited.map(({ pathname }) => pathname), route.expectedPaths, `${route.label}: Tab-Fokus erreicht nicht alle vier Navigationsziele in DOM-Reihenfolge.`);
-    assert.ok(visited.every(({ focusVisible }) => focusVisible), `${route.label}: mindestens ein per Tab erreichtes Navigationsziel hat keinen sichtbaren Tastaturfokus.`);
-
-    console.log(`browser-smoke: ${route.label} four-game navigation 360x640 + keyboard focus passed`);
+    assert.deepEqual(visited.map(({ pathname }) => pathname), expectedPaths, `${game.name}: Tab-Fokus erreicht nicht alle Registry-Navigationsziele in DOM-Reihenfolge.`);
+    assert.ok(visited.every(({ focusVisible }) => focusVisible), `${game.name}: mindestens ein per Tab erreichtes Navigationsziel hat keinen sichtbaren Tastaturfokus.`);
+    console.log(`browser-smoke: ${game.name} registry navigation 360x640 + keyboard focus passed`);
   }
 
-  const startUrl = new URL('4096/', url).href;
-  const startNavigated = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === startUrl, 15_000);
-  const startNavigation = await client.send('Page.navigate', { url: startUrl });
-  assert.equal(startNavigation.errorText, undefined, `Offline-Enter-Start fehlgeschlagen: ${startNavigation.errorText}`);
-  await startNavigated;
-  await waitForTruthy(client, "document.querySelectorAll('.tile').length === 16");
+  const firstGame = GAMES[0];
+  await navigate(client, new URL(firstGame.route.slice(1), url).href, 'Offline-Enter-Start');
+  await waitForTruthy(client, `document.body.dataset.gameId === ${JSON.stringify(firstGame.id)}`);
   await waitForTruthy(client, "Boolean(navigator.serviceWorker?.controller)");
   await waitForTruthy(client, "navigator.serviceWorker?.ready.then((registration) => Boolean(registration.active))");
 
@@ -369,17 +318,20 @@ try {
   });
   await waitForTruthy(client, 'navigator.onLine === false');
 
-  for (const step of OFFLINE_ENTER_CYCLE) {
-    await focusNavPath(client, step.navSelector, step.targetPath, step.sourceLabel);
-    const targetUrl = new URL(step.targetPath.slice(1), url).href;
+  for (let index = 0; index < GAMES.length; index += 1) {
+    const source = GAMES[index];
+    const targetGame = GAMES[(index + 1) % GAMES.length];
+    await focusNavPath(client, targetGame.route, source.name);
+    const targetUrl = new URL(targetGame.route.slice(1), url).href;
     const enterNavigated = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === targetUrl, 15_000);
     await pressEnter(client);
     await enterNavigated;
     await waitForTruthy(client, "document.readyState === 'complete'");
-    await waitForTruthy(client, step.targetReadyExpression);
-    assert.equal(await evaluate(client, 'location.pathname'), step.targetPath, `${step.sourceLabel}: Enter hat offline nicht zu ${step.targetPath} navigiert.`);
-    assert.equal(await evaluate(client, 'navigator.onLine'), false, `${step.sourceLabel}: Offline-Zustand ging beim Enter-Wechsel verloren.`);
-    console.log(`browser-smoke: ${step.sourceLabel} offline Enter -> ${step.targetPath} passed`);
+    await waitForTruthy(client, `document.body.dataset.gameId === ${JSON.stringify(targetGame.id)}`);
+    await waitForTruthy(client, `document.querySelectorAll(${JSON.stringify(NAV_SELECTOR)}).length === ${GAMES.length}`);
+    assert.equal(await evaluate(client, 'location.pathname'), targetGame.route, `${source.name}: Enter hat offline nicht zu ${targetGame.route} navigiert.`);
+    assert.equal(await evaluate(client, 'navigator.onLine'), false, `${source.name}: Offline-Zustand ging beim Enter-Wechsel verloren.`);
+    console.log(`browser-smoke: ${source.name} offline Enter -> ${targetGame.route} passed`);
   }
 } catch (error) {
   const browserDetails = browserStderr.trim() ? `\nBrowser stderr:\n${browserStderr.trim()}` : '';

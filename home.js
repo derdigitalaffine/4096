@@ -1,7 +1,39 @@
 import { connectionStatus } from './connectivity.js';
+import { GAMES } from './games.js';
 
 const connectionElement = document.querySelector('#connection-status');
 const installButton = document.querySelector('#install-app');
+const gameGrid = document.querySelector('#game-grid');
+
+function renderGameCards() {
+  const fragment = document.createDocumentFragment();
+
+  GAMES.forEach((game, index) => {
+    const card = document.createElement('a');
+    card.className = 'game-card';
+    card.href = game.route;
+    card.dataset.gameId = game.id;
+
+    const number = document.createElement('span');
+    number.className = 'game-number';
+    number.textContent = String(index + 1).padStart(2, '0');
+
+    const title = document.createElement('strong');
+    title.textContent = game.name;
+
+    const description = document.createElement('span');
+    description.textContent = game.description;
+
+    const playLabel = document.createElement('span');
+    playLabel.className = 'play-label';
+    playLabel.textContent = 'START →';
+
+    card.append(number, title, description, playLabel);
+    fragment.append(card);
+  });
+
+  gameGrid.replaceChildren(fragment);
+}
 
 let installPrompt = null;
 let offlineReady = 'serviceWorker' in navigator && Boolean(navigator.serviceWorker.controller);
@@ -60,4 +92,5 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+renderGameCards();
 updateConnectionStatus();
