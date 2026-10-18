@@ -103,12 +103,15 @@ test('Dr. Mario HTML shares the welcome root and all game routes', () => {
   assert.doesNotMatch(html, /https?:\/\//i);
 });
 
-test('Super Mario Land HTML shares the welcome root and all game routes', () => {
+test('Super Mario Land HTML shares the welcome root and exposes the twelve-stage campaign', () => {
   const html = readFileSync('super-mario-land/index.html', 'utf8');
   for (const ref of ['../manifest.webmanifest', '../icon.svg', '../apple-touch-icon.png', './styles.css', './app.js', '../', '../4096/', '../sudoku/', '../dr-mario/']) {
     assert.match(html, new RegExp(ref.replaceAll('.', '\\.')));
   }
   assert.match(html, /id="game-canvas"[^>]*role="img"/);
+  assert.match(html, /vier Welten und zwölf eigenen Stages/i);
+  assert.match(html, /id="level">1-1 · 1\/12</);
+  assert.match(html, /2-3 und 4-3[^.]*automatisch vorwärts/);
   assert.match(html, /id="game-status"[^>]*aria-live="polite"/);
   assert.match(html, /id="jump"/);
   assert.doesNotMatch(html, /https?:\/\//i);
@@ -125,7 +128,7 @@ test('service worker precaches welcome page, all four games and critical shell',
     './manifest.webmanifest', ...iconFiles.map((file) => `./${file}`),
   ];
   for (const ref of refs) assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')));
-  assert.match(worker, /4096-shell-v14/);
+  assert.match(worker, /4096-shell-v15/);
 });
 
 test('4096 exposes undo controls and a polite live game status', () => {
