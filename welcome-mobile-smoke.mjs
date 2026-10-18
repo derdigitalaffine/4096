@@ -133,7 +133,7 @@ class DevToolsClient {
         resolve: resolveEvent,
         timeoutId: setTimeout(() => {
           const index = waiters.indexOf(waiter);
-          if (index >= 0) waiters.splice(indexOf(waiter), 1);
+          if (index >= 0) waiters.splice(index, 1);
           reject(new Error(`Timeout beim Warten auf ${method}`));
         }, timeout),
       };
