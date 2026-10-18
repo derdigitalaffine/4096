@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { createServer } from 'node:http';
+import { createServer as createNetServer } from 'node:net';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
@@ -12,6 +13,18 @@ const MIME_TYPES = {
   '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json',
 };
 const sleep = (milliseconds) => new Promise((resolveSleep) => setTimeout(resolveSleep, milliseconds));
+
+async function freePort() {
+  return new Promise((resolvePort, reject) => {
+    const server = createNetServer();
+    server.unref();
+    server.on('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const { port } = server.address();
+      server.close(() => resolvePort(port));
+    });
+  });
+}
 
 function findBrowser() {
   const candidates = [process.env.CHROME_BIN, 'google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser'].filter(Boolean);
@@ -139,11 +152,12 @@ async function stopBrowser(browser) {
   }
 }
 
+const debugPort = await freePort();
 const profileDir = await mkdtemp(join(tmpdir(), '4096-sml-touch-polish-'));
 const { server, url } = await startStaticServer();
 const browser = spawn(findBrowser(), [
   '--headless=new', '--no-sandbox', '--disable-background-networking', '--disable-component-update', '--disable-default-apps', '--disable-gpu',
-  '--no-default-browser-check', '--no-first-run', '--remote-debugging-port=0', `--user-data-dir=${profileDir}`, 'about:blank',
+  '--no-default-browser-check', '--no-first-run', `--remote-debugging-port=${debugPort}`, '--remote-debugging-address=127.0.0.1', `--user-data-dir=${profileDir}`, 'about:blank',
 ], { stdio: ['ignore', 'ignore', 'pipe'] });
 
 let browserStderr = '';
@@ -154,19 +168,8 @@ browser.stderr.on('data', (chunk) => {
 
 let client;
 try {
-  const portMatch = await new Promise((resolvePort, reject) => {
-    const deadline = setTimeout(() => reject(new Error('Chrome DevTools-Port wurde nicht gemeldet.')), 15_000);
-    const inspect = (chunk) => {
-      const match = chunk.toString().match(/DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)\//);
-      if (!match) return;
-      clearTimeout(deadline);
-      browser.stderr.off('data', inspect);
-      resolvePort(Number(match[1]));
-    };
-    browser.stderr.on('data', inspect);
-  });
-  await waitForJson(`http://127.0.0.1:${portMatch}/json/version`);
-  const targetResponse = await fetch(`http://127.0.0.1:${portMatch}/json/new?about:blank`, { method: 'PUT' });
+  await waitForJson(`http://127.0.0.1:${debugPort}/json/version`);
+  const targetResponse = await fetch(`http://127.0.0.1:${debugPort}/json/new?about:blank`, { method: 'PUT' });
   assert.equal(targetResponse.ok, true, `DevTools target failed: HTTP ${targetResponse.status}`);
   const target = await targetResponse.json();
   client = new DevToolsClient(target.webSocketDebuggerUrl);
@@ -182,46 +185,56 @@ try {
   await waitForValue(client, 'document.readyState', 'complete');
   await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Online · offline bereit');
 
-  const multiPointer = await evaluate(client, `(async () => {
+  const firstPointer = await evaluate(client, `(() => {
     const button = document.querySelector('#move-right');
-    const canvas = document.querySelector('#game-canvas');
     button.setPointerCapture = () => {};
     button.releasePointerCapture = () => {};
     button.hasPointerCapture = () => false;
-    const fire = (type, pointerId) => button.dispatchEvent(new PointerEvent(type, {
+    window.__smlTouchFire = (type, pointerId) => button.dispatchEvent(new PointerEvent(type, {
       bubbles: true, cancelable: true, pointerId, pointerType: 'touch', isPrimary: pointerId === 101,
       button: 0, buttons: type === 'pointerup' || type === 'pointercancel' ? 0 : 1,
     }));
-    fire('pointerdown', 101);
-    await new Promise((resolve) => setTimeout(resolve, 900));
-    const beforeForeignPointer = Number(canvas.dataset.cameraTarget);
-    fire('pointerdown', 202);
-    fire('pointerup', 202);
-    await new Promise((resolve) => setTimeout(resolve, 260));
-    const afterForeignPointer = Number(canvas.dataset.cameraTarget);
-    const pressedAfterForeignPointer = button.dataset.pressed;
-    fire('pointercancel', 101);
-    await new Promise((resolve) => setTimeout(resolve, 120));
-    const afterCancel = Number(canvas.dataset.cameraTarget);
-    await new Promise((resolve) => setTimeout(resolve, 220));
-    const settledAfterCancel = Number(canvas.dataset.cameraTarget);
-    fire('pointerdown', 303);
+    window.__smlTouchFire('pointerdown', 101);
+    return { pressed: button.dataset.pressed ?? null, disabled: button.disabled };
+  })()`);
+  assert.equal(firstPointer.disabled, false);
+  assert.equal(firstPointer.pressed, 'true', `Aktiver Pointer bekommt keinen sichtbaren Pressed-Zustand: ${JSON.stringify(firstPointer)}`);
+
+  await sleep(1_200);
+  const beforeForeignPointer = await evaluate(client, "Number(document.querySelector('#game-canvas').dataset.cameraTarget)");
+  assert.ok(beforeForeignPointer > 0, `Erster Hold bewegt die Kamera nicht: ${beforeForeignPointer}`);
+  const pressedAfterForeignPointer = await evaluate(client, `(() => {
+    window.__smlTouchFire('pointerdown', 202);
+    window.__smlTouchFire('pointerup', 202);
+    return document.querySelector('#move-right').dataset.pressed ?? null;
+  })()`);
+  assert.equal(pressedAfterForeignPointer, 'true', 'Fremder Pointer beendet den sichtbaren Hold vorzeitig.');
+  await sleep(260);
+  const afterForeignPointer = await evaluate(client, "Number(document.querySelector('#game-canvas').dataset.cameraTarget)");
+  assert.ok(afterForeignPointer > beforeForeignPointer, `Fremder Pointer beendet die aktive Richtung vorzeitig: ${beforeForeignPointer} -> ${afterForeignPointer}`);
+
+  await evaluate(client, "window.__smlTouchFire('pointercancel', 101)");
+  await waitForValue(client, "document.querySelector('#move-right')?.dataset.pressed", 'false');
+  const targetAtSyntheticCancel = await evaluate(client, "Number(document.querySelector('#game-canvas').dataset.cameraTarget)");
+  await sleep(260);
+  const targetAfterSyntheticCancel = await evaluate(client, "Number(document.querySelector('#game-canvas').dataset.cameraTarget)");
+  assert.equal(targetAfterSyntheticCancel, targetAtSyntheticCancel, `Pointer-Cancel beendet die Richtung nicht sofort: ${targetAtSyntheticCancel} -> ${targetAfterSyntheticCancel}`);
+
+  await evaluate(client, `(() => {
+    window.__smlTouchFire('pointerdown', 303);
     window.dispatchEvent(new Event('blur'));
-    await new Promise((resolve) => setTimeout(resolve, 40));
-    const pressedAfterBlur = button.dataset.pressed;
+  })()`);
+  await waitForValue(client, "document.querySelector('#move-right')?.dataset.pressed", 'false');
+  await evaluate(client, `(() => {
+    const button = document.querySelector('#move-right');
+    delete window.__smlTouchFire;
     delete button.setPointerCapture;
     delete button.releasePointerCapture;
     delete button.hasPointerCapture;
-    return { beforeForeignPointer, afterForeignPointer, pressedAfterForeignPointer, afterCancel, settledAfterCancel, pressedAfterBlur };
+    document.querySelector('#new-game').click();
   })()`);
-  assert.ok(multiPointer.beforeForeignPointer > 0, `Erster Hold bewegte die Kamera nicht: ${JSON.stringify(multiPointer)}`);
-  assert.ok(multiPointer.afterForeignPointer > multiPointer.beforeForeignPointer, `Fremder Pointer beendet den aktiven Hold vorzeitig: ${JSON.stringify(multiPointer)}`);
-  assert.equal(multiPointer.pressedAfterForeignPointer, 'true', `Pressed-Zustand ging durch fremden Pointer verloren: ${JSON.stringify(multiPointer)}`);
-  assert.equal(multiPointer.afterCancel, multiPointer.settledAfterCancel, `Pointer-Cancel beendet die Richtung nicht sofort: ${JSON.stringify(multiPointer)}`);
-  assert.equal(multiPointer.pressedAfterBlur, 'false', `Blur räumt den Pressed-Zustand nicht auf: ${JSON.stringify(multiPointer)}`);
-
-  await evaluate(client, "document.querySelector('#new-game').click()");
   await sleep(120);
+
   const center = await evaluate(client, `(() => {
     const rect = document.querySelector('#move-right').getBoundingClientRect();
     return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
@@ -231,7 +244,7 @@ try {
   await waitForValue(client, "document.querySelector('#move-right')?.dataset.pressed", 'true');
   const duringTransform = await evaluate(client, "getComputedStyle(document.querySelector('#move-right')).transform");
   assert.notEqual(duringTransform, beforeTransform, `Realer Touch-Hold hat kein sichtbares Pressed-Feedback: ${beforeTransform}`);
-  await sleep(1_000);
+  await sleep(1_200);
   const targetDuringHold = await evaluate(client, "Number(document.querySelector('#game-canvas').dataset.cameraTarget)");
   assert.ok(targetDuringHold > 0, `Realer Touch-Hold bewegt die Spielfigur nicht: ${targetDuringHold}`);
 
@@ -244,7 +257,7 @@ try {
   const afterTransform = await evaluate(client, "getComputedStyle(document.querySelector('#move-right')).transform");
   assert.equal(afterTransform, beforeTransform, `Pressed-Feedback bleibt nach Touch-Cancel hängen: ${afterTransform}`);
 
-  console.log(`browser-smoke: SML touch polish passed; multi-pointer camera=${multiPointer.beforeForeignPointer}->${multiPointer.afterForeignPointer}, real-hold target=${targetDuringHold}`);
+  console.log(`browser-smoke: SML touch polish passed; multi-pointer camera=${beforeForeignPointer}->${afterForeignPointer}, real-hold target=${targetDuringHold}`);
 } catch (error) {
   const details = browserStderr ? `\nBrowser stderr:\n${browserStderr}` : '';
   throw new Error(`${error.message}${details}`, { cause: error });
