@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "check": "node --check home.js && node --check welcome-mobile-smoke.mjs && node --check offline-routing-smoke.mjs && node --check game-navigation-smoke.mjs && node --check game.js && node --check app.js && node --check sw.js && node --check sudoku/game.js && node --check sudoku/app.js && node --check dr-mario/game.js && node --check dr-mario/app.js && node --check dr-mario/browser-smoke.mjs && node --check dr-mario/storage-recovery-smoke.mjs && node --check super-mario-land/game.js && node --check super-mario-land/app.js && node --check super-mario-land/browser-smoke.mjs && node --test",
-    "smoke": "node browser-smoke.mjs && node welcome-mobile-smoke.mjs && node offline-routing-smoke.mjs && node game-navigation-smoke.mjs && node dr-mario/browser-smoke.mjs && node dr-mario/storage-recovery-smoke.mjs && node super-mario-land/browser-smoke.mjs"
+    "check": "node --check home.js && node --check welcome-mobile-smoke.mjs && node --check offline-routing-smoke.mjs && node --check game-navigation-smoke.mjs && node --check game.js && node --check app.js && node --check sw.js && node --check sudoku/game.js && node --check sudoku/app.js && node --check dr-mario/game.js && node --check dr-mario/app.js && node --check dr-mario/browser-smoke.mjs && node --check dr-mario/storage-recovery-smoke.mjs && node --check super-mario-land/game.js && node --check super-mario-land/app.js && node --check super-mario-land/browser-smoke.mjs && node --check super-mario-land/autoscroll-playability-smoke.mjs && node --test",
+    "smoke": "node browser-smoke.mjs && node welcome-mobile-smoke.mjs && node offline-routing-smoke.mjs && node game-navigation-smoke.mjs && node dr-mario/browser-smoke.mjs && node dr-mario/storage-recovery-smoke.mjs && node super-mario-land/browser-smoke.mjs && node super-mario-land/autoscroll-playability-smoke.mjs"
   },
   "engines": {
     "node": ">=20"
