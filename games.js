@@ -86,6 +86,13 @@ export const GAMES = Object.freeze([
     description: 'Top-down Score-Arcade mit deterministischen Wellen, drei Gegnerprofilen und lokalen Power-ups.',
     shell: ['/space-shooter/', '/space-shooter/index.html', '/space-shooter/styles.css', '/space-shooter/app.js', '/space-shooter/game.js', '/space-shooter/waves.js', '/space-shooter/storage.js'],
   }),
+  freezeGame({
+    id: 'duell',
+    name: 'Tromu Duell',
+    route: '/duell/',
+    description: 'Lokale Hot-Seat-Partien in Vier gewinnt und Reversi mit robuster Geräte-Statistik.',
+    shell: ['/duell/', '/duell/index.html', '/duell/styles.css', '/duell/app.js', '/duell/connect-four.js', '/duell/reversi.js', '/duell/storage.js'],
+  }),
 ]);
 
 export const GAME_COUNT = GAMES.length;
