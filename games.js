@@ -79,6 +79,13 @@ export const GAMES = Object.freeze([
     description: 'Eigenes Labyrinth-Arcade mit Sammelzielen, Power-Zustand und deterministischen Gegnerprofilen.',
     shell: ['/maze-chase/', '/maze-chase/index.html', '/maze-chase/styles.css', '/maze-chase/app.js', '/maze-chase/game.js', '/maze-chase/levels.js', '/maze-chase/storage.js'],
   }),
+  freezeGame({
+    id: 'space-shooter',
+    name: 'Tromu Space Shooter',
+    route: '/space-shooter/',
+    description: 'Top-down Score-Arcade mit deterministischen Wellen, drei Gegnerprofilen und lokalen Power-ups.',
+    shell: ['/space-shooter/', '/space-shooter/index.html', '/space-shooter/styles.css', '/space-shooter/app.js', '/space-shooter/game.js', '/space-shooter/waves.js', '/space-shooter/storage.js'],
+  }),
 ]);
 
 export const GAME_COUNT = GAMES.length;
