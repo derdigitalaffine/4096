@@ -4,6 +4,8 @@ const freezeGame = (game) => Object.freeze({
   shell: Object.freeze([...game.shell]),
 });
 
+const WEBROOT_URL = new URL('./', import.meta.url);
+
 export const GAMES = Object.freeze([
   freezeGame({
     id: '4096',
@@ -45,4 +47,9 @@ export function getGame(gameId) {
 
 export function gameRoutes() {
   return GAMES.map((game) => game.route);
+}
+
+export function routeHref(route, webroot = WEBROOT_URL) {
+  const relativeRoute = String(route ?? '').replace(/^\/+/, '');
+  return new URL(relativeRoute || './', webroot).href;
 }

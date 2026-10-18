@@ -1,4 +1,4 @@
-import { GAMES } from './games.js';
+import { GAMES, routeHref } from './games.js';
 
 export function navigationEntries(currentGameId) {
   return [
@@ -14,7 +14,7 @@ export function renderGameNavigation(nav, currentGameId = document.body?.dataset
 
   for (const entry of navigationEntries(currentGameId)) {
     const link = document.createElement('a');
-    link.href = entry.route;
+    link.href = routeHref(entry.route);
     link.textContent = entry.name;
     link.dataset.gameId = entry.id;
     if (linkClass) link.className = linkClass;

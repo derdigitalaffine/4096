@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { GAME_COUNT, GAMES, gameRoutes, getGame } from './games.js';
+import { GAME_COUNT, GAMES, gameRoutes, getGame, routeHref } from './games.js';
 import { navigationEntries } from './game-nav.js';
 
 test('game registry is the unique canonical source for local games', () => {
@@ -34,6 +34,13 @@ test('shared navigation grows from the registry and omits only the current game'
     assert.deepEqual(entries.map((entry) => entry.route), ['/', ...GAMES.filter((game) => game.id !== current.id).map((game) => game.route)]);
     assert.equal(entries.some((entry) => entry.id === current.id), false);
   }
+});
+
+test('canonical routes resolve inside the deployed webroot instead of escaping to domain root', () => {
+  const webroot = 'https://example.test/tromu/';
+  assert.equal(routeHref('/', webroot), 'https://example.test/tromu/');
+  assert.equal(routeHref('/4096/', webroot), 'https://example.test/tromu/4096/');
+  assert.equal(routeHref('/dr-tromu/', webroot), 'https://example.test/tromu/dr-tromu/');
 });
 
 test('Super Tromu Land registry copy reflects the full current campaign', () => {
