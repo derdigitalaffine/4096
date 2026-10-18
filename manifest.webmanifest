@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Tromu Spielewelt",
   "short_name": "Tromu Spiele",
-  "description": "Vier lokale Browser-Spiele in einer offlinefähigen, installierbaren Spielewelt.",
+  "description": "Lokale Browser-Spiele in einer offlinefähigen, installierbaren Spielewelt.",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
