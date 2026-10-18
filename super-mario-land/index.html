@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#306230">
-  <meta name="description" content="Super Mario Land – lokales, offlinefähiges Jump ’n’ Run mit drei Leveln, ?-Blöcken und eigener Canvas-Grafik.">
+  <meta name="description" content="Super Mario Land – lokales, offlinefähiges Jump ’n’ Run mit vier Welten und zwölf eigenen, original-inspirierten Stages.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Super Mario Land</title>
@@ -19,7 +19,7 @@
       <div>
         <p class="eyebrow">Offline-PWA · Jump ’n’ Run</p>
         <h1>Super Mario Land</h1>
-        <p class="tagline">Drei Level mit eigener Grafik: Springe gegen ?-Blöcke, sammle Pilz oder Blume und erreiche jede Fahne.</p>
+        <p class="tagline">Vier Welten, zwölf eigene Stages von 1-1 bis 4-3: Wüsten, Küsten, Ruinen, Berge und zwei besondere Auto-Scroll-Finals.</p>
       </div>
       <nav class="game-nav" aria-label="Spiele">
         <a href="../">Spielewelt</a>
@@ -31,17 +31,17 @@
 
     <section class="stats" aria-label="Spielstatus">
       <div class="stat-card"><span>Punkte</span><strong id="score">0</strong></div>
-      <div class="stat-card"><span>Münzen</span><strong id="coins">0/16</strong></div>
+      <div class="stat-card"><span>Münzen</span><strong id="coins">0/20</strong></div>
       <div class="stat-card"><span>Leben</span><strong id="lives">3</strong></div>
       <div class="stat-card"><span>Kraft</span><strong id="power">Klein</strong></div>
       <div class="stat-card"><span>Bestwert</span><strong id="best">0</strong></div>
-      <div class="stat-card"><span>Level</span><strong id="level">1/3</strong></div>
+      <div class="stat-card"><span>Stage</span><strong id="level">1-1 · 1/12</strong></div>
       <div class="stat-card"><span>Fortschritt</span><strong id="progress">0%</strong></div>
       <span id="connection-status" class="connection" aria-live="polite">Online</span>
     </section>
 
     <section class="game-panel" aria-label="Super-Mario-Land-Spiel">
-      <canvas id="game-canvas" width="800" height="450" role="img" aria-label="Seitlich scrollendes Jump-’n’-Run mit drei Leveln, ?-Blöcken, Pilz- und Blumen-Power-ups, Münzen, Gegnern und Ziel-Fahnen."></canvas>
+      <canvas id="game-canvas" width="800" height="450" role="img" aria-label="Seitlich scrollendes Jump-’n’-Run mit vier Welten und zwölf eigenen Stages, ?-Blöcken, Pilz- und Blumen-Power-ups, Münzen, Gegnern und Ziel-Fahnen."></canvas>
       <div class="controls">
         <button id="new-game" class="secondary" type="button">Neue Runde</button>
         <div class="touch-controls" aria-label="Jump-’n’-Run-Steuerung">
@@ -51,11 +51,11 @@
           <button id="fire" type="button" aria-label="Blumenball werfen" disabled>Ball</button>
         </div>
       </div>
-      <p class="instructions">Tastatur: ←/→ oder A/D laufen, ↑/W/Leertaste springen, X/K mit Blumen-Kraft einen Ball werfen, R neue Runde. Pilz schützt vor einem Treffer; Blume schaltet den Ball-Angriff frei.</p>
+      <p class="instructions">Tastatur: ←/→ oder A/D laufen, ↑/W/Leertaste springen, X/K mit Blumen-Kraft einen Ball werfen, R neue Runde. Pilz schützt vor einem Treffer; Blume schaltet den Ball-Angriff frei. Die Stages 2-3 und 4-3 treiben als besondere Finale automatisch vorwärts.</p>
       <p id="game-status" class="status" aria-live="polite" aria-atomic="true"></p>
     </section>
 
-    <footer><p>Eigene Canvas-Grafik, keine fremden Spielassets. Keine Anmeldung und keine Tracker.</p></footer>
+    <footer><p>Eigene Canvas-Grafik und neue Levelgeometrien; keine kopierten Karten oder fremden Spielassets. Keine Anmeldung und keine Tracker.</p></footer>
   </main>
   <script type="module" src="./app.js"></script>
 </body>
