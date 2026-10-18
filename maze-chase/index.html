@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10162b">
+  <meta name="description" content="Tromu Maze-Chase – eigenes lokales Labyrinth-Arcade mit deterministischen Gegnern, Power-Zustand und Bestwert.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Tromu Maze-Chase</title>
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body data-game-id="maze-chase">
+  <main class="maze-shell">
+    <header class="topbar">
+      <div class="title-block">
+        <p class="eyebrow">Offline-PWA · Maze Arcade</p>
+        <h1>Tromu Maze-Chase</h1>
+      </div>
+      <nav class="game-nav" aria-label="Spiele" data-game-nav></nav>
+    </header>
+
+    <section class="stats" aria-label="Spielstatus">
+      <div><span>Level</span><strong id="level-name">1/3</strong></div>
+      <div><span>Punkte</span><strong id="score">0</strong></div>
+      <div><span>Leben</span><strong id="lives">3</strong></div>
+      <div><span>Best</span><strong id="best-score">0</strong></div>
+    </section>
+
+    <section class="play-area" aria-label="Maze-Chase-Spiel">
+      <div id="maze-board" class="maze-board" role="img" tabindex="0" aria-label="Maze-Chase-Spielfeld"></div>
+      <div class="control-deck">
+        <div class="round-actions">
+          <button id="pause-game" type="button" aria-pressed="false">Pause</button>
+          <button id="new-game" type="button">Neue Runde</button>
+        </div>
+        <div class="touch-controls" aria-label="Richtungssteuerung">
+          <button id="move-up" class="up" type="button" data-direction="up" aria-label="Nach oben">↑</button>
+          <button id="move-left" type="button" data-direction="left" aria-label="Nach links">←</button>
+          <button id="move-down" type="button" data-direction="down" aria-label="Nach unten">↓</button>
+          <button id="move-right" type="button" data-direction="right" aria-label="Nach rechts">→</button>
+        </div>
+      </div>
+    </section>
+
+    <p id="game-status" class="status" aria-live="polite" aria-atomic="true">Sammle alle Punkte. Pfeiltasten/WASD oder D-Pad.</p>
+    <div class="meta-row">
+      <span id="connection-status" class="connection" aria-live="polite">Online · Offline wird vorbereitet</span>
+      <span id="power-status">Power –</span>
+      <span>◆ Spieler · H Jäger · A Vorhalter · R Patrouille</span>
+    </div>
+    <p class="instructions">P: Pause · R: neue Runde. Eine vorgewählte Richtung bleibt gepuffert, bis die nächste passende Kurve erreicht ist.</p>
+  </main>
+  <script type="module" src="../game-nav.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

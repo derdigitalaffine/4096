@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v23';
+const CACHE_NAME = '4096-shell-v24';
 const APP_SHELL = [
   './',
   './index.html',
@@ -64,6 +64,13 @@ const APP_SHELL = [
   './freecell/app.js',
   './freecell/game.js',
   './freecell/storage.js',
+  './maze-chase/',
+  './maze-chase/index.html',
+  './maze-chase/styles.css',
+  './maze-chase/app.js',
+  './maze-chase/game.js',
+  './maze-chase/levels.js',
+  './maze-chase/storage.js',
   './dr-mario/',
   './dr-mario/index.html',
   './dr-mario/styles.css',
