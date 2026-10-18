@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
   <link rel="stylesheet" href="./styles.css">
 </head>
-<body>
+<body data-game-id="super-tromu-land">
   <main class="sml-shell">
     <header class="topbar">
       <div>
@@ -21,12 +21,7 @@
         <h1>Super Tromu Land</h1>
         <p class="tagline">Vier Welten, zwölf eigene Stages von 1-1 bis 4-3: Wüsten, Küsten, Ruinen, Berge und zwei besondere Auto-Scroll-Finals.</p>
       </div>
-      <nav class="game-nav" aria-label="Spiele">
-        <a href="../">Spielewelt</a>
-        <a href="../4096/">4096</a>
-        <a href="../sudoku/">Sudoku</a>
-        <a href="../dr-tromu/">Dr. Tromu</a>
-      </nav>
+      <nav class="game-nav" aria-label="Spiele" data-game-nav></nav>
     </header>
 
     <section class="stats" aria-label="Spielstatus">
@@ -57,6 +52,7 @@
 
     <footer><p>Eigene Canvas-Grafik und eigene Levelgeometrien; keine kopierten Karten oder fremden Spielassets. Keine Anmeldung und keine Tracker.</p></footer>
   </main>
+  <script type="module" src="../game-nav.js"></script>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
