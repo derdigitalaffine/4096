@@ -58,6 +58,13 @@ export const GAMES = Object.freeze([
     description: 'Fünf kurze Arcade-Level mit Paddle, Power-ups, Leben und lokalem Bestwert.',
     shell: ['/breakout/', '/breakout/index.html', '/breakout/styles.css', '/breakout/app.js', '/breakout/game.js', '/breakout/levels.js', '/breakout/storage.js'],
   }),
+  freezeGame({
+    id: 'minesweeper',
+    name: 'Tromu Minesweeper',
+    route: '/minesweeper/',
+    description: 'Zugängliches Minenrätsel mit sicherem ersten Reveal, Flag-Modus und lokalen Bestzeiten.',
+    shell: ['/minesweeper/', '/minesweeper/index.html', '/minesweeper/styles.css', '/minesweeper/app.js', '/minesweeper/game.js', '/minesweeper/storage.js'],
+  }),
 ]);
 
 export const GAME_COUNT = GAMES.length;
