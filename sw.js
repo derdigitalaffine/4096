@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v23';
+const CACHE_NAME = '4096-shell-v24';
 const APP_SHELL = [
   './',
   './index.html',
@@ -60,6 +60,7 @@ const APP_SHELL = [
   './freecell/',
   './freecell/index.html',
   './freecell/styles.css',
+  './freecell/keyboard.js',
   './freecell/app.js',
   './freecell/game.js',
   './freecell/storage.js',
