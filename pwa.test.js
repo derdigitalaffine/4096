@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
+import { GAMES } from './games.js';
 
 const iconFiles = [
   'icon.svg',
@@ -10,18 +11,15 @@ const iconFiles = [
   'apple-touch-icon.png',
 ];
 
-const game4096Files = ['4096/index.html'];
-const sudokuFiles = ['sudoku/index.html', 'sudoku/styles.css', 'sudoku/app.js', 'sudoku/game.js'];
-const drTromuFiles = ['dr-tromu/index.html', 'dr-tromu/styles.css', 'dr-tromu/app.js', 'dr-tromu/game.js'];
-const superTromuLandFiles = ['super-tromu-land/index.html', 'super-tromu-land/styles.css', 'super-tromu-land/app.js', 'super-tromu-land/game.js', 'super-tromu-land/view.js'];
+const registryFiles = GAMES.flatMap((game) => game.shell)
+  .filter((path) => !path.endsWith('/'))
+  .map((path) => path.slice(1));
 
-const requiredFiles = [
-  'index.html', 'home.css', 'home.js',
-  ...game4096Files,
-  'styles.css', 'app.js', 'connectivity.js', 'dialog.js', 'game.js', 'pointer.js', 'storage.js',
+const requiredFiles = [...new Set([
+  'index.html', 'home.css', 'home.js', 'games.js', 'game-nav.js',
   'sw.js', 'manifest.webmanifest',
-  ...sudokuFiles, ...drTromuFiles, ...superTromuLandFiles, ...iconFiles,
-];
+  ...registryFiles, ...iconFiles,
+])];
 
 function pngDimensions(path) {
   const png = readFileSync(path);
@@ -29,7 +27,7 @@ function pngDimensions(path) {
   return { width: png.readUInt32BE(16), height: png.readUInt32BE(20) };
 }
 
-test('webroot contains the complete Tromu application shell', () => {
+test('webroot contains the complete registry-backed Tromu application shell', () => {
   for (const file of requiredFiles) assert.equal(existsSync(file), true, `missing required webroot file: ${file}`);
 });
 
@@ -40,7 +38,8 @@ test('manifest describes the Tromu Spielewelt as stable standalone local-scope P
   assert.equal(manifest.scope, './');
   assert.equal(manifest.display, 'standalone');
   assert.equal(manifest.name, 'Tromu Spielewelt');
-  assert.match(manifest.description, /Vier lokale Browser-Spiele/);
+  assert.match(manifest.description, /Lokale Browser-Spiele/);
+  assert.doesNotMatch(manifest.description, /Vier lokale/);
 
   const icon = (src) => manifest.icons?.find((entry) => entry.src === src);
   assert.deepEqual(icon('./icon-192.png'), { src: './icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' });
@@ -56,15 +55,16 @@ test('raster install icons have the declared pixel dimensions', () => {
   assert.deepEqual(pngDimensions('apple-touch-icon.png'), { width: 180, height: 180 });
 });
 
-test('root is a local-only Tromu welcome page with PWA guidance and all four games', () => {
+test('root is a local-only Tromu welcome page whose game list is rendered from the registry', () => {
   const html = readFileSync('index.html', 'utf8');
-  for (const ref of ['./manifest.webmanifest', './icon.svg', './apple-touch-icon.png', './home.css', './home.js', './4096/', './sudoku/', './dr-tromu/', './super-tromu-land/']) {
+  const home = readFileSync('home.js', 'utf8');
+  for (const ref of ['./manifest.webmanifest', './icon.svg', './apple-touch-icon.png', './home.css', './home.js']) {
     assert.match(html, new RegExp(ref.replaceAll('.', '\\.')));
   }
   assert.match(html, /Willkommen in der Tromu Spielewelt\./);
-  assert.match(html, /Dr\. Tromu/);
-  assert.match(html, /Super Tromu Land/);
-  assert.doesNotMatch(html, /Dr\. Mario|Super Mario Land/);
+  assert.match(html, /id="game-grid"/);
+  assert.match(home, /import \{ GAMES \} from '\.\/games\.js'/);
+  assert.equal((html.match(/class="game-card"/g) ?? []).length, 0);
   assert.match(html, /offlinefähige PWA/i);
   assert.match(html, /ANDROID/);
   assert.match(html, /iOS \/ iPadOS/);
@@ -73,33 +73,36 @@ test('root is a local-only Tromu welcome page with PWA guidance and all four gam
   assert.doesNotMatch(html, /https?:\/\//i);
 });
 
-test('4096 HTML is a local-only subpage sharing the Tromu PWA shell', () => {
-  const html = readFileSync('4096/index.html', 'utf8');
-  for (const ref of ['../manifest.webmanifest', '../icon.svg', '../apple-touch-icon.png', '../styles.css', '../app.js', '../', '../sudoku/', '../dr-tromu/', '../super-tromu-land/']) {
-    assert.match(html, new RegExp(ref.replaceAll('.', '\\.')));
+test('every canonical game page declares its registry identity and shared navigation hook', () => {
+  for (const game of GAMES) {
+    const html = readFileSync(`${game.route.slice(1)}index.html`, 'utf8');
+    assert.match(html, new RegExp(`<body[^>]*data-game-id="${game.id}"`), `${game.id}: data-game-id fehlt.`);
+    assert.match(html, /data-game-nav/, `${game.id}: gemeinsamer Navigationshook fehlt.`);
+    assert.match(html, /\.\.\/game-nav\.js/, `${game.id}: gemeinsames Navigationsmodul fehlt.`);
+    assert.doesNotMatch(html, /https?:\/\//i, `${game.id}: externe Runtime-URL gefunden.`);
   }
-  assert.match(html, /id="board"[\s\S]*?role="grid"/);
-  assert.match(html, /class="nav-link"[^>]*href="\.\.\/"[^>]*>Spielewelt</);
-  assert.match(html, /id="game-status"[^>]*aria-live="polite"/);
-  assert.doesNotMatch(html, /https?:\/\//i);
 });
 
-test('Sudoku HTML shares the welcome root and all game routes', () => {
+test('4096 HTML keeps its grid, undo controls and polite live game status', () => {
+  const html = readFileSync('4096/index.html', 'utf8');
+  assert.match(html, /id="board"[\s\S]*?role="grid"/);
+  assert.match(html, /data-link-class="nav-link"/);
+  assert.match(html, /id="undo"/);
+  assert.match(html, /id="overlay-undo"/);
+  assert.match(html, /id="game-status"[^>]*aria-live="polite"/);
+  assert.match(html, /aria-keyshortcuts="Control\+Z Meta\+Z"/);
+});
+
+test('Sudoku HTML keeps its accessible grid and editing controls', () => {
   const html = readFileSync('sudoku/index.html', 'utf8');
-  for (const ref of ['../manifest.webmanifest', '../icon.svg', '../apple-touch-icon.png', './styles.css', './app.js', '../', '../4096/', '../dr-tromu/', '../super-tromu-land/']) {
-    assert.match(html, new RegExp(ref.replaceAll('.', '\\.')));
-  }
   assert.match(html, /id="sudoku-grid"[^>]*role="grid"/);
   assert.match(html, /id="sudoku-status"[^>]*aria-live="polite"/);
   assert.match(html, /id="notes-mode"[^>]*aria-pressed="false"/);
-  assert.doesNotMatch(html, /https?:\/\//i);
+  assert.match(html, /data-link-class="back-link"/);
 });
 
-test('Dr. Tromu HTML shares the welcome root and all game routes', () => {
+test('Dr. Tromu HTML keeps the bottle and local controls', () => {
   const html = readFileSync('dr-tromu/index.html', 'utf8');
-  for (const ref of ['../manifest.webmanifest', '../icon.svg', '../apple-touch-icon.png', './styles.css', './app.js', '../', '../4096/', '../sudoku/', '../super-tromu-land/']) {
-    assert.match(html, new RegExp(ref.replaceAll('.', '\\.')));
-  }
   assert.match(html, /<title>Dr\. Tromu<\/title>/);
   assert.match(html, /id="bottle"[^>]*role="grid"/);
   assert.match(html, /id="game-status"[^>]*aria-live="polite"/);
@@ -107,11 +110,8 @@ test('Dr. Tromu HTML shares the welcome root and all game routes', () => {
   assert.doesNotMatch(html, /Dr\. Mario|https?:\/\//i);
 });
 
-test('Super Tromu Land HTML shares the welcome root and exposes the twelve-stage campaign', () => {
+test('Super Tromu Land HTML exposes the current twelve-stage campaign', () => {
   const html = readFileSync('super-tromu-land/index.html', 'utf8');
-  for (const ref of ['../manifest.webmanifest', '../icon.svg', '../apple-touch-icon.png', './styles.css', './app.js', '../', '../4096/', '../sudoku/', '../dr-tromu/']) {
-    assert.match(html, new RegExp(ref.replaceAll('.', '\\.')));
-  }
   assert.match(html, /<title>Super Tromu Land<\/title>/);
   assert.match(html, /id="game-canvas"[^>]*role="img"/);
   assert.match(html, /vier Welten und zwölf eigenen Stages/i);
@@ -122,27 +122,16 @@ test('Super Tromu Land HTML shares the welcome root and exposes the twelve-stage
   assert.doesNotMatch(html, /Super Mario Land|https?:\/\//i);
 });
 
-test('service worker precaches welcome page, Tromu routes, legacy aliases and critical shell', () => {
+test('service worker precaches shared registry modules and every registered game shell', () => {
   const worker = readFileSync('sw.js', 'utf8');
   const refs = [
-    './index.html', './home.css', './home.js',
-    './4096/', './4096/index.html', './styles.css', './app.js', './connectivity.js', './dialog.js', './game.js', './pointer.js', './storage.js',
-    './sudoku/', './sudoku/index.html', './sudoku/styles.css', './sudoku/app.js', './sudoku/game.js',
-    './dr-tromu/', './dr-tromu/index.html', './dr-tromu/styles.css', './dr-tromu/app.js', './dr-tromu/game.js',
-    './super-tromu-land/', './super-tromu-land/index.html', './super-tromu-land/styles.css', './super-tromu-land/app.js', './super-tromu-land/game.js', './super-tromu-land/view.js',
-    './dr-mario/', './super-mario-land/',
+    './index.html', './home.css', './home.js', './games.js', './game-nav.js',
+    ...GAMES.flatMap((game) => game.shell.map((path) => `.${path}`)),
+    ...GAMES.flatMap((game) => game.legacyRoutes.map((path) => `.${path}`)),
     './manifest.webmanifest', ...iconFiles.map((file) => `./${file}`),
   ];
-  for (const ref of refs) assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')));
-  assert.match(worker, /4096-shell-v16/);
-});
-
-test('4096 exposes undo controls and a polite live game status', () => {
-  const html = readFileSync('4096/index.html', 'utf8');
-  assert.match(html, /id="undo"/);
-  assert.match(html, /id="overlay-undo"/);
-  assert.match(html, /id="game-status"[^>]*aria-live="polite"/);
-  assert.match(html, /aria-keyshortcuts="Control\+Z Meta\+Z"/);
+  for (const ref of refs) assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')), `Service Worker precacht ${ref} nicht.`);
+  assert.match(worker, /4096-shell-v17/);
 });
 
 test('4096 terminal dialog wires description, inert background and focus containment', () => {
