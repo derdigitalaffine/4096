@@ -27,7 +27,7 @@ function clearCurrentStage(state) {
   return stepGame(state, {}, 0);
 }
 
-test('new Super Mario Land round starts in world 1-1 with three lives', () => {
+test('new Super Tromu Land round starts in world 1-1 with three lives', () => {
   const state = createGame();
   assert.equal(LEVEL_COUNT, 12);
   assert.equal(WORLD_COUNT, 4);
@@ -41,7 +41,7 @@ test('new Super Mario Land round starts in world 1-1 with three lives', () => {
   assert.equal(progressPercent(state), 2);
 });
 
-test('campaign exposes four worlds with three distinct original-inspired stages each', () => {
+test('campaign exposes four worlds with three distinct stages each', () => {
   assert.deepEqual(LEVELS.map((level) => level.id), ['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '3-1', '3-2', '3-3', '4-1', '4-2', '4-3']);
   for (let world = 1; world <= WORLD_COUNT; world += 1) {
     const stages = LEVELS.filter((level) => level.world === world);
@@ -59,6 +59,15 @@ test('campaign exposes four worlds with three distinct original-inspired stages 
   }
 });
 
+test('stage 1-3 lowers the pipe directly before the central gap', () => {
+  const level = LEVELS.find((candidate) => candidate.id === '1-3');
+  const obstacle = level.solids.find((solid) => solid.x === 1488 && solid.width === 48);
+  assert.ok(obstacle, '1-3 braucht das erwartete Rohr bei x=1488.');
+  assert.equal(obstacle.height, 80);
+  assert.equal(obstacle.y, GROUND_Y - 80);
+  assert.ok(level.solids.some((solid) => solid.y === GROUND_Y && solid.x === 1632), 'Der Boden nach der Lücke muss unverändert beginnen.');
+});
+
 test('right input advances the player and jump leaves the ground', () => {
   let state = createGame();
   const startX = state.player.x;
@@ -71,7 +80,7 @@ test('right input advances the player and jump leaves the ground', () => {
   assert.equal(state.player.onGround, false);
 });
 
-test('special stages 2-3 and 4-3 force forward movement without copying vehicle gameplay', () => {
+test('special stages 2-3 and 4-3 force forward movement without vehicle gameplay', () => {
   for (const index of [5, 11]) {
     const state = createGame(index);
     const startX = state.player.x;
