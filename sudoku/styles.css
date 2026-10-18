@@ -44,11 +44,20 @@ button, .button-link, .back-link { touch-action: manipulation; }
   margin-bottom: 0.9rem;
 }
 
+.game-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
 .back-link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-width: 44px;
   min-height: 44px;
   margin-bottom: 0.45rem;
+  padding-inline: 0.35rem;
   color: var(--muted);
   font-size: 0.82rem;
   font-weight: 800;
