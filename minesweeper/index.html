@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17151f">
+  <meta name="description" content="Tromu Minesweeper – zugängliches Minenrätsel mit sicherem ersten Zug, Flag-Modus und lokalen Bestzeiten.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Tromu Minesweeper</title>
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body data-game-id="minesweeper">
+  <main class="mine-shell">
+    <header class="topbar">
+      <div class="title-block">
+        <p class="eyebrow">Offline-PWA · Logik</p>
+        <h1>Tromu Minesweeper</h1>
+      </div>
+      <nav class="game-nav" aria-label="Spiele" data-game-nav></nav>
+    </header>
+
+    <section class="stats" aria-label="Rundenstatus">
+      <div><span>Minen</span><strong id="remaining-mines">10</strong></div>
+      <div><span>Zeit</span><strong id="timer">0,0 s</strong></div>
+      <div><span>Best</span><strong id="best-time">–</strong></div>
+    </section>
+
+    <section class="toolbar" aria-label="Spielsteuerung">
+      <label>Stufe
+        <select id="difficulty" aria-label="Schwierigkeitsstufe">
+          <option value="beginner">Leicht · 8×8 · 10</option>
+          <option value="intermediate">Mittel · 9×9 · 16</option>
+          <option value="expert">Schwer · 10×10 · 24</option>
+        </select>
+      </label>
+      <button id="input-mode" type="button" aria-pressed="false" aria-keyshortcuts="F">Modus: Aufdecken</button>
+      <button id="restart-game" type="button" aria-keyshortcuts="R">Restart</button>
+    </section>
+
+    <section class="board-wrap" aria-label="Minesweeper-Spiel">
+      <div id="mine-board" class="mine-board" role="grid" aria-label="Minesweeper-Spielfeld"></div>
+    </section>
+
+    <p id="game-status" class="status" aria-live="polite" aria-atomic="true">10 Minen · erster Reveal und seine Nachbarn sind sicher.</p>
+    <p class="instructions">Tap/Enter deckt auf · Flag-Modus oder F setzt Flaggen · Pfeile bewegen den Fokus.</p>
+    <div class="meta-row">
+      <span id="connection-status" class="connection" aria-live="polite">Online · Offline wird vorbereitet</span>
+      <span>R = Restart</span>
+    </div>
+  </main>
+  <script type="module" src="../game-nav.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
