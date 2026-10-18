@@ -47,7 +47,29 @@ async function cachedNavigationResponse(request) {
   return (await caches.match(request)) || (await caches.match(request, { ignoreSearch: true }));
 }
 
+function canonicalDirectoryUrl(request) {
+  const url = new URL(typeof request === 'string' ? request : request.url);
+  if (url.pathname.endsWith('/')) return null;
+
+  const lastSegment = url.pathname.slice(url.pathname.lastIndexOf('/') + 1);
+  if (!lastSegment || lastSegment.includes('.')) return null;
+
+  url.pathname = `${url.pathname}/`;
+  return url;
+}
+
+async function cachedCanonicalRedirect(request) {
+  const canonicalUrl = canonicalDirectoryUrl(request);
+  if (!canonicalUrl) return null;
+
+  const cached = await caches.match(canonicalUrl.href, { ignoreSearch: true });
+  return cached ? Response.redirect(canonicalUrl.href, 302) : null;
+}
+
 async function navigationResponse(request) {
+  const canonicalRedirect = await cachedCanonicalRedirect(request);
+  if (canonicalRedirect) return canonicalRedirect;
+
   const cachedRequest = await cachedNavigationResponse(request);
 
   try {
