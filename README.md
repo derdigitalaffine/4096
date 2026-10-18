@@ -12,6 +12,7 @@ Aktuell registriert sind:
 - **Tromu Sokoban** unter `/sokoban/` – zehn eigene Push-Puzzle mit Mehrfach-Undo, Level-Fortschritt und Bestwerten für Züge/Schübe.
 - **Tromu Breakout** unter `/breakout/` – fünf kurze Arcade-Level mit Paddle, drei Power-ups, Leben und lokalem Bestwert.
 - **Tromu Minesweeper** unter `/minesweeper/` – zugängliches Minenrätsel mit drei Stufen, sicherem ersten Reveal, Flag-Modus und lokalen Bestzeiten.
+- **Tromu FreeCell** unter `/freecell/` – klassisches Solitaire mit reproduzierbaren Deals, Mehrfach-Undo und lokaler Fortsetzung.
 
 Frühere Pfade `/dr-mario/` und `/super-mario-land/` bleiben als nicht beworbene Kompatibilitätsalias erhalten. Alle regulären Produktlinks verwenden die Tromu-Namen.
 
@@ -52,7 +53,7 @@ Für einen weiteren Direct-Webroot-Spielpfad gilt dieser Vertrag:
 
 ## PWA / Offline
 
-`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells und die weiterhin unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v22`**.
+`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells und die weiterhin unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v23`**.
 
 Navigationen werden network-first geladen und erfolgreiche Antworten aktualisieren den Cache. Offline wird zuerst die passende gecachte Navigation verwendet; extensionlose bekannte Unterseiten können auf ihre gecachte Slash-Route umgeleitet werden. Der Root-Fallback bleibt die Welcome-Page.
 
@@ -140,6 +141,16 @@ Punkte und Leben laufen über Levelgrenzen weiter. Der lokale Bestwert wird fort
 
 Bestzeiten werden pro Schwierigkeitsstufe lokal gespeichert. Beschädigter oder gesperrter Storage fällt sicher auf leere Bestzeiten zurück.
 
+### Tromu FreeCell
+
+- Karte oder gültige absteigende Rot/Schwarz-Folge auswählen und danach FreeCell, Foundation oder Kartenreihe als Ziel wählen
+- Touch und Maus verwenden dieselben großen Zielbereiche; auf Desktop können Karten zusätzlich gezogen werden
+- vollständige Tastaturbedienung über Tab/Shift+Tab und Enter; `Strg/⌘+Z` macht beliebig viele gespeicherte Züge rückgängig
+- `N` startet den nächsten reproduzierbaren Deal, `R` startet denselben Deal neu; ein Seed kann direkt geladen werden
+- klassische Vier-FreeCell-/Vier-Foundation-Regeln und Supermoves entsprechend freier Zellen und leerer Hilfsspalten
+
+Aktueller Deal inklusive Undo-Historie sowie lokale Versuche/Siege werden fehlertolerant gespeichert. Beschädigter oder gesperrter Storage blockiert den Spielstart nicht; derselbe Seed erzeugt immer denselben Deal.
+
 ## Tests
 
 Es gibt keine npm-Runtime-Abhängigkeiten. Für Node-Checks wird Node.js 20 oder neuer benötigt:
@@ -171,6 +182,7 @@ Dabei werden unter anderem geprüft:
 - Tromu-Sokoban-Mobile-Fit, Tastatur/Touch, Mehrfach-Undo, Progress/Bestwerte, Storage-Recovery und Offline-Reload
 - Tromu-Breakout-Mobile-Fit, Tastatur/Touch-Drag, Pause, Bestwert-Recovery und Offline-Reload
 - Tromu-Minesweeper-Mobile-Fit, sicherer erster Touch, Flag-Modus, Tastaturfokus, Bestzeit-Recovery und Offline-Reload
+- Tromu-FreeCell-Mobile-Fit, Touch/Maus/Tastatur, Mehrfach-Undo, reproduzierbare Fortsetzung, Storage-Recovery und Offline-Reload
 
 In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 
@@ -199,6 +211,7 @@ In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 - Tromu Sokoban: `sokoban/` mit zehn Levels in `levels.js`, purem `game.js`, validiertem `storage.js`, Browserzustand in `app.js` und eigenem Mobile-/Offline-Smoke
 - Tromu Breakout: `breakout/` mit fünf Levels in `levels.js`, purer Kollision/Physik in `game.js`, robustem Bestwert-Storage, Canvas-Browserzustand und eigenem Mobile-/Offline-Smoke
 - Tromu Minesweeper: `minesweeper/` mit seed-deterministischer Platzierung, puren Reveal-/Flag-Regeln, robusten Bestzeiten, zugänglichem DOM-Raster und eigenem Mobile-/Offline-Smoke
+- Tromu FreeCell: `freecell/` mit seed-deterministischem Deal, puren Zug-/Supermove-/Undo-Regeln, validierter Fortsetzung/Statistik, zugänglicher DOM-Kartendarstellung und eigenem Mobile-/Offline-Smoke
 
 Jedes Spiel bleibt ohne Bundler direkt aus seinem Webroot-Pfad ausführbar. Spiel-spezifische Regeln und Browser-Smokes bleiben beim jeweiligen Spiel; nur katalogweite Metadaten und Navigation liegen zentral.
 

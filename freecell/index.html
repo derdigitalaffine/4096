@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#143328">
+  <meta name="description" content="Tromu FreeCell – reproduzierbare Deals, Mehrfach-Undo und lokale Fortsetzung im klassischen offenen Kartenspiel.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Tromu FreeCell</title>
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body data-game-id="freecell">
+  <main class="freecell-shell">
+    <header class="topbar">
+      <div class="title-block">
+        <p class="eyebrow">Offline-PWA · Karten</p>
+        <h1>Tromu FreeCell</h1>
+      </div>
+      <nav class="game-nav" aria-label="Spiele" data-game-nav></nav>
+    </header>
+
+    <section class="stats" aria-label="Partiestatus">
+      <div><span>Deal</span><strong id="deal-number">1</strong></div>
+      <div><span>Züge</span><strong id="move-count">0</strong></div>
+      <div><span>Bilanz</span><strong id="record">0 / 0</strong></div>
+    </section>
+
+    <form id="deal-controls" class="toolbar" aria-label="Deal-Steuerung">
+      <label for="deal-seed">Seed
+        <input id="deal-seed" name="seed" type="number" min="0" max="4294967295" inputmode="numeric" value="1" aria-label="Deal-Seed">
+      </label>
+      <button id="load-deal" type="submit">Deal laden</button>
+      <button id="new-deal" type="button" aria-keyshortcuts="N">Neuer Deal</button>
+      <button id="restart-deal" type="button" aria-keyshortcuts="R">Restart</button>
+      <button id="undo-move" type="button" aria-keyshortcuts="Control+Z Meta+Z">Undo</button>
+    </form>
+
+    <section class="table" aria-label="FreeCell-Tisch">
+      <div class="top-piles">
+        <div class="pile-group" aria-label="Freie Zellen">
+          <p>FREE</p>
+          <div id="freecells" class="pile-grid"></div>
+        </div>
+        <div class="pile-group" aria-label="Ablagen">
+          <p>HOME</p>
+          <div id="foundations" class="pile-grid"></div>
+        </div>
+      </div>
+      <div id="cascades" class="cascades" aria-label="Kartenreihen"></div>
+    </section>
+
+    <p id="game-status" class="status" aria-live="polite" aria-atomic="true">Wähle eine Karte oder Folge und danach ihr Ziel.</p>
+    <p class="instructions">Tap/Klick oder Enter: wählen/ablegen · Strg/⌘+Z: Undo · N: neuer Deal · R: gleicher Deal neu.</p>
+    <div class="meta-row">
+      <span id="connection-status" class="connection" aria-live="polite">Online · Offline wird vorbereitet</span>
+      <span>Rot/Schwarz absteigend · Ass bis König auf HOME</span>
+    </div>
+  </main>
+  <script type="module" src="../game-nav.js"></script>
+  <script type="module" src="./keyboard.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

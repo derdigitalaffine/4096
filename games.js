@@ -65,6 +65,13 @@ export const GAMES = Object.freeze([
     description: 'Zugängliches Minenrätsel mit sicherem ersten Reveal, Flag-Modus und lokalen Bestzeiten.',
     shell: ['/minesweeper/', '/minesweeper/index.html', '/minesweeper/styles.css', '/minesweeper/app.js', '/minesweeper/game.js', '/minesweeper/storage.js'],
   }),
+  freezeGame({
+    id: 'freecell',
+    name: 'Tromu FreeCell',
+    route: '/freecell/',
+    description: 'Ruhiges Solitaire mit reproduzierbaren Deals, Mehrfach-Undo und lokaler Fortsetzung.',
+    shell: ['/freecell/', '/freecell/index.html', '/freecell/styles.css', '/freecell/keyboard.js', '/freecell/app.js', '/freecell/game.js', '/freecell/storage.js'],
+  }),
 ]);
 
 export const GAME_COUNT = GAMES.length;
