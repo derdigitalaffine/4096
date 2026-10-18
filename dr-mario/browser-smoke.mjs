@@ -238,6 +238,7 @@ try {
   client = new DevToolsClient(target.webSocketDebuggerUrl);
   await client.send('Page.enable');
   await client.send('Runtime.enable');
+  await client.send('Network.enable');
 
   const navigated = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === url);
   const navigation = await client.send('Page.navigate', { url });
@@ -249,8 +250,59 @@ try {
   assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Dr. Mario wird nicht vom Service Worker kontrolliert.');
   assert.equal(await evaluate(client, "document.querySelectorAll('.dm-cell').length"), 128, 'Dr.-Mario-Flasche hat nicht 128 Zellen.');
   assert.equal(await evaluate(client, "document.querySelector('#bottle')?.getAttribute('role')"), 'grid', 'Dr.-Mario-Flasche verlor ihre Grid-Semantik.');
-
   console.log('browser-smoke: dr-mario online + service-worker ready + 128 cells');
+
+  const savedProbe = await evaluate(client, `(() => {
+    const savedState = {
+      board: Array(128).fill(null),
+      active: null,
+      nextColors: ['red', 'blue'],
+      score: 4242,
+      viruses: 0,
+      status: 'won',
+    };
+    localStorage.setItem('dr-mario-state-v1', JSON.stringify(savedState));
+    const stored = JSON.parse(localStorage.getItem('dr-mario-state-v1'));
+    return {
+      score: stored?.score,
+      viruses: stored?.viruses,
+      status: stored?.status,
+      boardLength: stored?.board?.length,
+    };
+  })()`);
+  assert.deepEqual(savedProbe, { score: 4242, viruses: 0, status: 'won', boardLength: 128 }, 'Deterministischer Dr.-Mario-Spielstand wurde nicht lokal gespeichert.');
+
+  await client.send('Network.emulateNetworkConditions', {
+    offline: true,
+    latency: 0,
+    downloadThroughput: 0,
+    uploadThroughput: 0,
+  });
+
+  const reloadedOffline = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === url);
+  await client.send('Page.reload', { ignoreCache: false });
+  await reloadedOffline;
+
+  await waitForValue(client, 'document.readyState', 'complete');
+  await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Offline · spielbereit');
+  assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Dr.-Mario-Offline-Reload verlor Service-Worker-Kontrolle.');
+  assert.equal(await evaluate(client, "document.querySelectorAll('.dm-cell').length"), 128, 'Offline-Dr.-Mario-Flasche hat nicht 128 Zellen.');
+  assert.equal(await evaluate(client, "document.querySelector('#score')?.textContent"), '4242', 'Dr.-Mario-Score wurde beim Offline-Reload nicht wiederhergestellt.');
+  assert.equal(await evaluate(client, "document.querySelector('#viruses')?.textContent"), '0', 'Dr.-Mario-Viruszahl wurde beim Offline-Reload nicht wiederhergestellt.');
+  assert.equal(await evaluate(client, "document.querySelector('#game-status')?.textContent"), 'Alle Viren beseitigt. Runde geschafft!', 'Dr.-Mario-Terminalzustand wurde beim Offline-Reload nicht wiederhergestellt.');
+  assert.equal(await evaluate(client, "document.querySelector('#move-left')?.disabled"), true, 'Dr.-Mario-Terminalzustand ließ nach Offline-Restore aktive Steuerung zu.');
+
+  const restoredProbe = await evaluate(client, `(() => {
+    const stored = JSON.parse(localStorage.getItem('dr-mario-state-v1'));
+    return {
+      score: stored?.score,
+      viruses: stored?.viruses,
+      status: stored?.status,
+      boardLength: stored?.board?.length,
+    };
+  })()`);
+  assert.deepEqual(restoredProbe, savedProbe, 'Dr.-Mario-Spielstand ging beim Offline-Reload im lokalen Storage verloren.');
+  console.log('browser-smoke: dr-mario offline reload + save restore passed');
 } catch (error) {
   const browserDetails = browserStderr.trim() ? `\nBrowser stderr:\n${browserStderr.trim()}` : '';
   throw new Error(`${error.message}${browserDetails}`, { cause: error });
