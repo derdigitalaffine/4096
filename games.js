@@ -72,6 +72,13 @@ export const GAMES = Object.freeze([
     description: 'Ruhiges Solitaire mit reproduzierbaren Deals, Mehrfach-Undo und lokaler Fortsetzung.',
     shell: ['/freecell/', '/freecell/index.html', '/freecell/styles.css', '/freecell/keyboard.js', '/freecell/app.js', '/freecell/game.js', '/freecell/storage.js'],
   }),
+  freezeGame({
+    id: 'maze-chase',
+    name: 'Tromu Maze-Chase',
+    route: '/maze-chase/',
+    description: 'Eigenes Labyrinth-Arcade mit Sammelzielen, Power-Zustand und deterministischen Gegnerprofilen.',
+    shell: ['/maze-chase/', '/maze-chase/index.html', '/maze-chase/styles.css', '/maze-chase/app.js', '/maze-chase/game.js', '/maze-chase/levels.js', '/maze-chase/storage.js'],
+  }),
 ]);
 
 export const GAME_COUNT = GAMES.length;
