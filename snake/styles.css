@@ -153,14 +153,19 @@ footer { margin-top: 0.7rem; color: #7fa28a; text-align: center; font-size: 0.76
   .title-block { min-height: 25px; display: flex; align-items: center; justify-content: center; }
   .eyebrow, .tagline { display: none; }
   h1 { font-size: 1.45rem; line-height: 1; text-align: center; }
-  .game-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.22rem; }
+  .game-nav {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+    gap: 0.22rem;
+  }
   .game-nav a {
     min-height: 44px;
     min-width: 0;
-    padding: 0.25rem 0.2rem;
+    padding: 0.25rem 0.15rem;
     border-radius: 7px;
-    font-size: 0.68rem;
-    line-height: 1.05;
+    font-size: 0.62rem;
+    line-height: 1.02;
     text-align: center;
   }
   .mode-bar { margin: 0; gap: 0.25rem; }
