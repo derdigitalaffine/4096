@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#081426">
+  <meta name="description" content="Tromu Space Shooter – lokales Score-Arcade mit deterministischen Wellen, Power-ups und Offline-Spiel.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Tromu Space Shooter</title>
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body data-game-id="space-shooter">
+  <main class="shooter-shell">
+    <header class="topbar">
+      <div class="title-block">
+        <p class="eyebrow">Offline-PWA · Score Arcade</p>
+        <h1>Tromu Space Shooter</h1>
+        <p class="tagline">Drei kurze Wellen, klare Gegnerprofile und lokale Power-ups.</p>
+      </div>
+      <nav class="game-nav" aria-label="Spiele" data-game-nav></nav>
+    </header>
+
+    <section class="stats" aria-label="Spielstatus">
+      <div><span>Welle</span><strong id="wave">1/3</strong></div>
+      <div><span>Punkte</span><strong id="score">0</strong></div>
+      <div><span>Leben</span><strong id="lives">3</strong></div>
+      <div><span>Best</span><strong id="best-score">0</strong></div>
+      <span id="connection-status" class="connection" aria-live="polite">Online · Offline wird vorbereitet</span>
+    </section>
+
+    <section class="play-area" aria-label="Space-Shooter-Spiel">
+      <canvas id="shooter-canvas" width="320" height="420" tabindex="0" role="img" aria-label="Space-Shooter-Spielfeld"></canvas>
+
+      <div class="control-deck">
+        <div class="round-actions">
+          <button id="pause-game" type="button" aria-pressed="false">Pause</button>
+          <button id="restart-game" type="button">Restart</button>
+          <button id="fire" class="fire" type="button" aria-label="Feuern">FEUER</button>
+        </div>
+        <div class="touch-controls" aria-label="Schiffssteuerung">
+          <button type="button" data-direction="left" aria-label="Nach links">←</button>
+          <button type="button" data-direction="up" aria-label="Nach oben">↑</button>
+          <button type="button" data-direction="down" aria-label="Nach unten">↓</button>
+          <button type="button" data-direction="right" aria-label="Nach rechts">→</button>
+        </div>
+      </div>
+    </section>
+
+    <p id="game-status" class="status" aria-live="polite" aria-atomic="true">Welle 1 · Pfeiltasten/WASD bewegen · Leertaste feuert.</p>
+    <p class="instructions">P: Pause · R: Restart · Schild schützt, Spread feuert drei Schüsse, Rapid verkürzt die Feuerpause.</p>
+    <footer>Keine Anmeldung, keine Tracker. Bestwert bleibt ausschließlich auf diesem Gerät.</footer>
+  </main>
+  <script type="module" src="../game-nav.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
