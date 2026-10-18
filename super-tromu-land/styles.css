@@ -177,8 +177,21 @@ footer { margin-top: 0.8rem; color: #d8e3b2; font-size: 0.74rem; text-align: cen
   .eyebrow { margin: 0; font-size: 0.62rem; }
   h1 { font-size: clamp(1.65rem, 8vw, 2.25rem); }
   .tagline { display: none; }
-  .game-nav { justify-content: flex-start; flex-wrap: nowrap; gap: 0.25rem; }
-  .game-nav a { min-height: 44px; padding: 0.3rem 0.45rem; font-size: 0.7rem; }
+  .game-nav {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+    gap: 0.25rem;
+  }
+  .game-nav a {
+    min-width: 0;
+    min-height: 44px;
+    justify-content: center;
+    padding: 0.3rem 0.2rem;
+    font-size: 0.68rem;
+    line-height: 1.05;
+    text-align: center;
+  }
 
   .stats { margin: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.2rem; }
   .stat-card { padding: 0.24rem 0.2rem; border-width: 2px; box-shadow: 2px 2px 0 #081f08; text-align: center; }
@@ -198,7 +211,7 @@ footer { margin-top: 0.8rem; color: #d8e3b2; font-size: 0.74rem; text-align: cen
 }
 
 @media (max-width: 360px) {
-  .game-nav a { font-size: 0.64rem; }
+  .game-nav a { font-size: 0.62rem; }
   .touch-controls { grid-template-columns: 44px 44px minmax(68px, 1fr) minmax(56px, 1fr); }
 }
 
