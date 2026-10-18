@@ -77,6 +77,7 @@ h1 { margin: 0; font-size: clamp(2rem, 7vw, 4rem); line-height: 0.95; letter-spa
   text-decoration: none;
   font-size: 0.82rem;
   font-weight: 900;
+  touch-action: manipulation;
 }
 
 .stats {
@@ -175,7 +176,7 @@ footer { margin-top: 0.8rem; color: #d8e3b2; font-size: 0.74rem; text-align: cen
   h1 { font-size: clamp(1.65rem, 8vw, 2.25rem); }
   .tagline { display: none; }
   .game-nav { justify-content: flex-start; flex-wrap: nowrap; gap: 0.25rem; }
-  .game-nav a { min-height: 40px; padding: 0.3rem 0.45rem; font-size: 0.7rem; }
+  .game-nav a { min-height: 44px; padding: 0.3rem 0.45rem; font-size: 0.7rem; }
 
   .stats { margin: 0; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.2rem; }
   .stat-card { padding: 0.28rem 0.22rem; border-width: 2px; box-shadow: 2px 2px 0 #081f08; text-align: center; }
