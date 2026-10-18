@@ -7,11 +7,16 @@ const app = readFileSync('sudoku/app.js', 'utf8');
 const css = readFileSync('sudoku/styles.css', 'utf8');
 const rootHtml = readFileSync('index.html', 'utf8');
 
-test('both game navigation directions expose touch-sized local targets', () => {
+test('game navigation exposes touch-sized local targets across the webroot', () => {
   assert.match(rootHtml, /class="nav-link"[^>]*href="\.\/sudoku\/"[^>]*>Sudoku</);
+  assert.match(rootHtml, /class="nav-link"[^>]*href="\.\/super-mario-land\/"[^>]*>Super Mario Land</);
   const rootCss = readFileSync('styles.css', 'utf8');
   assert.match(rootCss, /button, \.nav-link\s*\{[\s\S]*?min-height:\s*44px/);
-  assert.match(html, /class="back-link"[^>]*href="\.\.\/"[^>]*>← 4096</);
+
+  for (const [href, label] of [['../', '4096'], ['../dr-mario/', 'Dr. Mario'], ['../super-mario-land/', 'Super Mario Land']]) {
+    const escapedHref = href.replaceAll('.', '\\.');
+    assert.match(html, new RegExp(`class="back-link"[^>]*href="${escapedHref}"[^>]*>${label}`));
+  }
   assert.match(css, /\.back-link\s*\{[\s\S]*?min-height:\s*44px/);
 });
 

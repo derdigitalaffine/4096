@@ -24,6 +24,13 @@ const drMarioFiles = [
   'dr-mario/game.js',
 ];
 
+const superMarioLandFiles = [
+  'super-mario-land/index.html',
+  'super-mario-land/styles.css',
+  'super-mario-land/app.js',
+  'super-mario-land/game.js',
+];
+
 const requiredFiles = [
   'index.html',
   'styles.css',
@@ -37,6 +44,7 @@ const requiredFiles = [
   'manifest.webmanifest',
   ...sudokuFiles,
   ...drMarioFiles,
+  ...superMarioLandFiles,
   ...iconFiles,
 ];
 
@@ -73,20 +81,21 @@ test('raster install icons have the declared pixel dimensions', () => {
   assert.deepEqual(pngDimensions('apple-touch-icon.png'), { width: 180, height: 180 });
 });
 
-test('root HTML references only local app-shell resources and both subgames', () => {
+test('root HTML references only local app-shell resources and all subgames', () => {
   const html = readFileSync('index.html', 'utf8');
-  for (const ref of ['./manifest.webmanifest', './icon.svg', './apple-touch-icon.png', './styles.css', './app.js', './sudoku/', './dr-mario/']) {
+  for (const ref of ['./manifest.webmanifest', './icon.svg', './apple-touch-icon.png', './styles.css', './app.js', './sudoku/', './dr-mario/', './super-mario-land/']) {
     assert.match(html, new RegExp(ref.replaceAll('.', '\\.')));
   }
   assert.match(html, /rel="apple-touch-icon"[^>]*href="\.\/apple-touch-icon\.png"[^>]*sizes="180x180"/);
   assert.match(html, /class="nav-link"[^>]*href="\.\/sudoku\/"[^>]*>Sudoku</);
   assert.match(html, /class="nav-link"[^>]*href="\.\/dr-mario\/"[^>]*>Dr\. Mario</);
+  assert.match(html, /class="nav-link"[^>]*href="\.\/super-mario-land\/"[^>]*>Super Mario Land</);
   assert.doesNotMatch(html, /https?:\/\//i);
 });
 
 test('Sudoku HTML is a local-only subpage sharing the root PWA shell', () => {
   const html = readFileSync('sudoku/index.html', 'utf8');
-  for (const ref of ['../manifest.webmanifest', '../icon.svg', '../apple-touch-icon.png', './styles.css', './app.js', '../']) {
+  for (const ref of ['../manifest.webmanifest', '../icon.svg', '../apple-touch-icon.png', './styles.css', './app.js', '../', '../dr-mario/', '../super-mario-land/']) {
     assert.match(html, new RegExp(ref.replaceAll('.', '\\.')));
   }
   assert.match(html, /id="sudoku-grid"[^>]*role="grid"/);
@@ -97,7 +106,7 @@ test('Sudoku HTML is a local-only subpage sharing the root PWA shell', () => {
 
 test('Dr. Mario HTML is a local-only subpage sharing the root PWA shell', () => {
   const html = readFileSync('dr-mario/index.html', 'utf8');
-  for (const ref of ['../manifest.webmanifest', '../icon.svg', '../apple-touch-icon.png', './styles.css', './app.js', '../', '../sudoku/']) {
+  for (const ref of ['../manifest.webmanifest', '../icon.svg', '../apple-touch-icon.png', './styles.css', './app.js', '../', '../sudoku/', '../super-mario-land/']) {
     assert.match(html, new RegExp(ref.replaceAll('.', '\\.')));
   }
   assert.match(html, /id="bottle"[^>]*role="grid"/);
@@ -106,18 +115,30 @@ test('Dr. Mario HTML is a local-only subpage sharing the root PWA shell', () => 
   assert.doesNotMatch(html, /https?:\/\//i);
 });
 
-test('service worker precaches all three games, critical shell and install icons', () => {
+test('Super Mario Land HTML is a local-only subpage sharing the root PWA shell', () => {
+  const html = readFileSync('super-mario-land/index.html', 'utf8');
+  for (const ref of ['../manifest.webmanifest', '../icon.svg', '../apple-touch-icon.png', './styles.css', './app.js', '../', '../sudoku/', '../dr-mario/']) {
+    assert.match(html, new RegExp(ref.replaceAll('.', '\\.')));
+  }
+  assert.match(html, /id="game-canvas"[^>]*role="img"/);
+  assert.match(html, /id="game-status"[^>]*aria-live="polite"/);
+  assert.match(html, /id="jump"/);
+  assert.doesNotMatch(html, /https?:\/\//i);
+});
+
+test('service worker precaches all four games, critical shell and install icons', () => {
   const worker = readFileSync('sw.js', 'utf8');
   const refs = [
     './index.html', './styles.css', './app.js', './connectivity.js', './dialog.js', './game.js', './pointer.js', './storage.js',
     './sudoku/', './sudoku/index.html', './sudoku/styles.css', './sudoku/app.js', './sudoku/game.js',
     './dr-mario/', './dr-mario/index.html', './dr-mario/styles.css', './dr-mario/app.js', './dr-mario/game.js',
+    './super-mario-land/', './super-mario-land/index.html', './super-mario-land/styles.css', './super-mario-land/app.js', './super-mario-land/game.js',
     './manifest.webmanifest', ...iconFiles.map((file) => `./${file}`),
   ];
   for (const ref of refs) {
     assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')));
   }
-  assert.match(worker, /4096-shell-v11/);
+  assert.match(worker, /4096-shell-v12/);
 });
 
 test('HTML exposes undo controls and a polite live game status', () => {
