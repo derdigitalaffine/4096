@@ -5,7 +5,7 @@ Dieses Repository ist direkt der Webroot für vier lokale, offlinefähige Browse
 - **4096** unter `/` – gleiche Zahlen zusammenschieben und 4096 erreichen.
 - **Sudoku** unter `/sudoku/` – mobile-first 9×9-Sudoku mit Leicht/Mittel/Schwer, Notizen, Undo, Timer und lokaler Fortsetzung.
 - **Dr. Mario** unter `/dr-mario/` – mobile-first Kapselpuzzle mit drei Farben, Viren, Vierer-Matches, Kaskaden und lokaler Fortsetzung.
-- **Super Mario Land** unter `/super-mario-land/` – eigenständige Browser-Hommage als seitlich scrollendes Jump ’n’ Run mit eigener Canvas-Pixelgrafik, Münzen, Gegnern, Plattformen und Ziel-Fahne.
+- **Super Mario Land** unter `/super-mario-land/` – eigenständige Browser-Hommage als seitlich scrollendes Jump ’n’ Run mit eigener Canvas-Pixelgrafik und drei aufeinanderfolgenden Leveln.
 
 Alle Laufzeitressourcen liegen im Repository. Für Super Mario Land werden keine fremden Spielgrafiken oder externen Assets geladen.
 
@@ -56,9 +56,9 @@ Dr. Mario speichert Flasche, aktive und nächste Kapsel, Punkte und Viruszahl lo
 - Springen: Pfeil hoch, `W` oder Leertaste
 - `R`: neue Runde
 - Touch: separate Tasten für links, rechts und springen
-- Gegner von oben treffen, Münzen sammeln, Lücken überspringen und die Fahne am Levelende erreichen
+- Gegner von oben treffen, Münzen sammeln, Lücken überspringen und in jedem Level die Fahne erreichen
 
-Eine Runde startet mit drei Leben. Münzen und besiegte Gegner erhöhen den Punktestand; der beste Punktestand wird lokal gespeichert. Die Spielfigur, Gegner und Landschaft werden zur Laufzeit mit Canvas-Geometrie gezeichnet.
+Eine Runde startet mit drei Leben und umfasst **drei unterschiedliche Level**: `Grüner Pfad`, `Höhenweg` und `Festungslauf`. Jedes Level besitzt eine eigene Plattform-, Lücken-, Münz- und Gegneranordnung. Beim Erreichen der Fahne werden Punkte und verbleibende Leben ins nächste Level übernommen; erst die Fahne im dritten Level beendet die Gesamtrunde erfolgreich. Das HUD zeigt jederzeit `Level x/3` und den Fortschritt im aktuellen Abschnitt. Münzen und besiegte Gegner erhöhen den Punktestand; der beste Punktestand wird lokal gespeichert. Die Spielfigur, Gegner und Landschaft werden zur Laufzeit mit Canvas-Geometrie gezeichnet.
 
 ## Tests
 
@@ -69,7 +69,7 @@ npm test
 npm run check
 ```
 
-`npm run check` prüft die Syntax aller vier Spiele sowie alle Node-Regressionen. Dazu gehören unter anderem 4096-Move-/Merge-/Win-/Persistenzregeln, Sudoku-Einheiten/Kandidaten/Konflikte, Dr.-Mario-Matches/Rotation/Schwerkraft/Sieg, Super-Mario-Land-Bewegung/Sprung/Kollision/Münzen/Gegner/Ziel sowie Accessibility-, Responsive-, Service-Worker- und Webroot-Verträge.
+`npm run check` prüft die Syntax aller vier Spiele sowie alle Node-Regressionen. Dazu gehören unter anderem 4096-Move-/Merge-/Win-/Persistenzregeln, Sudoku-Einheiten/Kandidaten/Konflikte, Dr.-Mario-Matches/Rotation/Schwerkraft/Sieg, Super-Mario-Land-Bewegung/Sprung/Kollision/Münzen/Gegner sowie Mehrlevel-Übergänge, Zustandsübernahme und finaler Sieg. Hinzu kommen Accessibility-, Responsive-, Service-Worker- und Webroot-Verträge.
 
 Zusätzlich gibt es echte Browser-Smoke-Tests. Dafür werden Node.js 22+ und ein lokales Chrome/Chromium benötigt (`CHROME_BIN` kann explizit gesetzt werden):
 
@@ -81,7 +81,7 @@ Der Pflicht-Smoke startet lokale Webroots und prüft reale Browserpfade in Headl
 
 - der gemeinsame Mehrseiten-Smoke deckt 4096 online bis Service-Worker-Bereitschaft und Manifest-Parsing, Sudoku-Eingabe/Persistenz, echten Sudoku-Offline-Reload und Offline-Navigation zurück zu 4096 ab;
 - der Dr.-Mario-Smoke prüft einen 360×640-Mobile-Viewport ohne Scroll-Zwang, Service-Worker-Bereitschaft, die vollständige 8×16-Flasche, Save-Restore nach echtem Offline-Reload und kanonische Unterseiten-Navigation;
-- der Super-Mario-Land-Smoke lädt den neuen Pfad auf 360×640, bewegt die Figur per Tastatureingabe und verifiziert anschließend einen echten Offline-Reload unter Service-Worker-Kontrolle.
+- der Super-Mario-Land-Smoke lädt den Pfad auf 360×640, bestätigt die sichtbare `1/3`-Levelanzeige, führt die Regelkette von Level 1 über Level 2 bis zum finalen Sieg in Level 3 im Browser aus, bewegt die Figur per Tastatureingabe und verifiziert anschließend einen echten Offline-Reload unter Service-Worker-Kontrolle.
 
 In GitHub Actions laufen `npm run check` und `npm run smoke` als Pflichtpfade.
 
@@ -128,11 +128,11 @@ Für einen manuellen Mehrseiten-Offline-Smoke:
 
 ### Super Mario Land
 
-- `super-mario-land/game.js` – pure Bewegungs-, Sprung-, Kollisions-, Münz-, Gegner-, Lebens- und Zielregeln
-- `super-mario-land/app.js` – Canvas-Rendering, Kamera, Touch/Tastatur, Bestwert und Offline-Status
-- `super-mario-land/index.html` / `super-mario-land/styles.css` – mobile-first Spieloberfläche mit eigener Pixelästhetik
-- `super-mario-land/*.test.js` – Spielregeln und UI-/PWA-Verträge
-- `super-mario-land/browser-smoke.mjs` – echter Chrome-Smoke für Eingabe und Offline-Reload
+- `super-mario-land/game.js` – drei Leveldefinitionen plus pure Bewegungs-, Sprung-, Kollisions-, Münz-, Gegner-, Lebens-, Levelwechsel- und Zielregeln
+- `super-mario-land/app.js` – Canvas-Rendering, levelabhängige Kamera/Hintergründe, HUD, Touch/Tastatur, Bestwert und Offline-Status
+- `super-mario-land/index.html` / `super-mario-land/styles.css` – mobile-first Spieloberfläche mit eigener Pixelästhetik und kompakter Mehrlevel-Anzeige
+- `super-mario-land/*.test.js` – Spielregeln, Levelübergänge und UI-/PWA-Verträge
+- `super-mario-land/browser-smoke.mjs` – echter Chrome-Smoke für Mehrlevel-Regelkette, Eingabe und Offline-Reload
 
 ### Gemeinsame PWA-/Qualitätsschicht
 
