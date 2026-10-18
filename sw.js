@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v10';
+const CACHE_NAME = '4096-shell-v11';
 const APP_SHELL = [
   './',
   './index.html',
@@ -14,6 +14,11 @@ const APP_SHELL = [
   './sudoku/styles.css',
   './sudoku/app.js',
   './sudoku/game.js',
+  './dr-mario/',
+  './dr-mario/index.html',
+  './dr-mario/styles.css',
+  './dr-mario/app.js',
+  './dr-mario/game.js',
   './manifest.webmanifest',
   './icon.svg',
   './icon-192.png',
