@@ -42,7 +42,8 @@ Danach `http://localhost:8080` öffnen. `localhost` ist ein sicherer Browserkont
 
 Für einen weiteren Direct-Webroot-Spielpfad gilt dieser Vertrag:
 
-1. Spielverzeichnis mit lokalem `index.html`, CSS und JavaScript anlegen2. Einen Eintrag in `games.js` ergänzen und dessen `shell` vollständig deklarieren.
+1. Spielverzeichnis mit lokalem `index.html`, CSS und JavaScript anlegen.
+2. Einen Eintrag in `games.js` ergänzen und dessen `shell` vollständig deklarieren.
 3. Auf der kanonischen Spielseite `data-game-id="…"`, einen `data-game-nav`-Container und `../game-nav.js` verwenden.
 4. Die im Registry-`shell` deklarierten Dateien in `APP_SHELL` von `sw.js` aufnehmen und bei Shell-Änderungen die Cache-Version erhöhen.
 5. Spielregeln mit Node-Tests und Browser-/Mobile-/Offline-Verhalten mit einem passenden Smoke absichern.
