@@ -220,7 +220,8 @@ try {
   const manifest = await client.send('Page.getAppManifest');
   assert.equal(manifest.errors.length, 0, `Manifestfehler: ${JSON.stringify(manifest.errors)}`);
   assert.match(manifest.url, /manifest\.webmanifest$/);
-  assert.equal(manifest.data?.name, 'Tromu Spielewelt');
+  const manifestName = await evaluate(client, "fetch('./manifest.webmanifest').then((response) => response.json()).then((data) => data.name)");
+  assert.equal(manifestName, 'Tromu Spielewelt');
   console.log('browser-smoke: tromu welcome + service-worker + install guidance passed');
 
   await navigate(client, game4096Url, '4096-Navigation');
