@@ -11,6 +11,7 @@ Aktuell registriert sind:
 - **Tromu Snake** unter `/snake/` – schnelles Score-Arcade mit Classic-, Speed- und Maze-Modus, Pickups, Combos und lokalen Highscores.
 - **Tromu Sokoban** unter `/sokoban/` – zehn eigene Push-Puzzle mit Mehrfach-Undo, Level-Fortschritt und Bestwerten für Züge/Schübe.
 - **Tromu Breakout** unter `/breakout/` – fünf kurze Arcade-Level mit Paddle, drei Power-ups, Leben und lokalem Bestwert.
+- **Tromu Minesweeper** unter `/minesweeper/` – zugängliches Minenrätsel mit drei Stufen, sicherem ersten Reveal, Flag-Modus und lokalen Bestzeiten.
 
 Frühere Pfade `/dr-mario/` und `/super-mario-land/` bleiben als nicht beworbene Kompatibilitätsalias erhalten. Alle regulären Produktlinks verwenden die Tromu-Namen.
 
@@ -41,8 +42,7 @@ Danach `http://localhost:8080` öffnen. `localhost` ist ein sicherer Browserkont
 
 Für einen weiteren Direct-Webroot-Spielpfad gilt dieser Vertrag:
 
-1. Spielverzeichnis mit lokalem `index.html`, CSS und JavaScript anlegen.
-2. Einen Eintrag in `games.js` ergänzen und dessen `shell` vollständig deklarieren.
+1. Spielverzeichnis mit lokalem `index.html`, CSS und JavaScript anlegen2. Einen Eintrag in `games.js` ergänzen und dessen `shell` vollständig deklarieren.
 3. Auf der kanonischen Spielseite `data-game-id="…"`, einen `data-game-nav`-Container und `../game-nav.js` verwenden.
 4. Die im Registry-`shell` deklarierten Dateien in `APP_SHELL` von `sw.js` aufnehmen und bei Shell-Änderungen die Cache-Version erhöhen.
 5. Spielregeln mit Node-Tests und Browser-/Mobile-/Offline-Verhalten mit einem passenden Smoke absichern.
@@ -51,7 +51,7 @@ Für einen weiteren Direct-Webroot-Spielpfad gilt dieser Vertrag:
 
 ## PWA / Offline
 
-`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells und die weiterhin unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v21`**.
+`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells und die weiterhin unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v22`**.
 
 Navigationen werden network-first geladen und erfolgreiche Antworten aktualisieren den Cache. Offline wird zuerst die passende gecachte Navigation verwendet; extensionlose bekannte Unterseiten können auf ihre gecachte Slash-Route umgeleitet werden. Der Root-Fallback bleibt die Welcome-Page.
 
@@ -129,6 +129,16 @@ Fortsetzung, Freischaltung und Bestwerte werden lokal gespeichert. Pro Level gew
 
 Punkte und Leben laufen über Levelgrenzen weiter. Der lokale Bestwert wird fortlaufend gespeichert; beschädigter oder gesperrter Storage fällt sicher auf `0` zurück.
 
+### Tromu Minesweeper
+
+- Tap/Enter deckt die fokussierte Zelle auf; der erste Reveal und seine Nachbarn sind garantiert minenfrei
+- **Modus: Flagge** oder `F` setzt beziehungsweise entfernt eine Flagge ohne versteckten Long-Press-Zwang
+- Pfeiltasten bewegen einen sichtbaren roving Fokus über das Raster; `R` startet die Runde neu
+- **Leicht**: 8×8 mit 10 Minen, **Mittel**: 9×9 mit 16 Minen, **Schwer**: 10×10 mit 24 Minen
+- Nullfelder breiten sich automatisch aus; Zellzustände verwenden Symbole/Zahlen und Screenreader-Labels statt nur Farbe
+
+Bestzeiten werden pro Schwierigkeitsstufe lokal gespeichert. Beschädigter oder gesperrter Storage fällt sicher auf leere Bestzeiten zurück.
+
 ## Tests
 
 Es gibt keine npm-Runtime-Abhängigkeiten. Für Node-Checks wird Node.js 20 oder neuer benötigt:
@@ -159,6 +169,7 @@ Dabei werden unter anderem geprüft:
 - Tromu-Snake-Mobile-Fit, Classic/Speed/Maze, Touch/Tastatur, Highscore-Recovery und Offline-Reload
 - Tromu-Sokoban-Mobile-Fit, Tastatur/Touch, Mehrfach-Undo, Progress/Bestwerte, Storage-Recovery und Offline-Reload
 - Tromu-Breakout-Mobile-Fit, Tastatur/Touch-Drag, Pause, Bestwert-Recovery und Offline-Reload
+- Tromu-Minesweeper-Mobile-Fit, sicherer erster Touch, Flag-Modus, Tastaturfokus, Bestzeit-Recovery und Offline-Reload
 
 In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 
@@ -186,6 +197,7 @@ In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 - Tromu Snake: `snake/` mit purem `game.js`, fehlertolerantem `storage.js`, Browserzustand in `app.js` und eigenem Mobile-/Offline-Smoke
 - Tromu Sokoban: `sokoban/` mit zehn Levels in `levels.js`, purem `game.js`, validiertem `storage.js`, Browserzustand in `app.js` und eigenem Mobile-/Offline-Smoke
 - Tromu Breakout: `breakout/` mit fünf Levels in `levels.js`, purer Kollision/Physik in `game.js`, robustem Bestwert-Storage, Canvas-Browserzustand und eigenem Mobile-/Offline-Smoke
+- Tromu Minesweeper: `minesweeper/` mit seed-deterministischer Platzierung, puren Reveal-/Flag-Regeln, robusten Bestzeiten, zugänglichem DOM-Raster und eigenem Mobile-/Offline-Smoke
 
 Jedes Spiel bleibt ohne Bundler direkt aus seinem Webroot-Pfad ausführbar. Spiel-spezifische Regeln und Browser-Smokes bleiben beim jeweiligen Spiel; nur katalogweite Metadaten und Navigation liegen zentral.
 
