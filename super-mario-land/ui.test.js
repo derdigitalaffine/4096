@@ -43,17 +43,17 @@ test('Super Mario Land renders stage themes, question blocks, power-ups and proj
   assert.match(app, /function drawPowerup/);
   assert.match(app, /item\.type === 'flower'/);
   assert.match(app, /function drawProjectile/);
-  assert.match(app, /canvas\.dataset\.questionBlocks/);
-  assert.match(app, /canvas\.dataset\.stage = level\.id/);
-  assert.match(app, /canvas\.dataset\.autoScroll/);
+  assert.match(app, /setDataIfChanged\(canvas, 'questionBlocks', game\.blocks\.length\)/);
+  assert.match(app, /setDataIfChanged\(canvas, 'stage', level\.id\)/);
+  assert.match(app, /setDataIfChanged\(canvas, 'autoScroll', level\.autoScroll\)/);
 });
 
 test('Super Mario Land renders world-stage identity and twelve-stage progression', () => {
   const app = readFileSync('super-mario-land/app.js', 'utf8');
   assert.match(app, /LEVEL_COUNT/);
   assert.match(app, /stageLabel\(game\)/);
-  assert.match(app, /levelElement\.textContent = `\$\{stageLabel\(game\)\} · \$\{game\.levelIndex \+ 1\}\/\$\{LEVEL_COUNT\}`/);
-  assert.match(app, /powerElement\.textContent = powerLabel\(game\.power\)/);
+  assert.match(app, /setTextIfChanged\(levelElement, `\$\{stageLabel\(game\)\} · \$\{game\.levelIndex \+ 1\}\/\$\{LEVEL_COUNT\}`\)/);
+  assert.match(app, /setTextIfChanged\(powerElement, powerLabel\(game\.power\)\)/);
   assert.match(app, /game\.levelIndex !== previous\.levelIndex/);
   assert.match(app, /Punkte, Leben und Power-up bleiben erhalten/);
   assert.match(app, /Alle \$\{LEVEL_COUNT\} Stages in vier Welten geschafft/);
@@ -69,11 +69,14 @@ test('Super Mario Land shares offline readiness and keeps best score locally', (
 });
 
 test('Super Mario Land has a compact mobile viewport and reduced-motion path', () => {
+  const app = readFileSync('super-mario-land/app.js', 'utf8');
   const styles = readFileSync('super-mario-land/styles.css', 'utf8');
   assert.match(styles, /height:\s*100dvh/);
   assert.match(styles, /@media \(max-width: 680px\)/);
   assert.match(styles, /grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(styles, /grid-template-columns:\s*44px 44px minmax\(72px, 1fr\) minmax\(60px, 1fr\)/);
   assert.match(styles, /prefers-reduced-motion:\s*reduce/);
+  assert.match(app, /matchMedia\?\.\('\(prefers-reduced-motion: reduce\)'\)/);
+  assert.match(app, /reducedMotionQuery\.matches/);
   assert.match(styles, /image-rendering:\s*pixelated/);
 });
