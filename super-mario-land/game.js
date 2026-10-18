@@ -59,7 +59,7 @@ export const LEVELS = Object.freeze([
   }),
   stage({
     world: 1, stage: 3, name: 'Tempeltor', environment: 'ruins', width: 3360, goalX: 3200, parTime: 135, finale: true,
-    solids: [ground(0, 480), ground(576, 448), ground(1120, 416), ground(1632, 448), ground(2176, 416), ground(2688, 672), ledge(192, 288, 96), pipe(416, 96), ledge(640, 240, 128), ledge(896, 304, 96), ledge(1184, 256, 128), pipe(1488, 112), ledge(1696, 208, 128), ledge(1952, 288, 96), pipe(2432, 96), ledge(2720, 240, 128), ledge(3008, 192, 128)],
+    solids: [ground(0, 480), ground(576, 448), ground(1120, 416), ground(1632, 448), ground(2176, 416), ground(2688, 672), ledge(192, 288, 96), pipe(416, 96), ledge(640, 240, 128), ledge(896, 304, 96), ledge(1184, 256, 128), pipe(1488, 80), ledge(1696, 208, 128), ledge(1952, 288, 96), pipe(2432, 96), ledge(2720, 240, 128), ledge(3008, 192, 128)],
     blocks: [{ x: 800, y: 272, powerup: 'mushroom' }, { x: 2112, y: 256, powerup: 'flower' }],
     coins: [...coinLine(128, 334, 2), ...coinLine(224, 242, 2), ...coinLine(624, 334, 2), ...coinLine(672, 194, 2), ...coinLine(1216, 210, 3), ...coinLine(1696, 162, 2), ...coinLine(2208, 334, 2), ...coinLine(2752, 194, 3), ...coinLine(3040, 146, 2)],
     enemies: enemies(352, 720, 960, 1280, 1744, 2048, 2320, 2816, 3104),
