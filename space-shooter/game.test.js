@@ -85,17 +85,19 @@ test('Spielerprojektile treffen Gegner deterministisch, Tank benötigt zwei Tref
   assert.ok(state.waveIndex >= 1);
 });
 
-test('zerstörter Drop-Gegner erzeugt Power-up', () => {
+test('zerstörter Drop-Gegner erzeugt Power-up innerhalb der laufenden Welle', () => {
   let state = createGame();
   const target = state.enemies.find((enemy) => enemy.drop === 'shield');
+  const survivor = state.enemies.find((enemy) => enemy.id !== target.id);
   state = {
     ...state,
-    enemies: [{ ...target, x: 160, y: 120 }],
+    enemies: [{ ...target, x: 160, y: 120 }, { ...survivor, x: 40, y: 80 }],
     bullets: [{ x: 160, y: 128, vx: 0, vy: -7.2 }],
     enemyBullets: [],
   };
   state = stepGame(state);
   assert.equal(state.powerUps.some((powerUp) => powerUp.type === 'shield'), true);
+  assert.equal(state.enemies.length, 1);
 });
 
 test('Gegnerschuss kostet Leben; Schild verhindert Schaden', () => {
