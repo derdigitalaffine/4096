@@ -37,6 +37,13 @@ export const GAMES = Object.freeze([
     legacyRoutes: ['/super-mario-land/'],
     shell: ['/super-tromu-land/', '/super-tromu-land/index.html', '/super-tromu-land/styles.css', '/super-tromu-land/app.js', '/super-tromu-land/game.js', '/super-tromu-land/view.js'],
   }),
+  freezeGame({
+    id: 'snake',
+    name: 'Tromu Snake',
+    route: '/snake/',
+    description: 'Schnelles Score-Arcade mit Classic-, Speed- und Maze-Modus, Pickups und Combos.',
+    shell: ['/snake/', '/snake/index.html', '/snake/styles.css', '/snake/app.js', '/snake/game.js', '/snake/storage.js'],
+  }),
 ]);
 
 export const GAME_COUNT = GAMES.length;
