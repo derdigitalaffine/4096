@@ -17,8 +17,8 @@ const storage = getSafeStorage(window);
 let highscores = loadHighscores(storage);
 let game = createGame('classic');
 let timerId = null;
-let offlineReady = false;
-let offlineError = false;
+let offlineReady = 'serviceWorker' in navigator && Boolean(navigator.serviceWorker.controller);
+let offlineError = !('serviceWorker' in navigator);
 
 const cells = [];
 for (let index = 0; index < BOARD_SIZE * BOARD_SIZE; index += 1) {
@@ -205,19 +205,24 @@ window.addEventListener('online', updateConnection);
 window.addEventListener('offline', updateConnection);
 
 if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    offlineReady = Boolean(navigator.serviceWorker.controller);
+    if (offlineReady) offlineError = false;
+    updateConnection();
+  });
+
   navigator.serviceWorker.register('../sw.js')
     .then(() => navigator.serviceWorker.ready)
     .then(() => {
-      offlineReady = true;
+      offlineReady = Boolean(navigator.serviceWorker.controller) || offlineReady;
       offlineError = false;
       updateConnection();
     })
     .catch(() => {
-      offlineError = true;
+      offlineReady = Boolean(navigator.serviceWorker.controller);
+      offlineError = !offlineReady;
       updateConnection();
     });
-} else {
-  offlineError = true;
 }
 
 updateConnection();
