@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v17';
+const CACHE_NAME = '4096-shell-v18';
 const APP_SHELL = [
   './',
   './index.html',
