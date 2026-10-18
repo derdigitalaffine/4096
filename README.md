@@ -1,13 +1,14 @@
-# 4096 + Sudoku + Dr. Mario + Super Mario Land
+# Tromu Spielewelt
 
-Dieses Repository ist direkt der Webroot für vier lokale, offlinefähige Browser-Spiele ohne Runtime-Abhängigkeiten, Anmeldung oder Tracker:
+Dieses Repository ist direkt der Webroot für die **Tromu Spielewelt**: eine lokale, installierbare und offlinefähige PWA mit vier Browser-Spielen – ohne Runtime-Abhängigkeiten, Anmeldung oder Tracker.
 
-- **4096** unter `/` – gleiche Zahlen zusammenschieben und 4096 erreichen.
+- **Welcome-Page** unter `/` – Pixel-Game-Landingpage mit Spieleauswahl sowie Android-/iOS-Installationshinweisen.
+- **4096** unter `/4096/` – gleiche Zahlen zusammenschieben und 4096 erreichen.
 - **Sudoku** unter `/sudoku/` – mobile-first 9×9-Sudoku mit Leicht/Mittel/Schwer, Notizen, Undo, Timer und lokaler Fortsetzung.
 - **Dr. Mario** unter `/dr-mario/` – mobile-first Kapselpuzzle mit drei Farben, Viren, Vierer-Matches, Kaskaden und lokaler Fortsetzung.
 - **Super Mario Land** unter `/super-mario-land/` – eigenständige Browser-Hommage als seitlich scrollendes Jump ’n’ Run mit eigener Canvas-Pixelgrafik und drei aufeinanderfolgenden Leveln.
 
-Alle Laufzeitressourcen liegen im Repository. Für Super Mario Land werden keine fremden Spielgrafiken oder externen Assets geladen.
+Alle Laufzeitressourcen liegen im Repository. Es werden keine fremden Spielgrafiken, Tracker oder externen Runtime-Assets geladen.
 
 ## Lokal starten
 
@@ -17,7 +18,16 @@ Für lokale Entwicklung genügt ein statischer Server, zum Beispiel:
 python3 -m http.server 8080
 ```
 
-Danach `http://localhost:8080` öffnen. `localhost` ist ein sicherer Browserkontext und erlaubt Service-Worker-/PWA-Tests. Die Spielnavigation verbindet alle vier Pfade innerhalb desselben Webroots.
+Danach `http://localhost:8080` öffnen. `localhost` ist ein sicherer Browserkontext und erlaubt Service-Worker-/PWA-Tests. Die Welcome-Page verbindet alle vier Spielpfade innerhalb desselben Webroots.
+
+## PWA installieren
+
+Die Root-Seite erklärt die Installation direkt im Produkt:
+
+- **Android / Chrome:** Browsermenü `⋮` öffnen und **App installieren** beziehungsweise **Zum Startbildschirm hinzufügen** wählen.
+- **iOS / iPadOS / Safari:** **Teilen** öffnen, **Zum Home-Bildschirm** wählen und mit **Hinzufügen** bestätigen.
+
+Wenn der Browser `beforeinstallprompt` unterstützt, bietet die Welcome-Page zusätzlich einen direkten Button **Spielewelt installieren** an. Nach vollständig aufgebautem App-Shell-Cache zeigt der Status `Online · offline bereit`; offline bestätigt `Offline · spielbereit` die lokale Startfähigkeit.
 
 ### 4096-Steuerung
 
@@ -48,7 +58,7 @@ Sudoku speichert Aufgabe, Einträge, Notizen, Auswahl, Fehlerzahl und Timer loka
 - Touch: dieselben Aktionen über die großen Steuerbuttons
 - Vier oder mehr gleichfarbige Felder horizontal oder vertikal werden entfernt; alle Viren müssen verschwinden
 
-Dr. Mario speichert Flasche, aktive und nächste Kapsel, Punkte und Viruszahl lokal. Beschädigter Storage wird verworfen und durch eine neue Runde ersetzt. Auf kleinen Smartphone-Displays wird die spielbare Oberfläche in einen dynamischen Viewport verdichtet, damit Flasche und Touch-Steuerung ohne vertikalen Scroll-Zwang erreichbar bleiben.
+Dr. Mario speichert Flasche, aktive und nächste Kapsel, Punkte und Viruszahl lokal. Beschädigter oder inkompatibler Storage wird im echten Browser-Smoke geprüft, verworfen und durch eine neue valide Runde ersetzt. Auf kleinen Smartphone-Displays wird die spielbare Oberfläche in einen dynamischen Viewport verdichtet, damit Flasche und Touch-Steuerung ohne vertikalen Scroll-Zwang erreichbar bleiben.
 
 ### Super-Mario-Land-Steuerung
 
@@ -58,7 +68,7 @@ Dr. Mario speichert Flasche, aktive und nächste Kapsel, Punkte und Viruszahl lo
 - Touch: separate Tasten für links, rechts und springen
 - Gegner von oben treffen, Münzen sammeln, Lücken überspringen und in jedem Level die Fahne erreichen
 
-Eine Runde startet mit drei Leben und umfasst **drei unterschiedliche Level**: `Grüner Pfad`, `Höhenweg` und `Festungslauf`. Jedes Level besitzt eine eigene Plattform-, Lücken-, Münz- und Gegneranordnung. Beim Erreichen der Fahne werden Punkte und verbleibende Leben ins nächste Level übernommen; erst die Fahne im dritten Level beendet die Gesamtrunde erfolgreich. Das HUD zeigt jederzeit `Level x/3` und den Fortschritt im aktuellen Abschnitt. Münzen und besiegte Gegner erhöhen den Punktestand; der beste Punktestand wird lokal gespeichert. Die Spielfigur, Gegner und Landschaft werden zur Laufzeit mit Canvas-Geometrie gezeichnet.
+Eine Runde startet mit drei Leben und umfasst **drei unterschiedliche Level**: `Grüner Pfad`, `Höhenweg` und `Festungslauf`. Beim Erreichen der Fahne werden Punkte und verbleibende Leben ins nächste Level übernommen; erst die Fahne im dritten Level beendet die Gesamtrunde erfolgreich.
 
 ## Tests
 
@@ -69,7 +79,7 @@ npm test
 npm run check
 ```
 
-`npm run check` prüft die Syntax aller vier Spiele sowie alle Node-Regressionen. Dazu gehören unter anderem 4096-Move-/Merge-/Win-/Persistenzregeln, Sudoku-Einheiten/Kandidaten/Konflikte, Dr.-Mario-Matches/Rotation/Schwerkraft/Sieg, Super-Mario-Land-Bewegung/Sprung/Kollision/Münzen/Gegner sowie Mehrlevel-Übergänge, Zustandsübernahme und finaler Sieg. Hinzu kommen Accessibility-, Responsive-, Service-Worker- und Webroot-Verträge.
+`npm run check` prüft die Syntax der Welcome-Page und aller vier Spiele sowie alle Node-Regressionen. Dazu gehören 4096-, Sudoku-, Dr.-Mario- und Super-Mario-Land-Regeln sowie Accessibility-, Responsive-, Service-Worker-, Storage-Recovery- und Webroot-Verträge.
 
 Zusätzlich gibt es echte Browser-Smoke-Tests. Dafür werden Node.js 22+ und ein lokales Chrome/Chromium benötigt (`CHROME_BIN` kann explizit gesetzt werden):
 
@@ -79,37 +89,46 @@ npm run smoke
 
 Der Pflicht-Smoke startet lokale Webroots und prüft reale Browserpfade in Headless Chrome:
 
-- der gemeinsame Mehrseiten-Smoke deckt 4096 online bis Service-Worker-Bereitschaft und Manifest-Parsing, Sudoku-Eingabe/Persistenz, echten Sudoku-Offline-Reload und Offline-Navigation zurück zu 4096 ab;
-- der Dr.-Mario-Smoke prüft einen 360×640-Mobile-Viewport ohne Scroll-Zwang, Service-Worker-Bereitschaft, die vollständige 8×16-Flasche, Save-Restore nach echtem Offline-Reload und kanonische Unterseiten-Navigation;
-- der Super-Mario-Land-Smoke lädt den Pfad auf 360×640, bestätigt die sichtbare `1/3`-Levelanzeige, führt die Regelkette von Level 1 über Level 2 bis zum finalen Sieg in Level 3 im Browser aus, bewegt die Figur per Tastatureingabe und verifiziert anschließend einen echten Offline-Reload unter Service-Worker-Kontrolle.
+- der gemeinsame Mehrseiten-Smoke lädt die Tromu-Welcome-Page online, bestätigt Service-Worker-Bereitschaft, Manifest und Installationshinweise, öffnet `/4096/`, prüft Sudoku-Eingabe/Persistenz und navigiert anschließend offline zurück zu Welcome-Page und 4096;
+- der Dr.-Mario-Smoke prüft 360×640-Mobile-Fit, Service-Worker-Bereitschaft, Save-Restore nach echtem Offline-Reload und kanonische Unterseiten-Navigation;
+- `dr-mario/storage-recovery-smoke.mjs` verifiziert in echtem Chrome, dass syntaktisch kaputtes und strukturell inkompatibles `localStorage` durch eine frische valide Runde ersetzt wird;
+- der Super-Mario-Land-Smoke prüft 360×640, die sichtbare `1/3`-Levelanzeige, die Regelkette Level 1 → 2 → 3 → Sieg, Tastatureingabe und Offline-Reload.
 
 In GitHub Actions laufen `npm run check` und `npm run smoke` als Pflichtpfade.
 
 ## PWA / Offline
 
-`manifest.webmanifest` beschreibt die installierbare Root-PWA. `sw.js` precacht die kritischen Dateien **aller vier** Spiele. Navigationen werden pro Request getrennt gecacht, damit Unterseiten niemals den Root-Fallback von 4096 überschreiben. Extensionlose Unterseiten-URLs werden offline nur dann auf die kanonische Slash-Route umgeleitet, wenn diese Route im Cache vorhanden ist. Solange Netzwerk verfügbar ist, werden Navigation und lokale Assets network-first geladen und erfolgreiche Antworten aktualisieren ihren Cacheeintrag; bei Netzfehlern oder fehlerhaften Serverantworten fällt die App auf den passenden Cache zurück.
+`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht die Welcome-Page, den 4096-Unterpfad und die kritischen Dateien aller vier Spiele. Navigationen werden pro Request getrennt gecacht. Extensionlose Unterseiten-URLs werden offline nur dann auf die kanonische Slash-Route umgeleitet, wenn diese Route im Cache vorhanden ist.
 
-Die Verbindungszeile unterscheidet Vorbereitung, echte Offline-Bereitschaft und Fehler. Erst `Online · offline bereit` bestätigt, dass der Service Worker bereit ist; offline bestätigt `Offline · spielbereit`, dass ein Reload aus der lokalen Shell möglich ist.
+Solange Netzwerk verfügbar ist, werden Navigation und lokale Assets network-first geladen und erfolgreiche Antworten aktualisieren ihren Cacheeintrag; bei Netzfehlern oder fehlerhaften Serverantworten fällt die App auf den passenden Cache zurück. Der Root-Fallback ist dabei die Welcome-Page und nicht mehr das 4096-Spielfeld.
 
 Für einen manuellen Mehrseiten-Offline-Smoke:
 
-1. Root online laden und auf `Online · offline bereit` warten.
-2. Sudoku, Dr. Mario und Super Mario Land einmal online öffnen und jeweils die Offline-Bereitschaft abwarten.
-3. Netzwerk in DevTools auf Offline setzen und die aktive Unterseite neu laden.
-4. Prüfen, dass deren vollständige Spieloberfläche mit `Offline · spielbereit` startet.
-5. Offline zwischen `/`, `/sudoku/`, `/dr-mario/` und `/super-mario-land/` navigieren.
+1. `/` online laden und auf `Online · offline bereit` warten.
+2. `/4096/`, `/sudoku/`, `/dr-mario/` und `/super-mario-land/` einmal online öffnen.
+3. Netzwerk in DevTools auf Offline setzen und eine aktive Seite neu laden.
+4. Prüfen, dass die jeweilige Oberfläche mit `Offline · spielbereit` startet.
+5. Offline zwischen Welcome-Page und allen vier Spielpfaden navigieren.
 
 ## Architektur
 
+### Tromu Welcome-Page
+
+- `index.html` – Root-Landingpage mit Spieleauswahl und Android-/iOS-PWA-Hinweisen
+- `home.css` – eigenständige responsive Pixel-Game-Ästhetik
+- `home.js` – Installationsprompt, Service-Worker-Bereitschaft und Verbindungsstatus
+- `home.test.js` – Landingpage-, Installations- und Pixel-Design-Verträge
+
 ### 4096
 
+- `4096/index.html` – Spieloberfläche unter eigenem Unterpfad
 - `game.js` – pure Spielregeln
 - `storage.js` – validierte, fehlertolerante Local-Storage-Grenze
 - `connectivity.js` – pure Ableitung des Online-/Offline-Status
 - `dialog.js` – Fokus-Wrap-Regel für modale Endzustände
 - `pointer.js` – Guards für Pointer-/Touch-Gesten
-- `app.js` – Browserzustand, Rendering und Eingabe
-- `index.html` / `styles.css` – Root-Oberfläche
+- `app.js` – Browserzustand, Rendering, Eingabe und gemeinsame Service-Worker-Anbindung
+- `styles.css` – 4096-Spielgestaltung
 
 ### Sudoku
 
@@ -124,22 +143,22 @@ Für einen manuellen Mehrseiten-Offline-Smoke:
 - `dr-mario/app.js` – Browserzustand, Auto-Drop, Persistenz, Keyboard/Touch und Offline-Status
 - `dr-mario/index.html` / `dr-mario/styles.css` – responsive 8×16-Flasche und mobile Steuerung
 - `dr-mario/*.test.js` – Kernregeln sowie UI-/Offline-Verträge
-- `dr-mario/browser-smoke.mjs` – echter Chrome-Smoke für Mobile-Fit, Rendering, Service-Worker-Bereitschaft, Offline-Reload und Save-Restore
+- `dr-mario/browser-smoke.mjs` / `dr-mario/storage-recovery-smoke.mjs` – echte Chrome-Smokes für Mobile-Fit, Offline-/Save-Restore und kaputten Storage
 
 ### Super Mario Land
 
-- `super-mario-land/game.js` – drei Leveldefinitionen plus pure Bewegungs-, Sprung-, Kollisions-, Münz-, Gegner-, Lebens-, Levelwechsel- und Zielregeln
-- `super-mario-land/app.js` – Canvas-Rendering, levelabhängige Kamera/Hintergründe, HUD, Touch/Tastatur, Bestwert und Offline-Status
-- `super-mario-land/index.html` / `super-mario-land/styles.css` – mobile-first Spieloberfläche mit eigener Pixelästhetik und kompakter Mehrlevel-Anzeige
+- `super-mario-land/game.js` – drei Leveldefinitionen plus pure Bewegungs-, Kollisions-, Lebens-, Levelwechsel- und Zielregeln
+- `super-mario-land/app.js` – Canvas-Rendering, Kamera/Hintergründe, HUD, Touch/Tastatur, Bestwert und Offline-Status
+- `super-mario-land/index.html` / `super-mario-land/styles.css` – mobile-first Spieloberfläche
 - `super-mario-land/*.test.js` – Spielregeln, Levelübergänge und UI-/PWA-Verträge
 - `super-mario-land/browser-smoke.mjs` – echter Chrome-Smoke für Mehrlevel-Regelkette, Eingabe und Offline-Reload
 
 ### Gemeinsame PWA-/Qualitätsschicht
 
 - `sw.js` / `manifest.webmanifest` / Icons – gemeinsame Offline-/Installationsschicht
-- `browser-smoke.mjs` – dependency-freier Mehrseiten-Acceptance-Smoke via DevTools-Protokoll
+- `browser-smoke.mjs` – dependency-freier Welcome-/Mehrseiten-Acceptance-Smoke via DevTools-Protokoll
 - `*.test.js` – dependency-freie Node-Regressionen und statische Webroot-Verträge
 
 ## Deployment
 
-`main` wird direkt als Webroot ausgeliefert. Es gibt keinen Buildschritt und kein `dist/`. Der Webserver muss Verzeichnis-URLs wie `/sudoku/`, `/dr-mario/` und `/super-mario-land/` auf deren `index.html` auflösen und korrekte MIME-Typen liefern. Außerhalb von `localhost` ist HTTPS für Service Worker und Installation erforderlich.
+`main` wird direkt als Webroot ausgeliefert. Es gibt keinen Buildschritt und kein `dist/`. Der Webserver muss Verzeichnis-URLs wie `/4096/`, `/sudoku/`, `/dr-mario/` und `/super-mario-land/` auf deren `index.html` auflösen und korrekte MIME-Typen liefern. Außerhalb von `localhost` ist HTTPS für Service Worker und Installation erforderlich.
