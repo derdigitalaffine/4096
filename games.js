@@ -51,6 +51,13 @@ export const GAMES = Object.freeze([
     description: 'Zehn eigene Push-Puzzle mit Mehrfach-Undo, Level-Fortschritt und lokalen Bestwerten.',
     shell: ['/sokoban/', '/sokoban/index.html', '/sokoban/styles.css', '/sokoban/app.js', '/sokoban/game.js', '/sokoban/levels.js', '/sokoban/storage.js'],
   }),
+  freezeGame({
+    id: 'breakout',
+    name: 'Tromu Breakout',
+    route: '/breakout/',
+    description: 'Fünf kurze Arcade-Level mit Paddle, Power-ups, Leben und lokalem Bestwert.',
+    shell: ['/breakout/', '/breakout/index.html', '/breakout/styles.css', '/breakout/app.js', '/breakout/game.js', '/breakout/levels.js', '/breakout/storage.js'],
+  }),
 ]);
 
 export const GAME_COUNT = GAMES.length;
