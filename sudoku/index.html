@@ -17,10 +17,14 @@
   <main id="app-shell" class="sudoku-shell">
     <header class="topbar">
       <div>
-        <a class="back-link" href="../">← 4096</a>
-        <p class="eyebrow">Offline Spiel</p>
+        <nav class="game-nav" aria-label="Spiele">
+          <a class="back-link" href="../">4096</a>
+          <a class="back-link" href="../dr-mario/">Dr. Mario</a>
+          <a class="back-link" href="../super-mario-land/">Super Mario Land</a>
+        </nav>
+        <p class="eyebrow">Offline-PWA · Logikspiel</p>
         <h1>Sudoku</h1>
-        <p class="tagline">Klar, schnell und für Touch gebaut.</p>
+        <p class="tagline">Klar, schnell und für Touch optimiert.</p>
       </div>
 
       <div class="game-meta" aria-label="Spielstatus">
@@ -35,7 +39,7 @@
       </div>
     </header>
 
-    <section class="toolbar" aria-label="Sudoku Einstellungen">
+    <section class="toolbar" aria-label="Sudoku-Einstellungen">
       <label class="difficulty-control" for="difficulty">
         <span>Schwierigkeit</span>
         <select id="difficulty">
@@ -48,7 +52,7 @@
       <span id="connection-status" class="connection" aria-live="polite">Online</span>
     </section>
 
-    <section class="game-area" aria-label="Sudoku Spiel">
+    <section class="game-area" aria-label="Sudoku-Spiel">
       <div id="sudoku-grid" class="sudoku-grid" role="grid" aria-label="Sudoku 9 mal 9"></div>
       <p id="sudoku-status" class="sr-only" aria-live="polite" aria-atomic="true"></p>
 
