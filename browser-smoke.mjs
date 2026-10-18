@@ -6,6 +6,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { createServer as createNetServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
+import { GAMES } from './games.js';
 
 const ROOT = resolve('.');
 const MIME_TYPES = {
@@ -213,7 +214,7 @@ try {
   await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Online · offline bereit');
   assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Welcome-Page wird nicht vom Service Worker kontrolliert.');
   assert.equal(await evaluate(client, "document.querySelector('h1')?.textContent"), 'Willkommen in der Tromu Spielewelt.', 'Welcome-Text fehlt.');
-  assert.equal(await evaluate(client, "document.querySelectorAll('.game-card').length"), 4, 'Welcome-Page bietet nicht vier Spiele an.');
+  assert.equal(await evaluate(client, "document.querySelectorAll('.game-card').length"), GAMES.length, 'Welcome-Page bildet die registrierten Spiele nicht vollständig ab.');
   assert.equal(await evaluate(client, "document.body.textContent.includes('Zum Home-Bildschirm')"), true, 'iOS-Installationshinweis fehlt.');
   assert.equal(await evaluate(client, "document.body.textContent.includes('App installieren')"), true, 'Android-Installationshinweis fehlt.');
 
@@ -222,13 +223,13 @@ try {
   assert.match(manifest.url, /manifest\.webmanifest$/);
   const manifestName = await evaluate(client, "fetch('./manifest.webmanifest').then((response) => response.json()).then((data) => data.name)");
   assert.equal(manifestName, 'Tromu Spielewelt');
-  console.log('browser-smoke: tromu welcome + service-worker + install guidance passed');
+  console.log('browser-smoke: tromu welcome + service-worker + registry cards + install guidance passed');
 
   await navigate(client, game4096Url, '4096-Navigation');
   await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Online · offline bereit');
   assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, '4096 wird online nicht vom Service Worker kontrolliert.');
   assert.equal(await evaluate(client, "document.querySelectorAll('.tile').length"), 16, 'Online-4096-Spielfeld hat nicht 16 Zellen.');
-  assert.equal(await evaluate(client, "document.querySelector('.nav-link[href=\"../\"]')?.textContent"), 'Spielewelt', '4096 hat keinen Rückweg zur Spielewelt.');
+  assert.equal(await evaluate(client, "document.querySelector('.game-nav a[data-game-id=\"home\"]')?.textContent"), 'Spielewelt', '4096 hat keinen Registry-Rückweg zur Spielewelt.');
   console.log('browser-smoke: 4096 subroute online passed');
 
   await navigate(client, sudokuUrl, 'Sudoku-Navigation');
@@ -270,7 +271,7 @@ try {
   await navigate(client, url, 'Offline-Navigation zur Spielewelt');
   await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Offline · spielbereit');
   assert.equal(await evaluate(client, "document.querySelector('h1')?.textContent"), 'Willkommen in der Tromu Spielewelt.', 'Offline-Root erhielt nicht die Welcome-Page.');
-  assert.equal(await evaluate(client, "document.querySelectorAll('.game-card').length"), 4, 'Offline-Root verlor die Spieleauswahl.');
+  assert.equal(await evaluate(client, "document.querySelectorAll('.game-card').length"), GAMES.length, 'Offline-Root verlor registrierte Spiele aus der Auswahl.');
   console.log('browser-smoke: tromu welcome offline navigation passed');
 
   await navigate(client, game4096Url, 'Offline-Navigation zu 4096');
