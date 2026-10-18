@@ -9,6 +9,7 @@ Aktuell registriert sind:
 - **Dr. Tromu** unter `/dr-tromu/` – Kapselpuzzle mit Viren, Vierer-Matches, Kaskaden und lokaler Fortsetzung.
 - **Super Tromu Land** unter `/super-tromu-land/` – seitlich scrollendes Jump ’n’ Run mit vier Welten und zwölf eigenen Stages von `1-1` bis `4-3`.
 - **Tromu Snake** unter `/snake/` – schnelles Score-Arcade mit Classic-, Speed- und Maze-Modus, Pickups, Combos und lokalen Highscores.
+- **Tromu Sokoban** unter `/sokoban/` – zehn eigene Push-Puzzle mit Mehrfach-Undo, Level-Fortschritt und Bestwerten für Züge/Schübe.
 
 Frühere Pfade `/dr-mario/` und `/super-mario-land/` bleiben als nicht beworbene Kompatibilitätsalias erhalten. Alle regulären Produktlinks verwenden die Tromu-Namen.
 
@@ -49,7 +50,7 @@ Für einen weiteren Direct-Webroot-Spielpfad gilt dieser Vertrag:
 
 ## PWA / Offline
 
-`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells und die weiterhin unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v19`**.
+`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells und die weiterhin unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v20`**.
 
 Navigationen werden network-first geladen und erfolgreiche Antworten aktualisieren den Cache. Offline wird zuerst die passende gecachte Navigation verwendet; extensionlose bekannte Unterseiten können auf ihre gecachte Slash-Route umgeleitet werden. Der Root-Fallback bleibt die Welcome-Page.
 
@@ -107,6 +108,16 @@ Die Kampagne umfasst vier Welten mit je drei Stages. In `1-3` ist das Rohr vor d
 
 Bestwerte werden getrennt für Classic, Speed und Maze lokal gespeichert. Beschädigter oder gesperrter Storage blockiert den Spielstart nicht.
 
+### Tromu Sokoban
+
+- Pfeiltasten oder WASD; auf Touch über das Vier-Richtungs-D-Pad
+- `Strg/⌘+Z` oder **Undo** macht beliebig viele gültige Züge rückgängig
+- `R` oder **Restart** startet das aktuelle Level neu
+- die Levelauswahl zeigt alle bereits freigeschalteten Stufen
+- zehn eigene Levels steigern Kistenanzahl, Engstellen und erforderliche Push-Reihenfolge schrittweise
+
+Fortsetzung, Freischaltung und Bestwerte werden lokal gespeichert. Pro Level gewinnt zuerst die geringere Zahl an Schüben, bei Gleichstand die geringere Zahl an Zügen. Beschädigter oder gesperrter Storage fällt sicher auf Level 1 zurück.
+
 ## Tests
 
 Es gibt keine npm-Runtime-Abhängigkeiten. Für Node-Checks wird Node.js 20 oder neuer benötigt:
@@ -135,6 +146,7 @@ Dabei werden unter anderem geprüft:
 - Dr.-Tromu-Mobile-Fit, Offline-Reload und Storage-Recovery
 - Super-Tromu-Land-Kampagne, Power-ups, Auto-Scroll, Touch/Tastatur und Offline-Reload
 - Tromu-Snake-Mobile-Fit, Classic/Speed/Maze, Touch/Tastatur, Highscore-Recovery und Offline-Reload
+- Tromu-Sokoban-Mobile-Fit, Tastatur/Touch, Mehrfach-Undo, Progress/Bestwerte, Storage-Recovery und Offline-Reload
 
 In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 
@@ -160,6 +172,7 @@ In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 - Dr. Tromu: `dr-tromu/`
 - Super Tromu Land: `super-tromu-land/`
 - Tromu Snake: `snake/` mit purem `game.js`, fehlertolerantem `storage.js`, Browserzustand in `app.js` und eigenem Mobile-/Offline-Smoke
+- Tromu Sokoban: `sokoban/` mit zehn Levels in `levels.js`, purem `game.js`, validiertem `storage.js`, Browserzustand in `app.js` und eigenem Mobile-/Offline-Smoke
 
 Jedes Spiel bleibt ohne Bundler direkt aus seinem Webroot-Pfad ausführbar. Spiel-spezifische Regeln und Browser-Smokes bleiben beim jeweiligen Spiel; nur katalogweite Metadaten und Navigation liegen zentral.
 

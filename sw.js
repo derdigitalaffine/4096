@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v19';
+const CACHE_NAME = '4096-shell-v20';
 const APP_SHELL = [
   './',
   './index.html',
@@ -37,6 +37,13 @@ const APP_SHELL = [
   './snake/app.js',
   './snake/game.js',
   './snake/storage.js',
+  './sokoban/',
+  './sokoban/index.html',
+  './sokoban/styles.css',
+  './sokoban/app.js',
+  './sokoban/game.js',
+  './sokoban/levels.js',
+  './sokoban/storage.js',
   './dr-mario/',
   './dr-mario/index.html',
   './dr-mario/styles.css',
