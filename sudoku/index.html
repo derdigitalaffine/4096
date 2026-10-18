@@ -13,16 +13,11 @@
   <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
   <link rel="stylesheet" href="./styles.css">
 </head>
-<body>
+<body data-game-id="sudoku">
   <main id="app-shell" class="sudoku-shell">
     <header class="topbar">
       <div>
-        <nav class="game-nav" aria-label="Spiele">
-          <a class="back-link" href="../">Spielewelt</a>
-          <a class="back-link" href="../4096/">4096</a>
-          <a class="back-link" href="../dr-tromu/">Dr. Tromu</a>
-          <a class="back-link" href="../super-tromu-land/">Super Tromu Land</a>
-        </nav>
+        <nav class="game-nav" aria-label="Spiele" data-game-nav data-link-class="back-link"></nav>
         <p class="eyebrow">Offline-PWA · Logikspiel</p>
         <h1>Sudoku</h1>
         <p class="tagline">Klar, schnell und für Touch optimiert.</p>
@@ -79,6 +74,7 @@
     </div>
   </div>
 
+  <script type="module" src="../game-nav.js"></script>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
