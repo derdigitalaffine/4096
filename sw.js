@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v21';
+const CACHE_NAME = '4096-shell-v22';
 const APP_SHELL = [
   './',
   './index.html',
@@ -51,6 +51,12 @@ const APP_SHELL = [
   './breakout/game.js',
   './breakout/levels.js',
   './breakout/storage.js',
+  './minesweeper/',
+  './minesweeper/index.html',
+  './minesweeper/styles.css',
+  './minesweeper/app.js',
+  './minesweeper/game.js',
+  './minesweeper/storage.js',
   './dr-mario/',
   './dr-mario/index.html',
   './dr-mario/styles.css',
