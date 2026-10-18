@@ -51,6 +51,10 @@ let cameraX = 0;
 let bestScore = loadBestScore();
 let offlineReady = Boolean(navigator.serviceWorker?.controller);
 let offlineError = false;
+let releaseDirectionalHolds = () => {
+  controls.left = false;
+  controls.right = false;
+};
 
 function loadBestScore() {
   try {
@@ -105,6 +109,7 @@ function updateHud() {
   setTextIfChanged(progressElement, `${progressPercent(game)}%`);
   setTextIfChanged(powerElement, powerLabel(game.power));
   const terminal = game.status !== 'playing';
+  if (terminal) releaseDirectionalHolds();
   setDisabledIfChanged(leftButton, terminal);
   setDisabledIfChanged(rightButton, terminal);
   setDisabledIfChanged(jumpButton, terminal);
@@ -293,9 +298,8 @@ function renderGame(deltaSeconds = 0, { snapCamera = false } = {}) {
 }
 
 function resetGame(message = 'Los geht’s: Vier Welten mit zwölf eigenen Stages warten.') {
+  releaseDirectionalHolds();
   game = createGame();
-  controls.left = false;
-  controls.right = false;
   jumpQueued = false;
   fireQueued = false;
   cameraX = 0;
@@ -347,23 +351,61 @@ function queueJump() { if (game.status === 'playing') jumpQueued = true; }
 function queueFire() { if (game.status === 'playing' && game.power === 'flower') fireQueued = true; }
 
 function bindHoldButton(button, direction) {
+  let activePointerId = null;
+  setDataIfChanged(button, 'pressed', false);
+
+  const clear = (pointerId = activePointerId, { releaseCapture = true } = {}) => {
+    if (activePointerId === null || (pointerId !== null && pointerId !== activePointerId)) return false;
+    const capturedPointerId = activePointerId;
+    activePointerId = null;
+    setDirection(direction, false);
+    setDataIfChanged(button, 'pressed', false);
+    if (releaseCapture && button.hasPointerCapture?.(capturedPointerId)) {
+      try { button.releasePointerCapture(capturedPointerId); } catch {
+        // Pointer capture may already have been released by the browser.
+      }
+    }
+    return true;
+  };
+
   const start = (event) => {
     event.preventDefault();
+    if (game.status !== 'playing' || activePointerId !== null) return;
+    activePointerId = event.pointerId;
     setDirection(direction, true);
-    button.setPointerCapture?.(event.pointerId);
+    setDataIfChanged(button, 'pressed', true);
+    try { button.setPointerCapture?.(event.pointerId); } catch {
+      // Gameplay still works when capture is unavailable.
+    }
   };
+
   const stop = (event) => {
+    if (event.pointerId !== activePointerId) return;
     event.preventDefault();
-    setDirection(direction, false);
+    clear(event.pointerId);
   };
+
+  const lost = (event) => {
+    if (event.pointerId !== activePointerId) return;
+    clear(event.pointerId, { releaseCapture: false });
+  };
+
   button.addEventListener('pointerdown', start);
   button.addEventListener('pointerup', stop);
   button.addEventListener('pointercancel', stop);
-  button.addEventListener('lostpointercapture', () => setDirection(direction, false));
+  button.addEventListener('lostpointercapture', lost);
+  return () => clear();
 }
 
-bindHoldButton(leftButton, 'left');
-bindHoldButton(rightButton, 'right');
+const releaseLeftHold = bindHoldButton(leftButton, 'left');
+const releaseRightHold = bindHoldButton(rightButton, 'right');
+releaseDirectionalHolds = () => {
+  releaseLeftHold();
+  releaseRightHold();
+  controls.left = false;
+  controls.right = false;
+};
+
 jumpButton.addEventListener('pointerdown', (event) => { event.preventDefault(); queueJump(); });
 fireButton.addEventListener('pointerdown', (event) => { event.preventDefault(); queueFire(); });
 newGameButton.addEventListener('click', () => resetGame('Neue Runde gestartet. Vier Welten, zwölf Stages – los geht’s.'));
@@ -394,10 +436,7 @@ window.addEventListener('keyup', (event) => {
   if (event.key === 'ArrowRight' || key === 'd') setDirection('right', false);
 });
 
-window.addEventListener('blur', () => {
-  controls.left = false;
-  controls.right = false;
-});
+window.addEventListener('blur', releaseDirectionalHolds);
 window.addEventListener('online', updateConnection);
 window.addEventListener('offline', updateConnection);
 
