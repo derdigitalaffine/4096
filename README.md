@@ -58,13 +58,13 @@ npm run check
 
 `npm run check` prüft die Syntax aller drei Spiele sowie alle Node-Regressionen. Dazu gehören unter anderem 4096-Move-/Merge-/Win-/Persistenzregeln, Sudoku-Einheiten/Kandidaten/Konflikte, Dr.-Mario-Matches/Rotation/Schwerkraft/Sieg, Accessibility-/Responsive-Verträge und Service-Worker-/Webroot-Verträge.
 
-Zusätzlich gibt es einen echten Browser-Smoke-Test. Dafür werden Node.js 22+ und ein lokales Chrome/Chromium benötigt (`CHROME_BIN` kann explizit gesetzt werden):
+Zusätzlich gibt es echte Browser-Smoke-Tests. Dafür werden Node.js 22+ und ein lokales Chrome/Chromium benötigt (`CHROME_BIN` kann explizit gesetzt werden):
 
 ```bash
 npm run smoke
 ```
 
-Der Smoke startet selbst einen lokalen Webroot und prüft in Headless Chrome den realen Mehrseitenpfad: 4096 online bis Service-Worker-Bereitschaft und Manifest-Parsing, Sudoku online mit Eingabe/Persistenz, anschließend echten Sudoku-Offline-Reload, eine Offline-Query-Navigation und die Offline-Navigation zurück zu 4096. In GitHub Actions laufen `npm run check` und `npm run smoke` als Pflichtpfade.
+Der Pflicht-Smoke startet lokale Webroots und prüft in Headless Chrome reale Browserpfade. Der gemeinsame Mehrseiten-Smoke deckt 4096 online bis Service-Worker-Bereitschaft und Manifest-Parsing, Sudoku online mit Eingabe/Persistenz, anschließend echten Sudoku-Offline-Reload, eine Offline-Query-Navigation und die Offline-Navigation zurück zu 4096 ab. Zusätzlich lädt ein fokussierter Dr.-Mario-Smoke `/dr-mario/` in echtem Chrome und bestätigt Service-Worker-Bereitschaft sowie die vollständig gerenderte 8×16-Flasche mit 128 Zellen. In GitHub Actions laufen `npm run check` und `npm run smoke` als Pflichtpfade.
 
 ## PWA / Offline
 
@@ -105,6 +105,7 @@ Für einen manuellen Mehrseiten-Offline-Smoke:
 - `dr-mario/app.js` – Browserzustand, Auto-Drop, Persistenz, Keyboard/Touch und Offline-Status
 - `dr-mario/index.html` / `dr-mario/styles.css` – responsive 8×16-Flasche und mobile Steuerung
 - `dr-mario/*.test.js` – Kernregeln sowie UI-/Offline-Verträge
+- `dr-mario/browser-smoke.mjs` – fokussierter echter Chrome-Smoke für Rendering und Service-Worker-Bereitschaft
 
 ### Gemeinsame PWA-/Qualitätsschicht
 
