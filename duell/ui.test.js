@@ -15,9 +15,12 @@ test('Duell-Seite besitzt gemeinsame Navigation, zwei Modi und zugängliche Stat
   assert.doesNotMatch(html, /https?:\/\//i);
 });
 
-test('Browserlogik bewahrt native Controls und stellt Reversi-Roving-Fokus bereit', () => {
+test('Browserlogik bewahrt native Controls und stellt explizite Gameplay-Tastaturaktivierung plus Reversi-Roving-Fokus bereit', () => {
   const app = readFileSync('duell/app.js', 'utf8');
   assert.match(app, /event\.target instanceof Element && event\.target\.closest\('a, button, input, select, textarea'\)/);
+  assert.match(app, /event\.key === 'Enter' \|\| event\.code === 'Space'/);
+  assert.match(app, /playConnectFour\(Number\(button\.dataset\.column\), true\)/);
+  assert.match(app, /playReversiIndex\(reversiFocus, true\)/);
   assert.match(app, /button\.tabIndex = index === reversiFocus \? 0 : -1/);
   assert.match(app, /ArrowLeft/);
   assert.match(app, /ArrowRight/);
