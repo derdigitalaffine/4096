@@ -1,20 +1,26 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { GAMES } from './games.js';
 
 const html = readFileSync('index.html', 'utf8');
 const css = readFileSync('home.css', 'utf8');
 const app = readFileSync('home.js', 'utf8');
 
-test('Tromu welcome page presents all four games and explicit install guidance', () => {
+test('Tromu welcome page renders the registered games and explicit install guidance', () => {
   assert.match(html, /Willkommen in der Tromu Spielewelt\./);
-  assert.equal((html.match(/class="game-card"/g) ?? []).length, 4);
-  for (const route of ['./4096/', './sudoku/', './dr-tromu/', './super-tromu-land/']) {
-    assert.match(html, new RegExp(`href="${route.replaceAll('.', '\\.')}"`));
-  }
-  assert.match(html, /Dr\. Tromu/);
-  assert.match(html, /Super Tromu Land/);
+  assert.match(html, /id="game-grid"[^>]*class="game-grid"/);
+  assert.equal((html.match(/class="game-card"/g) ?? []).length, 0, 'Spielkarten sollen nicht zusätzlich statisch dupliziert werden.');
+  assert.match(app, /import \{ GAMES \} from '\.\/games\.js'/);
+  assert.match(app, /GAMES\.forEach/);
+  assert.match(app, /card\.href = game\.route/);
+  assert.match(app, /title\.textContent = game\.name/);
+  assert.match(app, /description\.textContent = game\.description/);
+  assert.ok(GAMES.length >= 4);
+  assert.equal(GAMES.some((game) => game.name === 'Dr. Tromu'), true);
+  assert.equal(GAMES.some((game) => game.name === 'Super Tromu Land'), true);
   assert.doesNotMatch(html, /Dr\. Mario|Super Mario Land/);
+  assert.doesNotMatch(html, /Vier Spiele/);
   assert.match(html, /offlinefähige PWA/i);
   assert.match(html, /Chrome/);
   assert.match(html, /Safari/);
