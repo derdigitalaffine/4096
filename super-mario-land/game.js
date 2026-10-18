@@ -1,5 +1,21 @@
-export const WORLD_HEIGHT = 450;
-export const GROUND_Y = 384;
+import {
+  GROUND_Y,
+  LEVELS,
+  LEVEL_COUNT,
+  WORLD_COUNT,
+  WORLD_HEIGHT,
+  campaignPosition,
+} from './campaign-levels.js';
+
+export {
+  GROUND_Y,
+  LEVELS,
+  LEVEL_COUNT,
+  WORLD_COUNT,
+  WORLD_HEIGHT,
+  campaignPosition,
+};
+
 export const PLAYER_WIDTH = 24;
 export const PLAYER_HEIGHT = 30;
 export const QUESTION_BLOCK_SIZE = 32;
@@ -15,121 +31,6 @@ const PROJECTILE_SPEED = 440;
 const FIRE_COOLDOWN = 0.28;
 const HIT_INVULNERABILITY = 1;
 
-export const LEVELS = Object.freeze([
-  Object.freeze({
-    name: 'Grüner Pfad',
-    width: 3200,
-    goalX: 3040,
-    parTime: 120,
-    solids: Object.freeze([
-      { x: 0, y: GROUND_Y, width: 640, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 736, y: GROUND_Y, width: 672, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 1504, y: GROUND_Y, width: 704, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 2304, y: GROUND_Y, width: 896, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 320, y: 304, width: 160, height: 32 },
-      { x: 896, y: 272, width: 160, height: 32 },
-      { x: 1248, y: 320, width: 128, height: 32 },
-      { x: 1664, y: 272, width: 192, height: 32 },
-      { x: 2464, y: 304, width: 160, height: 32 },
-      { x: 2752, y: 256, width: 128, height: 32 },
-    ]),
-    blocks: Object.freeze([
-      { x: 576, y: 304, powerup: 'mushroom' },
-      { x: 1152, y: 288, powerup: 'flower' },
-    ]),
-    coins: Object.freeze([
-      { x: 224, y: 334 }, { x: 352, y: 258 }, { x: 416, y: 258 }, { x: 800, y: 334 },
-      { x: 928, y: 226 }, { x: 992, y: 226 }, { x: 1280, y: 274 }, { x: 1568, y: 334 },
-      { x: 1696, y: 226 }, { x: 1760, y: 226 }, { x: 2016, y: 334 }, { x: 2368, y: 334 },
-      { x: 2496, y: 258 }, { x: 2560, y: 258 }, { x: 2784, y: 210 }, { x: 2944, y: 334 },
-    ]),
-    enemies: Object.freeze([
-      { x: 544, direction: -1 }, { x: 1072, direction: 1 }, { x: 1320, direction: -1 },
-      { x: 1904, direction: 1 }, { x: 2592, direction: -1 },
-    ]),
-  }),
-  Object.freeze({
-    name: 'Höhenweg',
-    width: 3360,
-    goalX: 3200,
-    parTime: 135,
-    solids: Object.freeze([
-      { x: 0, y: GROUND_Y, width: 608, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 704, y: GROUND_Y, width: 704, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 1504, y: GROUND_Y, width: 704, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 2304, y: GROUND_Y, width: 1056, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 288, y: 304, width: 128, height: 32 },
-      { x: 768, y: 256, width: 160, height: 32 },
-      { x: 1088, y: 304, width: 160, height: 32 },
-      { x: 1568, y: 240, width: 160, height: 32 },
-      { x: 1856, y: 304, width: 128, height: 32 },
-      { x: 2384, y: 272, width: 192, height: 32 },
-      { x: 2752, y: 224, width: 160, height: 32 },
-      { x: 3040, y: 288, width: 128, height: 32 },
-    ]),
-    blocks: Object.freeze([
-      { x: 512, y: 288, powerup: 'mushroom' },
-      { x: 1344, y: 288, powerup: 'flower' },
-    ]),
-    coins: Object.freeze([
-      { x: 192, y: 334 }, { x: 320, y: 258 }, { x: 384, y: 258 }, { x: 752, y: 334 },
-      { x: 800, y: 210 }, { x: 864, y: 210 }, { x: 1120, y: 258 }, { x: 1312, y: 334 },
-      { x: 1600, y: 194 }, { x: 1664, y: 194 }, { x: 1920, y: 258 }, { x: 2144, y: 334 },
-      { x: 2416, y: 226 }, { x: 2480, y: 226 }, { x: 2784, y: 178 }, { x: 2848, y: 178 },
-      { x: 3072, y: 242 }, { x: 3264, y: 334 },
-    ]),
-    enemies: Object.freeze([
-      { x: 496, direction: -1 }, { x: 896, direction: 1 }, { x: 1280, direction: -1 },
-      { x: 1664, direction: 1 }, { x: 2048, direction: -1 }, { x: 2496, direction: 1 },
-      { x: 3120, direction: -1 },
-    ]),
-  }),
-  Object.freeze({
-    name: 'Festungslauf',
-    width: 3600,
-    goalX: 3440,
-    parTime: 150,
-    solids: Object.freeze([
-      { x: 0, y: GROUND_Y, width: 480, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 576, y: GROUND_Y, width: 480, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 1152, y: GROUND_Y, width: 448, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 1696, y: GROUND_Y, width: 480, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 2272, y: GROUND_Y, width: 512, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 2880, y: GROUND_Y, width: 720, height: WORLD_HEIGHT - GROUND_Y },
-      { x: 224, y: 288, width: 128, height: 32 },
-      { x: 640, y: 240, width: 128, height: 32 },
-      { x: 896, y: 304, width: 96, height: 32 },
-      { x: 1216, y: 256, width: 160, height: 32 },
-      { x: 1456, y: 208, width: 96, height: 32 },
-      { x: 1760, y: 288, width: 128, height: 32 },
-      { x: 1984, y: 224, width: 128, height: 32 },
-      { x: 2336, y: 272, width: 128, height: 32 },
-      { x: 2560, y: 208, width: 160, height: 32 },
-      { x: 2944, y: 288, width: 128, height: 32 },
-      { x: 3168, y: 224, width: 160, height: 32 },
-    ]),
-    blocks: Object.freeze([
-      { x: 416, y: 304, powerup: 'mushroom' },
-      { x: 1024, y: 288, powerup: 'flower' },
-    ]),
-    coins: Object.freeze([
-      { x: 160, y: 334 }, { x: 256, y: 242 }, { x: 320, y: 242 }, { x: 624, y: 334 },
-      { x: 672, y: 194 }, { x: 736, y: 194 }, { x: 928, y: 258 }, { x: 1216, y: 210 },
-      { x: 1280, y: 210 }, { x: 1488, y: 162 }, { x: 1744, y: 334 }, { x: 1792, y: 242 },
-      { x: 2016, y: 178 }, { x: 2080, y: 178 }, { x: 2368, y: 226 }, { x: 2432, y: 226 },
-      { x: 2592, y: 162 }, { x: 2656, y: 162 }, { x: 2944, y: 242 }, { x: 3008, y: 242 },
-      { x: 3200, y: 178 }, { x: 3264, y: 178 }, { x: 3376, y: 334 },
-    ]),
-    enemies: Object.freeze([
-      { x: 400, direction: -1 }, { x: 800, direction: 1 }, { x: 992, direction: -1 },
-      { x: 1392, direction: 1 }, { x: 1872, direction: -1 }, { x: 2112, direction: 1 },
-      { x: 2496, direction: -1 }, { x: 2752, direction: 1 }, { x: 3072, direction: -1 },
-      { x: 3344, direction: 1 },
-    ]),
-  }),
-]);
-
-export const LEVEL_COUNT = LEVELS.length;
 export const WORLD_WIDTH = LEVELS[0].width;
 export const GOAL_X = LEVELS[0].goalX;
 export const LEVEL_SOLIDS = LEVELS[0].solids;
