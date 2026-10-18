@@ -241,17 +241,15 @@ try {
     assert.ok(box.left >= -1 && box.right <= layout.innerWidth + 1, `${name} liegt horizontal außerhalb des 360px-Viewports: ${JSON.stringify(box)}`);
   }
 
-  const installReachable = await evaluate(client, `(async () => {
-    document.querySelector('.install-block').scrollIntoView({ block: 'start' });
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  const installReachable = await evaluate(client, `(() => {
+    document.querySelector('.install-block').scrollIntoView({ block: 'start', behavior: 'instant' });
     const box = document.querySelector('.install-block').getBoundingClientRect();
     return box.top < innerHeight && box.bottom > 0;
   })()`);
   assert.equal(installReachable, true, 'Installationshinweise sind per mobilem Scroll nicht erreichbar.');
 
-  const footerReachable = await evaluate(client, `(async () => {
-    window.scrollTo(0, document.documentElement.scrollHeight);
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  const footerReachable = await evaluate(client, `(() => {
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
     const footer = document.querySelector('.world-footer').getBoundingClientRect();
     return footer.top < innerHeight && footer.bottom <= innerHeight + 1;
   })()`);
