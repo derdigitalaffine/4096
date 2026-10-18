@@ -1,0 +1,130 @@
+:root {
+  color-scheme: dark;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: #080b18;
+  color: #f7f8ff;
+  --panel: #11172d;
+  --panel-2: #17213d;
+  --line: #495a88;
+  --muted: #aeb8d7;
+  --accent: #89f0cf;
+  --focus: #fff2a6;
+  --wall: #4d5f98;
+  --pellet: #f9df8c;
+  --power: #f7a8ff;
+  --danger: #ff9c9c;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: #080b18; }
+body { min-width: 0; overflow-x: hidden; }
+button, a { font: inherit; }
+button {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 9px;
+  background: #e9efff;
+  color: #081020;
+  font-weight: 950;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button:active { transform: translateY(1px); }
+button:focus-visible, a:focus-visible, .maze-board:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.maze-shell {
+  width: min(100% - 1rem, 900px);
+  margin: 0 auto;
+  padding: 10px 0 max(12px, env(safe-area-inset-bottom));
+  display: grid;
+  gap: 6px;
+}
+.topbar { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; }
+.eyebrow { margin: 0 0 2px; color: var(--accent); font-size: 10px; letter-spacing: .09em; text-transform: uppercase; }
+h1 { margin: 0; font-size: clamp(24px, 6vw, 34px); line-height: 1; }
+.game-nav { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.game-nav a {
+  min-width: 44px; min-height: 44px; padding: 0 7px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel); color: inherit; text-decoration: none;
+  font-size: 10px; font-weight: 850; text-align: center;
+}
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.stats > div { min-height: 48px; display: grid; place-content: center; text-align: center; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.stats span { color: var(--muted); font-size: 9px; text-transform: uppercase; }
+.stats strong { margin-top: 1px; font-size: 15px; font-variant-numeric: tabular-nums; }
+.play-area { display: grid; grid-template-columns: minmax(0, auto) minmax(190px, 1fr); gap: 16px; align-items: center; justify-content: center; }
+.maze-board {
+  width: min(62vw, 450px);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  grid-template-rows: repeat(15, 1fr);
+  gap: 1px;
+  padding: 5px;
+  border: 3px solid #6f83c0;
+  border-radius: 12px;
+  background: #050817;
+  box-shadow: inset 0 0 0 2px #192554, 0 14px 36px #0008;
+  overflow: hidden;
+}
+.maze-cell { min-width: 0; min-height: 0; display: grid; place-items: center; background: #0d1428; color: #f7f8ff; font-size: clamp(8px, 2.2vw, 16px); font-weight: 1000; line-height: 1; }
+.maze-cell[data-type="wall"] { background: var(--wall); box-shadow: inset 0 0 0 1px #7a8fd0; }
+.maze-cell[data-type="pellet"] { color: var(--pellet); }
+.maze-cell[data-type="power"] { color: var(--power); font-size: clamp(10px, 2.5vw, 18px); }
+.maze-cell[data-type="player"] { background: #d9ff65; color: #111729; border-radius: 40%; }
+.maze-cell[data-type="hunter"] { background: #ff8b8b; color: #2b0b14; border-radius: 30%; }
+.maze-cell[data-type="ambusher"] { background: #74c7ff; color: #071524; border-radius: 30%; }
+.maze-cell[data-type="patrol"] { background: #d5a1ff; color: #190923; border-radius: 30%; }
+.maze-board[data-powered="true"] .maze-cell[data-type="hunter"],
+.maze-board[data-powered="true"] .maze-cell[data-type="ambusher"],
+.maze-board[data-powered="true"] .maze-cell[data-type="patrol"] { outline: 2px dashed #fff; outline-offset: -2px; filter: saturate(.5); }
+.control-deck { display: grid; gap: 8px; align-content: center; }
+.round-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+#pause-game { background: var(--panel-2); color: #f7f8ff; }
+.touch-controls { display: grid; grid-template-columns: repeat(3, minmax(44px, 1fr)); gap: 6px; }
+.touch-controls .up { grid-column: 2; }
+.touch-controls button { min-height: 54px; font-size: 21px; padding: 0; }
+.status { min-height: 18px; margin: 0; text-align: center; color: #ddffc2; font-size: 12px; font-weight: 850; }
+.meta-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 10px; color: var(--muted); font-size: 10px; }
+.connection[data-ready="true"] { color: #9cf3b1; }
+.connection[data-warning="true"] { color: var(--danger); }
+#power-status[data-active="true"] { color: var(--power); font-weight: 900; }
+.instructions { margin: 0; color: var(--muted); text-align: center; font-size: 11px; }
+
+@media (max-width: 680px) {
+  body { overflow: hidden; }
+  .maze-shell {
+    width: min(100% - 8px, 520px);
+    height: 100dvh;
+    padding: max(4px, env(safe-area-inset-top)) 0 max(4px, env(safe-area-inset-bottom));
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    gap: 3px;
+    overflow: hidden;
+  }
+  .topbar { grid-template-columns: 1fr; gap: 3px; }
+  .title-block { min-height: 22px; display: grid; place-items: center; }
+  .eyebrow { display: none; }
+  h1 { font-size: 20px; text-align: center; }
+  .game-nav { width: 100%; display: grid; grid-template-columns: repeat(5, minmax(44px, 1fr)); gap: 2px; }
+  .game-nav a { min-width: 0; min-height: 44px; padding: 0 2px; border-radius: 6px; font-size: 7.5px; line-height: 1.02; }
+  .stats { gap: 2px; }
+  .stats > div { min-height: 44px; border-radius: 6px; }
+  .stats span { font-size: 7px; }
+  .stats strong { font-size: 12px; }
+  .play-area { min-height: 0; grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; gap: 3px; justify-items: center; }
+  .maze-board { width: min(67vw, 242px); max-height: 242px; padding: 3px; border-width: 2px; border-radius: 7px; }
+  .maze-cell { font-size: 8px; }
+  .control-deck { width: min(100%, 310px); gap: 3px; }
+  .round-actions, .touch-controls { gap: 3px; }
+  .round-actions button { min-height: 44px; padding: 0 4px; font-size: 10px; }
+  .touch-controls button { min-height: 44px; height: 44px; font-size: 17px; }
+  .status { font-size: 10px; line-height: 1.1; }
+  .meta-row { justify-content: center; font-size: 8px; line-height: 1.05; text-align: center; }
+  .meta-row span:last-child, .instructions { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+  button:active { transform: none; }
+}
