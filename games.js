@@ -70,7 +70,7 @@ export const GAMES = Object.freeze([
     name: 'Tromu FreeCell',
     route: '/freecell/',
     description: 'Ruhiges Solitaire mit reproduzierbaren Deals, Mehrfach-Undo und lokaler Fortsetzung.',
-    shell: ['/freecell/', '/freecell/index.html', '/freecell/styles.css', '/freecell/app.js', '/freecell/game.js', '/freecell/storage.js'],
+    shell: ['/freecell/', '/freecell/index.html', '/freecell/styles.css', '/freecell/keyboard.js', '/freecell/app.js', '/freecell/game.js', '/freecell/storage.js'],
   }),
 ]);
 
