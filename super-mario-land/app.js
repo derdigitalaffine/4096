@@ -3,7 +3,6 @@ import {
   GOAL_X,
   LEVEL_COINS,
   LEVEL_SOLIDS,
-  WORLD_HEIGHT,
   WORLD_WIDTH,
   collectedCoins,
   createGame,
@@ -33,8 +32,6 @@ let jumpQueued = false;
 let game = createGame();
 let lastFrame = performance.now();
 let bestScore = loadBestScore();
-let previousLives = game.lives;
-let previousStatus = game.status;
 let offlineReady = Boolean(navigator.serviceWorker?.controller);
 let offlineError = false;
 
@@ -186,8 +183,6 @@ function renderGame() {
 
 function resetGame(message = 'Los geht’s: Laufe nach rechts, sammle Münzen und erreiche die Fahne.') {
   game = createGame();
-  previousLives = game.lives;
-  previousStatus = game.status;
   controls.left = false;
   controls.right = false;
   jumpQueued = false;
@@ -205,13 +200,10 @@ function handleStateFeedback(previous) {
   if (game.status === 'won' && previous.status !== 'won') {
     setStatus(`Ziel erreicht! ${collectedCoins(game)} Münzen gesammelt, ${game.score} Punkte.`);
   } else if (game.status === 'lost' && previous.status !== 'lost') {
-    setStatus('Game Over. Starte eine neue Runde und versuche es noch einmal.');
+    setStatus('Runde verloren. Starte eine neue Runde und versuche es noch einmal.');
   } else if (game.lives < previous.lives && game.status === 'playing') {
-    setStatus(`Treffer! Noch ${game.lives} ${game.lives === 1 ? 'Leben' : 'Leben'} übrig.`);
+    setStatus(`Treffer! Noch ${game.lives} Leben übrig.`);
   }
-
-  previousLives = game.lives;
-  previousStatus = game.status;
 }
 
 function frame(now) {
