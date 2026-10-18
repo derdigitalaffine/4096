@@ -63,7 +63,8 @@ test('root is a local-only Tromu welcome page whose game list is rendered from t
   }
   assert.match(html, /Willkommen in der Tromu Spielewelt\./);
   assert.match(html, /id="game-grid"/);
-  assert.match(home, /import \{ GAMES \} from '\.\/games\.js'/);
+  assert.match(home, /import \{ GAMES, routeHref \} from '\.\/games\.js'/);
+  assert.match(home, /card\.href = routeHref\(game\.route\)/);
   assert.equal((html.match(/class="game-card"/g) ?? []).length, 0);
   assert.match(html, /offlinefähige PWA/i);
   assert.match(html, /ANDROID/);
@@ -131,7 +132,7 @@ test('service worker precaches shared registry modules and every registered game
     './manifest.webmanifest', ...iconFiles.map((file) => `./${file}`),
   ];
   for (const ref of refs) assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')), `Service Worker precacht ${ref} nicht.`);
-  assert.match(worker, /4096-shell-v17/);
+  assert.match(worker, /4096-shell-v18/);
 });
 
 test('4096 terminal dialog wires description, inert background and focus containment', () => {
