@@ -225,6 +225,55 @@ try {
   assert.equal(await evaluate(client, "document.querySelector('#game-canvas')?.width"), 800, 'Super-Mario-Land-Canvas hat nicht die erwartete interne Breite.');
   assert.equal(await evaluate(client, "document.querySelector('#game-canvas')?.height"), 450, 'Super-Mario-Land-Canvas hat nicht die erwartete interne Höhe.');
   assert.equal(await evaluate(client, "document.querySelectorAll('.touch-controls button').length"), 3, 'Super Mario Land hat nicht drei mobile Steuertasten.');
+  assert.equal(await evaluate(client, "document.querySelector('#level')?.textContent"), '1/3', 'Super Mario Land zeigt den Drei-Level-Vertrag nicht im HUD.');
+
+  const mobileLayout = await evaluate(client, `(() => {
+    const rect = (selector) => {
+      const node = document.querySelector(selector);
+      if (!node) return null;
+      const box = node.getBoundingClientRect();
+      return { top: box.top, bottom: box.bottom, left: box.left, right: box.right };
+    };
+    return {
+      innerWidth,
+      innerHeight,
+      canvas: rect('#game-canvas'),
+      level: rect('#level'),
+      jump: rect('#jump'),
+      status: rect('#game-status'),
+    };
+  })()`);
+  for (const [name, box] of Object.entries({ canvas: mobileLayout.canvas, level: mobileLayout.level, jump: mobileLayout.jump, status: mobileLayout.status })) {
+    assert.ok(box, `${name} fehlt im mobilen Super-Mario-Land-Layout.`);
+    assert.ok(box.top >= -1 && box.bottom <= mobileLayout.innerHeight + 1, `${name} liegt außerhalb des 360x640-Viewports: ${JSON.stringify(box)}`);
+    assert.ok(box.left >= -1 && box.right <= mobileLayout.innerWidth + 1, `${name} liegt horizontal außerhalb des 360x640-Viewports: ${JSON.stringify(box)}`);
+  }
+
+  const multilevelProbe = await evaluate(client, `(async () => {
+    const rules = await import('./game.js');
+    let state = rules.createGame();
+    state.lives = 2;
+    state.score = 400;
+    state.player = { ...state.player, x: rules.getLevel(state).goalX - rules.PLAYER_WIDTH };
+    state = rules.stepGame(state, {}, 0);
+    const afterFirst = { levelIndex: state.levelIndex, lives: state.lives, score: state.score, status: state.status };
+    state.player = { ...state.player, x: rules.getLevel(state).goalX - rules.PLAYER_WIDTH };
+    state = rules.stepGame(state, {}, 0);
+    const afterSecond = { levelIndex: state.levelIndex, lives: state.lives, score: state.score, status: state.status };
+    state.player = { ...state.player, x: rules.getLevel(state).goalX - rules.PLAYER_WIDTH };
+    state = rules.stepGame(state, {}, 0);
+    return { levelCount: rules.LEVEL_COUNT, afterFirst, afterSecond, finalStatus: state.status, finalLevel: state.levelIndex };
+  })()`);
+  assert.equal(multilevelProbe.levelCount, 3, 'Browser-Regelmodul enthält nicht drei Level.');
+  assert.deepEqual(multilevelProbe.afterFirst.levelIndex, 1);
+  assert.equal(multilevelProbe.afterFirst.lives, 2, 'Leben wurden beim ersten Levelwechsel nicht übernommen.');
+  assert.equal(multilevelProbe.afterFirst.status, 'playing');
+  assert.equal(multilevelProbe.afterSecond.levelIndex, 2);
+  assert.equal(multilevelProbe.afterSecond.lives, 2, 'Leben wurden beim zweiten Levelwechsel nicht übernommen.');
+  assert.ok(multilevelProbe.afterSecond.score > multilevelProbe.afterFirst.score, 'Punkte wurden über Levelwechsel nicht fortgeschrieben.');
+  assert.equal(multilevelProbe.finalLevel, 2);
+  assert.equal(multilevelProbe.finalStatus, 'won', 'Erst das dritte Ziel muss die Gesamtrunde gewinnen.');
+  console.log('browser-smoke: super-mario-land three-level progression passed');
 
   const startProgress = Number((await evaluate(client, "document.querySelector('#progress')?.textContent"))?.replace('%', ''));
   await evaluate(client, `(() => {
@@ -247,6 +296,7 @@ try {
   await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Offline · spielbereit');
   assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, 'Super-Mario-Land-Offline-Reload verlor Service-Worker-Kontrolle.');
   assert.equal(await evaluate(client, "document.querySelector('#game-canvas')?.width"), 800, 'Offline-Super-Mario-Land verlor die Spieloberfläche.');
+  assert.equal(await evaluate(client, "document.querySelector('#level')?.textContent"), '1/3', 'Offline-Reload verlor die Mehrlevel-Anzeige.');
   assert.equal(await evaluate(client, "document.querySelector('#jump')?.disabled"), false, 'Super Mario Land ist nach Offline-Reload nicht spielbereit.');
   console.log('browser-smoke: super-mario-land offline reload passed');
 } catch (error) {
