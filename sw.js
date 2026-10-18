@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v25';
+const CACHE_NAME = '4096-shell-v26';
 const APP_SHELL = [
   './',
   './index.html',
@@ -78,6 +78,13 @@ const APP_SHELL = [
   './space-shooter/game.js',
   './space-shooter/waves.js',
   './space-shooter/storage.js',
+  './duell/',
+  './duell/index.html',
+  './duell/styles.css',
+  './duell/app.js',
+  './duell/connect-four.js',
+  './duell/reversi.js',
+  './duell/storage.js',
   './dr-mario/',
   './dr-mario/index.html',
   './dr-mario/styles.css',
