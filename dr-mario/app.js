@@ -183,6 +183,10 @@ function dropAll() {
   commit(next, announcement);
 }
 
+function isInteractiveTarget(target) {
+  return Boolean(target?.closest?.('a, button, input, select, textarea, [contenteditable="true"]'));
+}
+
 function updateConnectionStatus() {
   const text = connectionStatus({ online: navigator.onLine, offlineReady, offlineError });
   connectionElement.textContent = text;
@@ -198,7 +202,7 @@ downButton.addEventListener('click', dropOne);
 dropButton.addEventListener('click', dropAll);
 
 document.addEventListener('keydown', (event) => {
-  if (event.ctrlKey || event.metaKey || event.altKey || state.status !== 'playing') return;
+  if (event.ctrlKey || event.metaKey || event.altKey || state.status !== 'playing' || isInteractiveTarget(event.target)) return;
   const action = ({
     ArrowLeft: () => move(-1),
     a: () => move(-1),
