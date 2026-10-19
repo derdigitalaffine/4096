@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#151225">
+  <meta name="description" content="Tromu Duell – lokale Hot-Seat-Partien in Vier gewinnt und Reversi, vollständig offline.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Tromu Duell</title>
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body data-game-id="duell">
+  <main class="duell-shell">
+    <header class="topbar">
+      <div class="title-block">
+        <p class="eyebrow">Offline-PWA · 2 Spieler lokal</p>
+        <h1>Tromu Duell</h1>
+      </div>
+      <nav class="game-nav" aria-label="Spiele" data-game-nav></nav>
+    </header>
+
+    <section class="mode-actions" aria-label="Spiel wählen und Partie steuern">
+      <button type="button" data-mode="connect-four" aria-pressed="true">Vier gewinnt</button>
+      <button type="button" data-mode="reversi" aria-pressed="false">Reversi</button>
+      <button id="restart-game" type="button">Neue Partie</button>
+    </section>
+
+    <section class="stats" aria-label="Duell-Status">
+      <div><span>Am Zug</span><strong id="turn">A ●</strong></div>
+      <div><span>Bilanz</span><strong id="record">0:0 · 0=</strong></div>
+      <span id="connection-status" class="connection" aria-live="polite">Online · Offline wird vorbereitet</span>
+    </section>
+
+    <section class="play-area" aria-label="Lokales Duell">
+      <div id="column-controls" class="column-controls" aria-label="Spalte wählen"></div>
+      <div id="duell-board" class="duell-board" role="grid" aria-label="Vier-gewinnt-Spielfeld"></div>
+    </section>
+
+    <p id="game-status" class="status" aria-live="polite" aria-atomic="true">Vier gewinnt · A ● beginnt.</p>
+    <p class="instructions">Vier gewinnt: Spalte antippen oder per Tab/Pfeiltasten wählen. Reversi: Feld antippen; Pfeiltasten bewegen den Fokus. A ● und B ○ spielen abwechselnd.</p>
+    <footer>Keine Anmeldung, kein Netzwerkspiel, keine Tracker. Statistik bleibt nur auf diesem Gerät.</footer>
+  </main>
+  <script type="module" src="../game-nav.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
