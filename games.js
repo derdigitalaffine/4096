@@ -93,6 +93,13 @@ export const GAMES = Object.freeze([
     description: 'Lokale Hot-Seat-Partien in Vier gewinnt und Reversi mit robuster Geräte-Statistik.',
     shell: ['/duell/', '/duell/index.html', '/duell/styles.css', '/duell/app.js', '/duell/connect-four.js', '/duell/reversi.js', '/duell/storage.js'],
   }),
+  freezeGame({
+    id: 'echoloop',
+    name: 'TROMU // ECHOLOOP',
+    route: '/echoloop/',
+    description: 'Zeitloop-Puzzle mit tickgenauen eigenen Echos, physischen Kollisionen und kurzen kooperativen Runs.',
+    shell: ['/echoloop/', '/echoloop/index.html', '/echoloop/styles.css', '/echoloop/app.js', '/echoloop/game.js', '/echoloop/levels.js', '/echoloop/storage.js'],
+  }),
 ]);
 
 export const GAME_COUNT = GAMES.length;
