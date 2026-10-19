@@ -6,7 +6,6 @@ import { createServer as createNetServer } from 'node:net';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
-import { GAMES } from '../games.js';
 
 const ROOT = resolve('.');
 const MIME_TYPES = {
@@ -236,7 +235,7 @@ try {
     };
   })()`);
   assert.equal(layout.cells, 25, 'Sokoban Level 1 rendert nicht 5×5 Zellen.');
-  assert.equal(layout.navLinks, GAMES.length, 'Sokoban-Navigation enthält nicht Spielewelt plus alle anderen registrierten Spiele.');
+  assert.equal(layout.navLinks, 1, 'Sokoban-Navigation enthält nicht genau eine Zurück-Schaltfläche zur Spielewelt.');
   assert.ok(layout.scrollWidth <= layout.innerWidth + 1, `Sokoban hat horizontalen Overflow: ${layout.scrollWidth}px.`);
   assert.ok(layout.scrollHeight <= layout.innerHeight + 1, `Sokoban erzwingt auf 360×640 Scrollen: ${layout.scrollHeight}px.`);
   assert.ok(layout.board.width >= 190 && layout.board.left >= -1 && layout.board.right <= 361 && layout.board.bottom <= 641, `Sokoban-Board passt mobil nicht: ${JSON.stringify(layout.board)}.`);
