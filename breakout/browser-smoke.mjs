@@ -6,7 +6,6 @@ import { createServer as createNetServer } from 'node:net';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
-import { GAMES } from '../games.js';
 
 const ROOT = resolve('.');
 const MIME_TYPES = {
@@ -224,7 +223,7 @@ try {
       bricks: Number(document.querySelector('#breakout-canvas').dataset.brickCount),
     };
   })()`);
-  assert.equal(layout.nav.length, GAMES.length, 'Breakout-Navigation enthält nicht Spielewelt plus alle anderen registrierten Spiele.');
+  assert.equal(layout.nav.length, 1, 'Breakout-Navigation enthält nicht genau eine Zurück-Schaltfläche zur Spielewelt.');
   assert.ok(layout.scrollWidth <= layout.innerWidth + 1, `Breakout hat horizontalen Overflow: ${layout.scrollWidth}px.`);
   assert.ok(layout.scrollHeight <= layout.innerHeight + 1, `Breakout erzwingt auf 360×640 Scrollen: ${layout.scrollHeight}px.`);
   assert.ok(layout.canvas.width >= 210 && layout.canvas.left >= -1 && layout.canvas.right <= 361 && layout.canvas.bottom <= 641, `Breakout-Canvas passt mobil nicht: ${JSON.stringify(layout.canvas)}.`);

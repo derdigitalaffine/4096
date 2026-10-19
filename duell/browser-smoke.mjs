@@ -244,7 +244,7 @@ try {
   })()`);
   assert.equal(layout.cells, 42, 'Vier gewinnt rendert nicht 7×6 Zellen.');
   assert.equal(layout.columns, 7, 'Vier gewinnt bietet nicht sieben Spaltenziele.');
-  assert.equal(layout.nav.length, GAMES.length, 'Duell-Navigation enthält nicht Spielewelt plus alle anderen registrierten Spiele.');
+  assert.equal(layout.nav.length, 1, 'Duell-Navigation enthält nicht genau eine Zurück-Schaltfläche zur Spielewelt.');
   assert.ok(layout.scrollWidth <= layout.innerWidth + 1, `Duell hat horizontalen Overflow: ${layout.scrollWidth}px.`);
   assert.ok(layout.scrollHeight <= layout.innerHeight + 1, `Duell erzwingt auf 360×640 Scrollen: ${layout.scrollHeight}px.`);
   assert.ok(layout.board.width >= 250 && layout.board.right <= 361 && layout.board.bottom <= 641, `Vier-gewinnt-Board passt mobil nicht: ${JSON.stringify(layout.board)}.`);

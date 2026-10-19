@@ -239,7 +239,7 @@ try {
     };
   })()`);
   assert.equal(layout.cells, 225, 'Maze-Chase rendert nicht 15×15 Zellen.');
-  assert.equal(layout.navLinks, GAMES.length, 'Maze-Chase-Navigation enthält nicht Spielewelt plus alle anderen registrierten Spiele.');
+  assert.equal(layout.navLinks, 1, 'Maze-Chase-Navigation enthält nicht genau eine Zurück-Schaltfläche zur Spielewelt.');
   assert.ok(layout.hunter >= 1 && layout.ambusher >= 1, 'Unterschiedliche Gegnerprofile sind nicht sichtbar codiert.');
   assert.ok(layout.scrollWidth <= layout.innerWidth + 1, `Maze-Chase hat horizontalen Overflow: ${layout.scrollWidth}px.`);
   assert.ok(layout.scrollHeight <= layout.innerHeight + 1, `Maze-Chase erzwingt auf 360×640 Scrollen: ${layout.scrollHeight}px.`);
