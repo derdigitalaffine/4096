@@ -236,7 +236,7 @@ try {
     };
   })()`);
   assert.equal(layout.cells, 64, 'Leicht muss mit 8×8 Zellen starten.');
-  assert.equal(layout.nav.length, GAMES.length, 'Minesweeper-Navigation enthält nicht Spielewelt plus alle anderen registrierten Spiele.');
+  assert.equal(layout.nav.length, 1, 'Minesweeper-Navigation enthält nicht genau eine Zurück-Schaltfläche zur Spielewelt.');
   assert.ok(layout.scrollWidth <= layout.innerWidth + 1, `Minesweeper hat horizontalen Overflow: ${layout.scrollWidth}px.`);
   assert.ok(layout.scrollHeight <= layout.innerHeight + 1, `Minesweeper erzwingt auf 360×640 Scrollen: ${layout.scrollHeight}px.`);
   assert.ok(layout.board.width >= 260 && layout.board.right <= 361 && layout.board.bottom <= 641, `Minesweeper-Board passt mobil nicht: ${JSON.stringify(layout.board)}.`);
