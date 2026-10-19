@@ -243,7 +243,7 @@ try {
       board: { width: board.width, height: board.height, left: board.left, right: board.right, top: board.top, bottom: board.bottom },
     };
   })()`);
-  assert.equal(layout.nav.length, GAMES.length, 'Space-Shooter-Navigation enthält nicht Spielewelt plus alle anderen registrierten Spiele.');
+  assert.equal(layout.nav.length, 1, 'Space-Shooter-Navigation enthält nicht genau eine Zurück-Schaltfläche zur Spielewelt.');
   assert.ok(layout.enemyCount >= 6, `Startwelle enthält zu wenige Gegner: ${layout.enemyCount}.`);
   assert.ok(layout.scrollWidth <= layout.innerWidth + 1, `Space Shooter hat horizontalen Overflow: ${layout.scrollWidth}px.`);
   assert.ok(layout.scrollHeight <= layout.innerHeight + 1, `Space Shooter erzwingt auf 360×640 Scrollen: ${layout.scrollHeight}px.`);
