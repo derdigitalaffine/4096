@@ -6,7 +6,6 @@ import { createServer as createNetServer } from 'node:net';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
-import { GAMES } from '../games.js';
 
 const ROOT = resolve('.');
 const MIME_TYPES = {
@@ -245,7 +244,7 @@ try {
     };
   })()`);
   assert.equal(layout.cells, 81, 'ECHOLOOP rendert nicht 9×9 Zellen.');
-  assert.equal(layout.nav.length, GAMES.length, 'ECHOLOOP-Navigation enthält nicht Spielewelt plus alle anderen registrierten Spiele.');
+  assert.equal(layout.nav.length, 1, 'ECHOLOOP zeigt nicht genau eine Zurück-Schaltfläche.');
   assert.ok(layout.scrollWidth <= layout.innerWidth + 1, `ECHOLOOP hat horizontalen Overflow: ${layout.scrollWidth}px.`);
   assert.ok(layout.scrollHeight <= layout.innerHeight + 1, `ECHOLOOP erzwingt auf 360×640 Scrollen: ${layout.scrollHeight}px.`);
   assert.ok(layout.board.width >= 220 && layout.board.right <= 361 && layout.board.bottom <= 641, `ECHOLOOP-Board passt mobil nicht: ${JSON.stringify(layout.board)}.`);
