@@ -1,3 +1,4 @@
+// Shell-Revision: Spielseiten verlinken nur noch zurück zur zentralen Spielewelt.
 const CACHE_NAME = '4096-shell-v26';
 const APP_SHELL = [
   './',
