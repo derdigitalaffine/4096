@@ -1,5 +1,4 @@
-// Shell-Revision: Spielseiten verlinken nur noch zurück zur zentralen Spielewelt.
-const CACHE_NAME = '4096-shell-v26';
+const CACHE_NAME = '4096-shell-v27';
 const APP_SHELL = [
   './',
   './index.html',
@@ -86,6 +85,13 @@ const APP_SHELL = [
   './duell/connect-four.js',
   './duell/reversi.js',
   './duell/storage.js',
+  './echoloop/',
+  './echoloop/index.html',
+  './echoloop/styles.css',
+  './echoloop/app.js',
+  './echoloop/game.js',
+  './echoloop/levels.js',
+  './echoloop/storage.js',
   './dr-mario/',
   './dr-mario/index.html',
   './dr-mario/styles.css',
