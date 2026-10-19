@@ -243,7 +243,7 @@ try {
   })()`);
   assert.equal(layout.cardCount, 52, 'FreeCell muss mit 52 sichtbaren Karten starten.');
   assert.equal(layout.cascadeCount, 8, 'FreeCell muss acht Cascades rendern.');
-  assert.equal(layout.nav.length, GAMES.length, 'FreeCell-Navigation enthält nicht Spielewelt plus alle anderen registrierten Spiele.');
+  assert.equal(layout.nav.length, 1, 'FreeCell-Navigation enthält nicht genau eine Zurück-Schaltfläche zur Spielewelt.');
   assert.ok(layout.scrollWidth <= layout.innerWidth + 1, `FreeCell hat horizontalen Overflow: ${layout.scrollWidth}px.`);
   assert.ok(layout.table.left >= -1 && layout.table.right <= 361, `FreeCell-Tisch passt mobil nicht: ${JSON.stringify(layout.table)}.`);
   for (const control of layout.controls) assert.ok(control.height >= 44 && control.left >= -1 && control.right <= 361, `Primärziel ${control.id} ist mobil nicht vollständig nutzbar.`);
