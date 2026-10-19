@@ -1,20 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { GAMES } from '../games.js';
 import { navigationEntries } from '../game-nav.js';
 
 const html = readFileSync('sudoku/index.html', 'utf8');
 const app = readFileSync('sudoku/app.js', 'utf8');
 const css = readFileSync('sudoku/styles.css', 'utf8');
 
-test('game navigation derives all non-current targets from the shared registry', () => {
+test('game navigation exposes only the back link to the Spielewelt', () => {
   assert.match(html, /<body[^>]*data-game-id="sudoku"/);
   assert.match(html, /<nav[^>]*class="game-nav"[^>]*data-game-nav[^>]*data-link-class="back-link"/);
   assert.match(html, /\.\.\/game-nav\.js/);
   assert.deepEqual(
     navigationEntries('sudoku').map((entry) => entry.route),
-    ['/', ...GAMES.filter((game) => game.id !== 'sudoku').map((game) => game.route)],
+    ['/'],
   );
   assert.match(css, /\.back-link\s*\{[\s\S]*?min-height:\s*44px/);
 });

@@ -21,8 +21,6 @@ const MIME_TYPES = {
 };
 const sleep = (milliseconds) => new Promise((resolveSleep) => setTimeout(resolveSleep, milliseconds));
 
-const expectedPathsFor = (gameId) => ['/', ...GAMES.filter((game) => game.id !== gameId).map((game) => game.route)];
-
 async function freePort() {
   return new Promise((resolvePort, reject) => {
     const server = createNetServer();
@@ -185,10 +183,9 @@ async function pressEnter(client) {
   await client.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
 }
 
-async function focusNavPath(client, targetPath, label) {
+async function focusBackLink(client, label) {
   await evaluate(client, 'document.activeElement?.blur()');
-  const maxTabs = Math.max(30, GAMES.length * 8);
-  for (let index = 0; index < maxTabs; index += 1) {
+  for (let index = 0; index < 40; index += 1) {
     await pressTab(client);
     const focus = await evaluate(client, `(() => {
       const active = document.activeElement;
@@ -198,11 +195,12 @@ async function focusNavPath(client, targetPath, label) {
         focusVisible: active.matches(':focus-visible'),
       };
     })()`);
-    if (focus?.pathname !== targetPath) continue;
-    assert.equal(focus.focusVisible, true, `${label}: Offline-Ziel ${targetPath} hat vor Enter keinen sichtbaren Tastaturfokus.`);
+    if (!focus) continue;
+    assert.equal(focus.pathname, '/', `${label}: Spielnavigation zeigt nicht zurück zur Spielewelt.`);
+    assert.equal(focus.focusVisible, true, `${label}: Zurück-Schaltfläche hat keinen sichtbaren Tastaturfokus.`);
     return;
   }
-  throw new Error(`${label}: Offline-Ziel ${targetPath} wurde per Tab nicht erreicht.`);
+  throw new Error(`${label}: Zurück-Schaltfläche wurde per Tab nicht erreicht.`);
 }
 
 async function stopBrowser(browser) {
@@ -247,65 +245,39 @@ try {
     const pageUrl = new URL(game.route.slice(1), url).href;
     await navigate(client, pageUrl, game.name);
     await waitForTruthy(client, `document.body.dataset.gameId === ${JSON.stringify(game.id)}`);
-    await waitForTruthy(client, `document.querySelectorAll(${JSON.stringify(NAV_SELECTOR)}).length === ${GAMES.length}`);
+    await waitForTruthy(client, `document.querySelectorAll(${JSON.stringify(NAV_SELECTOR)}).length === 1`);
 
-    const expectedPaths = expectedPathsFor(game.id);
     const layout = await evaluate(client, `(() => {
-      const links = [...document.querySelectorAll(${JSON.stringify(NAV_SELECTOR)})];
+      const link = document.querySelector(${JSON.stringify(NAV_SELECTOR)});
+      const box = link.getBoundingClientRect();
       return {
         innerWidth,
         scrollWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
-        links: links.map((link) => {
-          const box = link.getBoundingClientRect();
-          return {
-            text: link.textContent.trim(),
-            href: link.href,
-            pathname: new URL(link.href).pathname,
-            width: box.width,
-            height: box.height,
-            left: box.left,
-            right: box.right,
-          };
-        }),
+        text: link.textContent.trim(),
+        href: link.href,
+        pathname: new URL(link.href).pathname,
+        width: box.width,
+        height: box.height,
+        left: box.left,
+        right: box.right,
       };
     })()`);
 
     assert.equal(layout.innerWidth, 360, `${game.name}: Browser läuft nicht im erwarteten 360px-Viewport.`);
     assert.ok(layout.scrollWidth <= 361, `${game.name}: horizontale Seitenausdehnung ${layout.scrollWidth}px bei 360px Viewport.`);
-    assert.equal(layout.links.length, GAMES.length, `${game.name}: Navigationsanzahl folgt nicht der Registry.`);
-    assert.deepEqual(layout.links.map(({ pathname }) => pathname), expectedPaths, `${game.name}: Navigationsziele oder Reihenfolge sind inkonsistent.`);
-
-    for (const link of layout.links) {
-      assert.equal(new URL(link.href).origin, new URL(url).origin, `${game.name}: ${link.text} verlässt den lokalen Ursprung.`);
-      assert.ok(link.width >= 44, `${game.name}: Navigationsziel ${link.text} ist nur ${link.width.toFixed(1)}px breit.`);
-      assert.ok(link.height >= 44, `${game.name}: Navigationsziel ${link.text} ist nur ${link.height.toFixed(1)}px hoch.`);
-      assert.ok(link.left >= -1 && link.right <= 361, `${game.name}: Navigationsziel ${link.text} liegt horizontal außerhalb des Viewports.`);
-    }
-
-    await evaluate(client, 'document.activeElement?.blur()');
-    const visited = [];
-    const maxTabs = Math.max(30, GAMES.length * 8);
-    for (let index = 0; index < maxTabs && visited.length < expectedPaths.length; index += 1) {
-      await pressTab(client);
-      const focus = await evaluate(client, `(() => {
-        const active = document.activeElement;
-        if (!active?.matches?.(${JSON.stringify(NAV_SELECTOR)})) return null;
-        return {
-          pathname: new URL(active.href).pathname,
-          focusVisible: active.matches(':focus-visible'),
-        };
-      })()`);
-      if (focus && !visited.some(({ pathname }) => pathname === focus.pathname)) visited.push(focus);
-    }
-
-    assert.deepEqual(visited.map(({ pathname }) => pathname), expectedPaths, `${game.name}: Tab-Fokus erreicht nicht alle Registry-Navigationsziele in DOM-Reihenfolge.`);
-    assert.ok(visited.every(({ focusVisible }) => focusVisible), `${game.name}: mindestens ein per Tab erreichtes Navigationsziel hat keinen sichtbaren Tastaturfokus.`);
-    console.log(`browser-smoke: ${game.name} registry navigation 360x640 + keyboard focus passed`);
+    assert.equal(layout.pathname, '/', `${game.name}: Spielnavigation führt nicht zur Spielewelt.`);
+    assert.match(layout.text, /Zurück zur Spielewelt/, `${game.name}: Zurück-Link ist nicht eindeutig beschriftet.`);
+    assert.equal(new URL(layout.href).origin, new URL(url).origin, `${game.name}: Zurück-Link verlässt den lokalen Ursprung.`);
+    assert.ok(layout.width >= 44, `${game.name}: Zurück-Schaltfläche ist nur ${layout.width.toFixed(1)}px breit.`);
+    assert.ok(layout.height >= 44, `${game.name}: Zurück-Schaltfläche ist nur ${layout.height.toFixed(1)}px hoch.`);
+    assert.ok(layout.left >= -1 && layout.right <= 361, `${game.name}: Zurück-Schaltfläche liegt horizontal außerhalb des Viewports.`);
+    await focusBackLink(client, game.name);
+    console.log(`browser-smoke: ${game.name} single back navigation 360x640 + keyboard focus passed`);
   }
 
-  const firstGame = GAMES[0];
-  await navigate(client, new URL(firstGame.route.slice(1), url).href, 'Offline-Enter-Start');
-  await waitForTruthy(client, `document.body.dataset.gameId === ${JSON.stringify(firstGame.id)}`);
+  const lastGame = GAMES.at(-1);
+  await navigate(client, new URL(lastGame.route.slice(1), url).href, 'Offline-Back-Start');
+  await waitForTruthy(client, `document.body.dataset.gameId === ${JSON.stringify(lastGame.id)}`);
   await waitForTruthy(client, "Boolean(navigator.serviceWorker?.controller)");
   await waitForTruthy(client, "navigator.serviceWorker?.ready.then((registration) => Boolean(registration.active))");
 
@@ -318,31 +290,29 @@ try {
   });
   await waitForTruthy(client, 'navigator.onLine === false');
 
-  for (let index = 0; index < GAMES.length; index += 1) {
-    const source = GAMES[index];
-    const targetGame = GAMES[(index + 1) % GAMES.length];
-    await focusNavPath(client, targetGame.route, source.name);
-    const targetUrl = new URL(targetGame.route.slice(1), url).href;
-    const enterNavigated = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === targetUrl, 15_000);
-    await pressEnter(client);
-    await enterNavigated;
-    await waitForTruthy(client, "document.readyState === 'complete'");
-    await waitForTruthy(client, `document.body.dataset.gameId === ${JSON.stringify(targetGame.id)}`);
-    await waitForTruthy(client, `document.querySelectorAll(${JSON.stringify(NAV_SELECTOR)}).length === ${GAMES.length}`);
-    assert.equal(await evaluate(client, 'location.pathname'), targetGame.route, `${source.name}: Enter hat offline nicht zu ${targetGame.route} navigiert.`);
-    assert.equal(await evaluate(client, 'navigator.onLine'), false, `${source.name}: Offline-Zustand ging beim Enter-Wechsel verloren.`);
-    console.log(`browser-smoke: ${source.name} offline Enter -> ${targetGame.route} passed`);
+  await focusBackLink(client, lastGame.name);
+  const homeNavigated = client.waitForEvent('Page.frameNavigated', ({ frame }) => frame?.url === url, 15_000);
+  await pressEnter(client);
+  await homeNavigated;
+  await waitForTruthy(client, "document.readyState === 'complete'");
+  await waitForTruthy(client, `document.querySelectorAll('.game-card').length === ${GAMES.length}`);
+
+  const catalogPaths = await evaluate(client, `[...document.querySelectorAll('.game-card')].map((link) => new URL(link.href).pathname)`);
+  assert.deepEqual(catalogPaths, GAMES.map((game) => game.route), 'Spielewelt zeigt offline nicht den vollständigen Registry-Katalog.');
+  assert.equal(await evaluate(client, 'navigator.onLine'), false, 'Offline-Zustand ging beim Zurück-Wechsel verloren.');
+
+  const afterSokoban = GAMES.slice(GAMES.findIndex((game) => game.id === 'sokoban') + 1);
+  assert.ok(afterSokoban.length > 0, 'Test erwartet Spiele nach Sokoban.');
+  for (const game of afterSokoban) {
+    assert.equal(catalogPaths.includes(game.route), true, `${game.name} fehlt im Spielewelt-Katalog nach Sokoban.`);
   }
+  console.log(`browser-smoke: single back navigation + complete ${GAMES.length}-game catalog after Sokoban passed`);
 } catch (error) {
   const browserDetails = browserStderr.trim() ? `\nBrowser stderr:\n${browserStderr.trim()}` : '';
   throw new Error(`${error.message}${browserDetails}`, { cause: error });
 } finally {
   client?.close();
+  server.close();
   await stopBrowser(browser);
-  await new Promise((resolveClose) => server.close(resolveClose));
-  try {
-    await rm(profileDir, { recursive: true, force: true, maxRetries: 8, retryDelay: 100 });
-  } catch (error) {
-    console.warn(`browser-smoke: Navigations-Profil konnte nicht vollständig entfernt werden (${error.code ?? 'unknown'}).`);
-  }
+  await rm(profileDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 }

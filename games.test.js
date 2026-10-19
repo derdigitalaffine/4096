@@ -27,12 +27,10 @@ test('legacy routes never collide with canonical game routes', () => {
   for (const route of legacy) assert.equal(canonical.has(route), false, `${route} ist zugleich kanonisch und Legacy.`);
 });
 
-test('shared navigation grows from the registry and omits only the current game', () => {
+test('shared game navigation exposes only the back link to the Spielewelt', () => {
   for (const current of GAMES) {
     const entries = navigationEntries(current.id);
-    assert.equal(entries.length, GAME_COUNT);
-    assert.deepEqual(entries.map((entry) => entry.route), ['/', ...GAMES.filter((game) => game.id !== current.id).map((game) => game.route)]);
-    assert.equal(entries.some((entry) => entry.id === current.id), false);
+    assert.deepEqual(entries, [{ id: 'home', name: '← Zurück zur Spielewelt', route: '/' }]);
   }
 });
 

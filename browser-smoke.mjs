@@ -229,7 +229,7 @@ try {
   await waitForValue(client, "document.querySelector('#connection-status')?.textContent", 'Online · offline bereit');
   assert.equal(await evaluate(client, 'Boolean(navigator.serviceWorker.controller)'), true, '4096 wird online nicht vom Service Worker kontrolliert.');
   assert.equal(await evaluate(client, "document.querySelectorAll('.tile').length"), 16, 'Online-4096-Spielfeld hat nicht 16 Zellen.');
-  assert.equal(await evaluate(client, "document.querySelector('.game-nav a[data-game-id=\"home\"]')?.textContent"), 'Spielewelt', '4096 hat keinen Registry-Rückweg zur Spielewelt.');
+  assert.equal(await evaluate(client, "document.querySelector('.game-nav a[data-game-id=\"home\"]')?.textContent"), '← Zurück zur Spielewelt', '4096 hat keine eindeutige Zurück-Schaltfläche zur Spielewelt.');
   console.log('browser-smoke: 4096 subroute online passed');
 
   await navigate(client, sudokuUrl, 'Sudoku-Navigation');
