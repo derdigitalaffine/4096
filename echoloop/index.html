@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#100d22">
+  <meta name="description" content="TROMU // ECHOLOOP – kurze Zeitloops mit exakt wiederholten eigenen Echos, lokal und offline.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>TROMU // ECHOLOOP</title>
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body data-game-id="echoloop">
+  <main class="echo-shell">
+    <header class="topbar">
+      <div class="title-block">
+        <p class="eyebrow">Offline-PWA · Time Loop</p>
+        <h1>TROMU // ECHOLOOP</h1>
+      </div>
+      <nav class="game-nav" aria-label="Spiele" data-game-nav></nav>
+    </header>
+
+    <section id="level-select" class="level-select" aria-label="Puzzle wählen"></section>
+
+    <section class="stats" aria-label="Loop-Status">
+      <div><span>Level</span><strong id="level-number">1/3</strong></div>
+      <div><span>Loop</span><strong id="loop-number">1</strong></div>
+      <div><span>Tick</span><strong id="tick-number">0/16</strong></div>
+      <div><span>Best</span><strong id="best-loops">–</strong></div>
+      <span id="connection-status" class="connection" aria-live="polite">Online · Offline wird vorbereitet</span>
+    </section>
+
+    <section class="play-area" aria-label="ECHOLOOP-Puzzle">
+      <div id="echo-board" class="echo-board" role="grid" tabindex="0" aria-label="ECHOLOOP-Spielfeld"></div>
+      <div class="controls" aria-label="ECHOLOOP-Steuerung">
+        <div class="round-actions">
+          <button id="pause-game" type="button" aria-pressed="true">Start</button>
+          <button id="restart-game" type="button">Restart</button>
+          <button id="wait-input" type="button" data-input="wait" aria-label="Warten für den nächsten Tick">Warten ·</button>
+        </div>
+        <div class="direction-controls" aria-label="Richtung für den nächsten Tick">
+          <button type="button" data-input="left" aria-label="Nächster Tick nach links">←</button>
+          <button type="button" data-input="up" aria-label="Nächster Tick nach oben">↑</button>
+          <button type="button" data-input="down" aria-label="Nächster Tick nach unten">↓</button>
+          <button type="button" data-input="right" aria-label="Nächster Tick nach rechts">→</button>
+        </div>
+      </div>
+    </section>
+
+    <p id="game-status" class="status" aria-live="polite" aria-atomic="true">First Trace · bereit. Wähle die Richtung für den nächsten Tick.</p>
+    <p class="instructions">P: Pause · R: Restart · Leertaste: Warten. Jeder Loop hat 16 Ticks; frühere Loops starten als nummerierte Echos erneut am Startpunkt.</p>
+    <footer>Keine Anmeldung, keine Tracker. Fortschritt bleibt ausschließlich auf diesem Gerät.</footer>
+  </main>
+  <script type="module" src="../game-nav.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
