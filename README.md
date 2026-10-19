@@ -2,17 +2,20 @@
 
 Dieses Repository ist direkt der Webroot für die **Tromu Spielewelt**: eine lokale, installierbare und offlinefähige Browser-Spielesammlung ohne Runtime-Abhängigkeiten, Anmeldung oder Tracker.
 
-Aktuell registriert sind:
+Aktuell registriert sind zwölf kanonische Spiele:
 
 - **4096** unter `/4096/` – Zahlen zusammenschieben und 4096 erreichen.
 - **Sudoku** unter `/sudoku/` – mobile-first 9×9-Sudoku mit drei Schwierigkeitsstufen, Notizen, Undo, Timer und lokaler Fortsetzung.
 - **Dr. Tromu** unter `/dr-tromu/` – Kapselpuzzle mit Viren, Vierer-Matches, Kaskaden und lokaler Fortsetzung.
 - **Super Tromu Land** unter `/super-tromu-land/` – seitlich scrollendes Jump ’n’ Run mit vier Welten und zwölf eigenen Stages von `1-1` bis `4-3`.
-- **Tromu Snake** unter `/snake/` – schnelles Score-Arcade mit Classic-, Speed- und Maze-Modus, Pickups, Combos und lokalen Highscores.
+- **Tromu Snake** unter `/snake/` – Score-Arcade mit Classic-, Speed- und Maze-Modus, Pickups, Combos und lokalen Highscores.
 - **Tromu Sokoban** unter `/sokoban/` – zehn eigene Push-Puzzle mit Mehrfach-Undo, Level-Fortschritt und Bestwerten für Züge/Schübe.
 - **Tromu Breakout** unter `/breakout/` – fünf kurze Arcade-Level mit Paddle, drei Power-ups, Leben und lokalem Bestwert.
 - **Tromu Minesweeper** unter `/minesweeper/` – zugängliches Minenrätsel mit drei Stufen, sicherem ersten Reveal, Flag-Modus und lokalen Bestzeiten.
-- **Tromu FreeCell** unter `/freecell/` – klassisches Solitaire mit reproduzierbaren Deals, Mehrfach-Undo und lokaler Fortsetzung.
+- **Tromu FreeCell** unter `/freecell/` – Solitaire mit reproduzierbaren Deals, Mehrfach-Undo und lokaler Fortsetzung.
+- **Tromu Maze-Chase** unter `/maze-chase/` – drei eigene Labyrinthe mit Sammelzielen, Power-Zustand und deterministischen Gegnerprofilen.
+- **Tromu Space Shooter** unter `/space-shooter/` – Top-down-Score-Arcade mit drei deterministischen Wellen, unterschiedlichen Gegnerprofilen und lokalen Power-ups.
+- **Tromu Duell** unter `/duell/` – lokale Hot-Seat-Partien in Vier gewinnt und Reversi mit Geräte-Statistik.
 
 Frühere Pfade `/dr-mario/` und `/super-mario-land/` bleiben als nicht beworbene Kompatibilitätsalias erhalten. Alle regulären Produktlinks verwenden die Tromu-Namen.
 
@@ -53,7 +56,7 @@ Für einen weiteren Direct-Webroot-Spielpfad gilt dieser Vertrag:
 
 ## PWA / Offline
 
-`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells und die weiterhin unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v23`**.
+`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells und die weiterhin unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v26`**.
 
 Navigationen werden network-first geladen und erfolgreiche Antworten aktualisieren den Cache. Offline wird zuerst die passende gecachte Navigation verwendet; extensionlose bekannte Unterseiten können auf ihre gecachte Slash-Route umgeleitet werden. Der Root-Fallback bleibt die Welcome-Page.
 
@@ -97,7 +100,7 @@ Dr. Tromu speichert Flasche, aktive und nächste Kapsel, Punkte und Viruszahl lo
 - Blumenball: `X` oder `K`; auf Touch über **Ball**
 - `R`: neue Runde
 
-Die Kampagne umfasst vier Welten mit je drei Stages. In `1-3` ist das Rohr vor der mittleren Lücke auf 80 Pixel abgesenkt. `2-3` und `4-3` sind Auto-Scroll-Finale. Pilz und Blume liefern Treffer-Schutz beziehungsweise Ball-Angriff; Punkte, Leben und Power-up-Zustand werden beim Stagewechsel weitergegeben.
+Die Kampagne umfasst vier Welten mit je drei Stages. `2-3` und `4-3` sind Auto-Scroll-Finale. Pilz und Blume liefern Treffer-Schutz beziehungsweise Ball-Angriff; Punkte, Leben und Power-up-Zustand werden beim Stagewechsel weitergegeben.
 
 ### Tromu Snake
 
@@ -107,7 +110,6 @@ Die Kampagne umfasst vier Welten mit je drei Stages. In `1-3` ist das Rohr vor d
 - **Classic**: konstantes Grundtempo ohne Hindernisse
 - **Speed**: höheres Starttempo und weitere Beschleunigung nach Pickups
 - **Maze**: eigenes Hindernisfeld bei mittlerem Tempo
-- schnelle Pickups innerhalb des Combo-Fensters erhöhen den Multiplikator bis `×5`
 
 Bestwerte werden getrennt für Classic, Speed und Maze lokal gespeichert. Beschädigter oder gesperrter Storage blockiert den Spielstart nicht.
 
@@ -117,7 +119,6 @@ Bestwerte werden getrennt für Classic, Speed und Maze lokal gespeichert. Besch�
 - `Strg/⌘+Z` oder **Undo** macht beliebig viele gültige Züge rückgängig
 - `R` oder **Restart** startet das aktuelle Level neu
 - die Levelauswahl zeigt alle bereits freigeschalteten Stufen
-- zehn eigene Levels steigern Kistenanzahl, Engstellen und erforderliche Push-Reihenfolge schrittweise
 
 Fortsetzung, Freischaltung und Bestwerte werden lokal gespeichert. Pro Level gewinnt zuerst die geringere Zahl an Schüben, bei Gleichstand die geringere Zahl an Zügen. Beschädigter oder gesperrter Storage fällt sicher auf Level 1 zurück.
 
@@ -127,17 +128,16 @@ Fortsetzung, Freischaltung und Bestwerte werden lokal gespeichert. Pro Level gew
 - Leertaste oder **Start** setzt den Ball in Bewegung
 - `P` oder **Pause** hält die Physik an; `R` oder **Restart** startet eine neue Runde
 - Touch funktioniert über große Links/Rechts-Ziele sowie direktes Ziehen des Paddles im Canvas
-- fünf eigene kurze Level enthalten normale Blöcke sowie **W** (breiteres Paddle), **S** (langsamer Ball) und **M** (Multiball)
+- fünf eigene Level enthalten normale Blöcke sowie **W** (breiteres Paddle), **S** (langsamer Ball) und **M** (Multiball)
 
 Punkte und Leben laufen über Levelgrenzen weiter. Der lokale Bestwert wird fortlaufend gespeichert; beschädigter oder gesperrter Storage fällt sicher auf `0` zurück.
 
 ### Tromu Minesweeper
 
 - Tap/Enter deckt die fokussierte Zelle auf; der erste Reveal und seine Nachbarn sind garantiert minenfrei
-- **Modus: Flagge** oder `F` setzt beziehungsweise entfernt eine Flagge ohne versteckten Long-Press-Zwang
+- **Modus: Flagge** oder `F` setzt beziehungsweise entfernt eine Flagge
 - Pfeiltasten bewegen einen sichtbaren roving Fokus über das Raster; `R` startet die Runde neu
 - **Leicht**: 8×8 mit 10 Minen, **Mittel**: 9×9 mit 16 Minen, **Schwer**: 10×10 mit 24 Minen
-- Nullfelder breiten sich automatisch aus; Zellzustände verwenden Symbole/Zahlen und Screenreader-Labels statt nur Farbe
 
 Bestzeiten werden pro Schwierigkeitsstufe lokal gespeichert. Beschädigter oder gesperrter Storage fällt sicher auf leere Bestzeiten zurück.
 
@@ -147,9 +147,38 @@ Bestzeiten werden pro Schwierigkeitsstufe lokal gespeichert. Beschädigter oder 
 - Touch und Maus verwenden dieselben großen Zielbereiche; auf Desktop können Karten zusätzlich gezogen werden
 - vollständige Tastaturbedienung über Tab/Shift+Tab und Enter; `Strg/⌘+Z` macht beliebig viele gespeicherte Züge rückgängig
 - `N` startet den nächsten reproduzierbaren Deal, `R` startet denselben Deal neu; ein Seed kann direkt geladen werden
-- klassische Vier-FreeCell-/Vier-Foundation-Regeln und Supermoves entsprechend freier Zellen und leerer Hilfsspalten
 
-Aktueller Deal inklusive Undo-Historie sowie lokale Versuche/Siege werden fehlertolerant gespeichert. Beschädigter oder gesperrter Storage blockiert den Spielstart nicht; derselbe Seed erzeugt immer denselben Deal.
+Aktueller Deal inklusive Undo-Historie sowie lokale Versuche/Siege werden fehlertolerant gespeichert. Derselbe Seed erzeugt immer denselben Deal.
+
+### Tromu Maze-Chase
+
+- Pfeiltasten oder WASD; auf Touch über das Vier-Richtungs-D-Pad
+- Richtungs-Buffering merkt eine noch blockierte Kurve bis zum nächsten möglichen Abzweig vor
+- `P` pausiert, `R` startet die Runde neu
+- drei eigene 15×15-Labyrinthe werden schrittweise schneller
+- Jäger, Vorhalter und Patrouille entscheiden deterministisch; Power-Zellen kehren die Gefahr kurzzeitig um
+
+Score und lokaler Bestwert werden fehlertolerant gespeichert. Beschädigter oder gesperrter Storage blockiert den Spielstart nicht.
+
+### Tromu Space Shooter
+
+- Pfeiltasten oder WASD bewegen das Schiff; auf Touch über D-Pad oder direktes Ziehen im Canvas
+- Leertaste beziehungsweise **FEUER** schießt
+- `P`: Pause/Weiter, `R`: Restart
+- drei deterministische Wellen kombinieren Scout-, Tank- und Diver-Gegner
+- **Schild**, **Spread** und **Rapid** sind lokale Power-ups
+
+Der lokale Bestwert wird fehlertolerant gespeichert. Gehaltene Eingaben werden bei Blur, Sichtbarkeitswechsel, Game-over, Sieg und Restart bereinigt.
+
+### Tromu Duell
+
+- lokaler Hot-Seat für zwei Personen: **A ●** und **B ○**
+- **Vier gewinnt**: eine der sieben Spalten antippen/anklicken; Pfeiltasten wechseln den Spaltenfokus, Enter/Leertaste wirft ein
+- **Reversi**: gültiges Feld antippen/anklicken; Pfeiltasten bewegen den roving Fokus, Enter/Leertaste setzt den Stein
+- **Neue Partie** startet den aktiven Modus neu; `R` funktioniert außerhalb fokussierter Bedienelemente
+- Reversi unterstützt erzwungene Pass-Züge und wertet das Endergebnis nach Steinzahl aus
+
+Siege und Remis werden pro Modus lokal gezählt. Beschädigte oder gesperrte Statistik blockiert keine Partie.
 
 ## Tests
 
@@ -183,6 +212,9 @@ Dabei werden unter anderem geprüft:
 - Tromu-Breakout-Mobile-Fit, Tastatur/Touch-Drag, Pause, Bestwert-Recovery und Offline-Reload
 - Tromu-Minesweeper-Mobile-Fit, sicherer erster Touch, Flag-Modus, Tastaturfokus, Bestzeit-Recovery und Offline-Reload
 - Tromu-FreeCell-Mobile-Fit, Touch/Maus/Tastatur, Mehrfach-Undo, reproduzierbare Fortsetzung, Storage-Recovery und Offline-Reload
+- Tromu-Maze-Chase-Mobile-Fit, Touch/Tastatur, deterministische Gegnerlogik, Bestwert-Recovery und Offline-Reload
+- Tromu-Space-Shooter-Mobile-Fit, Touch/Tastatur, Feuer/Input-Cleanup, Bestwert-Recovery und Offline-Reload
+- Tromu-Duell-Mobile-Fit, Touch/Maus/Tastatur für beide Modi, Statistik-Recovery und Offline-Reload
 
 In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 
@@ -212,6 +244,9 @@ In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 - Tromu Breakout: `breakout/` mit fünf Levels in `levels.js`, purer Kollision/Physik in `game.js`, robustem Bestwert-Storage, Canvas-Browserzustand und eigenem Mobile-/Offline-Smoke
 - Tromu Minesweeper: `minesweeper/` mit seed-deterministischer Platzierung, puren Reveal-/Flag-Regeln, robusten Bestzeiten, zugänglichem DOM-Raster und eigenem Mobile-/Offline-Smoke
 - Tromu FreeCell: `freecell/` mit seed-deterministischem Deal, puren Zug-/Supermove-/Undo-Regeln, validierter Fortsetzung/Statistik, zugänglicher DOM-Kartendarstellung und eigenem Mobile-/Offline-Smoke
+- Tromu Maze-Chase: `maze-chase/` mit drei eigenen Labyrinthen in `levels.js`, purer Bewegungs-/Kollisions-/Gegnerlogik, robustem Bestwert-Storage und eigenem Mobile-/Offline-Smoke
+- Tromu Space Shooter: `space-shooter/` mit deterministischen Wellen in `waves.js`, purer Bewegungs-/Projektil-/Kollisions-/Power-up-Logik, robustem Highscore-Storage, Canvas-Rendering und eigenem Mobile-/Offline-Smoke
+- Tromu Duell: `duell/` mit getrennten puren Regelmodulen `connect-four.js` und `reversi.js`, robuster Statistik, gemeinsamer Hot-Seat-Browseroberfläche und eigenem Mobile-/Offline-Smoke
 
 Jedes Spiel bleibt ohne Bundler direkt aus seinem Webroot-Pfad ausführbar. Spiel-spezifische Regeln und Browser-Smokes bleiben beim jeweiligen Spiel; nur katalogweite Metadaten und Navigation liegen zentral.
 
