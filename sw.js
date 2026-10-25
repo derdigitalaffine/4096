@@ -6,6 +6,7 @@ const APP_SHELL = [
   './home.js',
   './games.js',
   './game-nav.js',
+  './mantine-theme.css',
   './4096/',
   './4096/index.html',
   './styles.css',
