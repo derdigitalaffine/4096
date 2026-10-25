@@ -38,6 +38,13 @@ export const GAMES = Object.freeze([
     shell: ['/super-tromu-land/', '/super-tromu-land/index.html', '/super-tromu-land/styles.css', '/super-tromu-land/app.js', '/super-tromu-land/game.js', '/super-tromu-land/view.js'],
   }),
   freezeGame({
+    id: 'super-tromu-land-2',
+    name: 'Super Tromu Land 2',
+    route: '/super-tromu-land-2/',
+    description: 'Top-down-Handheld-Adventure mit Lindenquell, Klingen-Kampf und vollständiger Morgenkern-Einführungsquest.',
+    shell: ['/super-tromu-land-2/', '/super-tromu-land-2/index.html', '/super-tromu-land-2/styles.css', '/super-tromu-land-2/app.js', '/super-tromu-land-2/game.js', '/super-tromu-land-2/world.js', '/super-tromu-land-2/storage.js'],
+  }),
+  freezeGame({
     id: 'snake',
     name: 'Tromu Snake',
     route: '/snake/',

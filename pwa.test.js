@@ -122,6 +122,20 @@ test('Super Tromu Land HTML exposes the current twelve-stage campaign', () => {
   assert.doesNotMatch(html, /Super Mario Land|https?:\/\//i);
 });
 
+test('Super Tromu Land 2 HTML exposes the original top-down intro quest controls', () => {
+  const html = readFileSync('super-tromu-land-2/index.html', 'utf8');
+  assert.match(html, /<title>Super Tromu Land 2<\/title>/);
+  assert.match(html, /id="game-canvas"[^>]*width="256"[^>]*height="192"[^>]*role="img"/);
+  assert.match(html, /id="quest-objective"/);
+  assert.match(html, /id="action-button"/);
+  assert.match(html, /id="attack-button"/);
+  assert.match(html, /data-move="up"/);
+  assert.match(html, /Lindenquell/);
+  assert.match(html, /Tauhain-Schrein/);
+  assert.match(html, /keine kopierten Karten oder Fremdassets/i);
+  assert.doesNotMatch(html, /\b(?:Zelda|Hyrule|Nintendo)\b|https?:\/\//i);
+});
+
 test('service worker precaches shared registry modules and every registered game shell', () => {
   const worker = readFileSync('sw.js', 'utf8');
   const refs = [
@@ -131,7 +145,7 @@ test('service worker precaches shared registry modules and every registered game
     './manifest.webmanifest', ...iconFiles.map((file) => `./${file}`),
   ];
   for (const ref of refs) assert.match(worker, new RegExp(ref.replaceAll('.', '\\.')), `Service Worker precacht ${ref} nicht.`);
-  assert.match(worker, /4096-shell-v28/);
+  assert.match(worker, /4096-shell-v29/);
 });
 
 test('4096 terminal dialog wires description, inert background and focus containment', () => {

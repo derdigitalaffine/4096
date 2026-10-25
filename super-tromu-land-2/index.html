@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="de" data-mantine-color-scheme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#142b20">
+  <meta name="description" content="Super Tromu Land 2 – eigenständiges Top-down-Handheld-Adventure mit vollständiger Einführungsquest, lokal und offline.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Super Tromu Land 2</title>
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body data-game-id="super-tromu-land-2">
+  <main class="stl2-shell">
+    <header class="topbar">
+      <div class="title-block">
+        <p class="eyebrow">Offline-PWA · Top-down Adventure</p>
+        <h1>Super Tromu Land 2</h1>
+        <p class="tagline">Ein eigenes kompaktes Handheld-Abenteuer: Lindenquell, Moosweg und der Tauhain-Schrein.</p>
+      </div>
+      <nav class="game-nav" aria-label="Spiele" data-game-nav></nav>
+    </header>
+
+    <section class="hud" aria-label="Abenteuerstatus">
+      <div class="hud-card"><span>Gebiet</span><strong id="area-name">Lindenquell</strong></div>
+      <div class="hud-card"><span>Herzen</span><strong id="hearts" aria-label="5 von 5 Herzen">♥♥♥♥♥</strong></div>
+      <div class="hud-card"><span>Quest</span><strong id="quest-step">1/10</strong></div>
+      <span id="connection-status" class="connection" aria-live="polite">Online · Offline wird vorbereitet</span>
+    </section>
+
+    <section class="quest-card" aria-labelledby="quest-title">
+      <div>
+        <span class="quest-kicker">Einführungsquest</span>
+        <strong id="quest-title">Der Morgenkern</strong>
+      </div>
+      <p id="quest-objective">Sprich mit Hüterin Mira im Dorf.</p>
+      <div id="inventory" class="inventory" aria-label="Inventar">
+        <span data-item="blade">Klinge ○</span>
+        <span data-item="seal">Siegel ○</span>
+        <span data-item="core">Kern ○</span>
+      </div>
+    </section>
+
+    <section class="adventure" aria-label="Super-Tromu-Land-2-Spiel">
+      <div class="screen-frame">
+        <canvas id="game-canvas" width="256" height="192" role="img" tabindex="0" aria-label="Top-down-Abenteuerfeld in Lindenquell. Vier-Wege-Bewegung, Interaktion und Klingenangriff."></canvas>
+      </div>
+
+      <div class="input-panel" aria-label="Abenteuersteuerung">
+        <div class="dpad" aria-label="Bewegen">
+          <button type="button" data-move="up" aria-label="Nach oben">↑</button>
+          <button type="button" data-move="left" aria-label="Nach links">←</button>
+          <button type="button" data-move="down" aria-label="Nach unten">↓</button>
+          <button type="button" data-move="right" aria-label="Nach rechts">→</button>
+        </div>
+        <div class="action-pad">
+          <button id="action-button" type="button" aria-label="Interagieren">A · Aktion</button>
+          <button id="attack-button" type="button" aria-label="Mit der Klinge angreifen" disabled>B · Klinge</button>
+          <button id="new-game" class="secondary" type="button">Neu</button>
+        </div>
+      </div>
+    </section>
+
+    <p id="game-status" class="status" aria-live="polite" aria-atomic="true">Der Morgen beginnt in Lindenquell. Sprich mit Hüterin Mira.</p>
+    <p class="instructions">Pfeile/WASD: laufen · E/Enter: Aktion · X/K/Leertaste: Klinge · N: neues Abenteuer. Stelle dich vor Figuren, Truhen, Tore, Runen oder Altäre und blicke sie an.</p>
+    <footer>Eigene Welt, Figuren, Dialoge und Canvas-Grafik; keine kopierten Karten oder Fremdassets. Fortschritt bleibt lokal auf diesem Gerät.</footer>
+  </main>
+
+  <script type="module" src="../game-nav.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
