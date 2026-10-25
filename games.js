@@ -100,6 +100,13 @@ export const GAMES = Object.freeze([
     description: 'Zeitloop-Puzzle mit tickgenauen eigenen Echos, physischen Kollisionen und kurzen kooperativen Runs.',
     shell: ['/echoloop/', '/echoloop/index.html', '/echoloop/styles.css', '/echoloop/app.js', '/echoloop/game.js', '/echoloop/levels.js', '/echoloop/storage.js'],
   }),
+  freezeGame({
+    id: 'strata',
+    name: 'TROMU // STRATA',
+    route: '/strata/',
+    description: 'Thinky-Puzzle mit zwei verschiebbaren Realitätsschichten, Paritätsmaterie und unbegrenztem Undo/Redo.',
+    shell: ['/strata/', '/strata/index.html', '/strata/styles.css', '/strata/app.js', '/strata/game.js', '/strata/levels.js', '/strata/storage.js'],
+  }),
 ]);
 
 export const GAME_COUNT = GAMES.length;
