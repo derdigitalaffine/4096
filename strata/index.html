@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="de" data-mantine-color-scheme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1020">
+  <meta name="description" content="TROMU // STRATA – Paritäts-Puzzle mit zwei verschiebbaren Realitätsschichten, lokal und offline.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>TROMU // STRATA</title>
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" sizes="180x180">
+  <link id="tromu-mantine-theme" rel="stylesheet" href="../mantine-theme.css">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body data-game-id="strata">
+  <main class="strata-shell">
+    <header class="topbar strata-topbar">
+      <div class="title-block">
+        <p class="eyebrow">Thinky Puzzle · XOR Reality</p>
+        <h1>TROMU // STRATA</h1>
+      </div>
+      <nav class="game-nav" aria-label="Spiele" data-game-nav></nav>
+    </header>
+
+    <section id="level-select" class="level-select" aria-label="Puzzle wählen"></section>
+
+    <section class="stats" aria-label="Puzzle-Status">
+      <div><span>Level</span><strong id="level-number">1/10</strong></div>
+      <div><span>Aktionen</span><strong id="action-count">0</strong></div>
+      <div><span>Shifts</span><strong id="shift-count">0</strong></div>
+      <div><span>Best</span><strong id="best-score">–</strong></div>
+      <span id="connection-status" class="connection" aria-live="polite">Online · Offline wird vorbereitet</span>
+    </section>
+
+    <section class="play-area" aria-label="STRATA-Puzzle">
+      <div id="strata-board" class="strata-board" role="grid" tabindex="0" aria-label="STRATA-Spielfeld"></div>
+
+      <div class="control-panel">
+        <section class="pad-group" aria-label="Figur bewegen">
+          <h2>FIGUR</h2>
+          <div class="dpad player-pad">
+            <button type="button" class="up" data-move="up" aria-label="Figur nach oben">↑</button>
+            <button type="button" class="left" data-move="left" aria-label="Figur nach links">←</button>
+            <button type="button" class="down" data-move="down" aria-label="Figur nach unten">↓</button>
+            <button type="button" class="right" data-move="right" aria-label="Figur nach rechts">→</button>
+          </div>
+        </section>
+
+        <section class="pad-group layer-group" aria-label="Schicht verschieben">
+          <div class="layer-heading">
+            <h2>SCHICHT</h2>
+            <div class="layer-select" role="group" aria-label="Aktive Schicht">
+              <button type="button" data-layer="0" aria-pressed="true" aria-label="Schicht A auswählen">A ╱</button>
+              <button type="button" data-layer="1" aria-pressed="false" aria-label="Schicht B auswählen">B •</button>
+            </div>
+          </div>
+          <div class="dpad shift-pad">
+            <button type="button" class="up" data-shift="up" aria-label="Aktive Schicht nach oben verschieben">↑</button>
+            <button type="button" class="left" data-shift="left" aria-label="Aktive Schicht nach links verschieben">←</button>
+            <button type="button" class="down" data-shift="down" aria-label="Aktive Schicht nach unten verschieben">↓</button>
+            <button type="button" class="right" data-shift="right" aria-label="Aktive Schicht nach rechts verschieben">→</button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <div class="round-actions" aria-label="Puzzle-Aktionen">
+      <button id="undo-action" type="button" aria-keyshortcuts="Control+Z Meta+Z">Undo</button>
+      <button id="redo-action" type="button" aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z">Redo</button>
+      <button id="restart-game" type="button" aria-keyshortcuts="R">Restart</button>
+    </div>
+
+    <p id="game-status" class="status" aria-live="polite" aria-atomic="true"></p>
+    <p id="lesson" class="lesson"></p>
+    <p id="action-history" class="action-history" aria-label="Aktionshistorie"></p>
+    <p class="instructions">Pfeile/WASD: Figur · Shift+Pfeil: aktive Schicht · 1/2: Schicht wählen · Strg/⌘+Z: Undo · Shift+Strg/⌘+Z: Redo · R: Restart.</p>
+    <footer>Parität: ungerade Überlagerung = Materie, gerade Überlagerung = frei. Keine Anmeldung, keine Tracker.</footer>
+  </main>
+  <script type="module" src="../game-nav.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
