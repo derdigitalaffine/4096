@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v27';
+const CACHE_NAME = '4096-shell-v28';
 const APP_SHELL = [
   './',
   './index.html',
@@ -93,6 +93,13 @@ const APP_SHELL = [
   './echoloop/game.js',
   './echoloop/levels.js',
   './echoloop/storage.js',
+  './strata/',
+  './strata/index.html',
+  './strata/styles.css',
+  './strata/app.js',
+  './strata/game.js',
+  './strata/levels.js',
+  './strata/storage.js',
   './dr-mario/',
   './dr-mario/index.html',
   './dr-mario/styles.css',
