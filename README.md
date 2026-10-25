@@ -2,20 +2,22 @@
 
 Dieses Repository ist direkt der Webroot für die **Tromu Spielewelt**: eine lokale, installierbare und offlinefähige Browser-Spielesammlung ohne Runtime-Abhängigkeiten, Anmeldung oder Tracker.
 
-Aktuell registriert sind zwölf kanonische Spiele:
+Aktuell registriert sind vierzehn kanonische Spiele:
 
 - **4096** unter `/4096/` – Zahlen zusammenschieben und 4096 erreichen.
-- **Sudoku** unter `/sudoku/` – mobile-first 9×9-Sudoku mit drei Schwierigkeitsstufen, Notizen, Undo, Timer und lokaler Fortsetzung.
+- **Sudoku** unter `/sudoku/` – mobile-first 9×9-Sudoku mit Notizen, Undo, Timer und lokaler Fortsetzung.
 - **Dr. Tromu** unter `/dr-tromu/` – Kapselpuzzle mit Viren, Vierer-Matches, Kaskaden und lokaler Fortsetzung.
-- **Super Tromu Land** unter `/super-tromu-land/` – seitlich scrollendes Jump ’n’ Run mit vier Welten und zwölf eigenen Stages von `1-1` bis `4-3`.
-- **Tromu Snake** unter `/snake/` – Score-Arcade mit Classic-, Speed- und Maze-Modus, Pickups, Combos und lokalen Highscores.
-- **Tromu Sokoban** unter `/sokoban/` – zehn eigene Push-Puzzle mit Mehrfach-Undo, Level-Fortschritt und Bestwerten für Züge/Schübe.
-- **Tromu Breakout** unter `/breakout/` – fünf kurze Arcade-Level mit Paddle, drei Power-ups, Leben und lokalem Bestwert.
-- **Tromu Minesweeper** unter `/minesweeper/` – zugängliches Minenrätsel mit drei Stufen, sicherem ersten Reveal, Flag-Modus und lokalen Bestzeiten.
+- **Super Tromu Land** unter `/super-tromu-land/` – Jump ’n’ Run mit vier Welten und zwölf eigenen Stages.
+- **Tromu Snake** unter `/snake/` – Score-Arcade mit Classic-, Speed- und Maze-Modus.
+- **Tromu Sokoban** unter `/sokoban/` – zehn Push-Puzzle mit Mehrfach-Undo und lokalen Bestwerten.
+- **Tromu Breakout** unter `/breakout/` – fünf Arcade-Level mit Paddle, Power-ups und lokalem Bestwert.
+- **Tromu Minesweeper** unter `/minesweeper/` – zugängliches Minenrätsel mit sicherem ersten Reveal und lokalen Bestzeiten.
 - **Tromu FreeCell** unter `/freecell/` – Solitaire mit reproduzierbaren Deals, Mehrfach-Undo und lokaler Fortsetzung.
-- **Tromu Maze-Chase** unter `/maze-chase/` – drei eigene Labyrinthe mit Sammelzielen, Power-Zustand und deterministischen Gegnerprofilen.
-- **Tromu Space Shooter** unter `/space-shooter/` – Top-down-Score-Arcade mit drei deterministischen Wellen, unterschiedlichen Gegnerprofilen und lokalen Power-ups.
-- **Tromu Duell** unter `/duell/` – lokale Hot-Seat-Partien in Vier gewinnt und Reversi mit Geräte-Statistik.
+- **Tromu Maze-Chase** unter `/maze-chase/` – Labyrinth-Arcade mit Sammelzielen und deterministischen Gegnerprofilen.
+- **Tromu Space Shooter** unter `/space-shooter/` – Top-down-Arcade mit deterministischen Wellen und lokalen Power-ups.
+- **Tromu Duell** unter `/duell/` – lokale Hot-Seat-Partien in Vier gewinnt und Reversi.
+- **TROMU // ECHOLOOP** unter `/echoloop/` – deterministische Zeitloop-Puzzle mit aufgezeichneten eigenen Echos.
+- **TROMU // STRATA** unter `/strata/` – Thinky-Puzzle aus zwei verschiebbaren Realitätsschichten und Paritätsmaterie.
 
 Frühere Pfade `/dr-mario/` und `/super-mario-land/` bleiben als nicht beworbene Kompatibilitätsalias erhalten. Alle regulären Produktlinks verwenden die Tromu-Namen.
 
@@ -36,27 +38,25 @@ Danach `http://localhost:8080` öffnen. `localhost` ist ein sicherer Browserkont
 - stabile `id`
 - sichtbarer `name`
 - kanonische `route`
-- kurzer Beschreibungstext für die Welcome-Page
+- Beschreibungstext für die Welcome-Page
 - optionale `legacyRoutes`
-- `shell`: die Dateien und Routen, die für den Offline-Vertrag des Spiels erforderlich sind
+- `shell`: Dateien und Routen des Offline-Vertrags
 
-`home.js` rendert die Spielkarten der Welcome-Page direkt aus `GAMES`. `game-nav.js` erzeugt auf jeder kanonischen Spielseite aus derselben Registry den Rückweg zur Spielewelt sowie die Links zu allen anderen registrierten Spielen. Registry-Routen werden relativ zum tatsächlichen Webroot aufgelöst, damit die Spielewelt sowohl am Domain-Root als auch unter einem Deployment-Prefix funktioniert.
+`home.js` rendert die Spielkarten direkt aus `GAMES`. `game-nav.js` erzeugt auf jeder kanonischen Spielseite den gemeinsamen Rückweg zur Spielewelt und bindet die lokale Mantine-kompatible Designschicht ein. Registry-Routen werden relativ zum tatsächlichen Webroot aufgelöst, damit die Spielewelt sowohl am Domain-Root als auch unter einem Deployment-Prefix funktioniert.
 
 ### Neues Spiel hinzufügen
 
-Für einen weiteren Direct-Webroot-Spielpfad gilt dieser Vertrag:
-
 1. Spielverzeichnis mit lokalem `index.html`, CSS und JavaScript anlegen.
 2. Einen Eintrag in `games.js` ergänzen und dessen `shell` vollständig deklarieren.
-3. Auf der kanonischen Spielseite `data-game-id="…"`, einen `data-game-nav`-Container und `../game-nav.js` verwenden.
-4. Die im Registry-`shell` deklarierten Dateien in `APP_SHELL` von `sw.js` aufnehmen und bei Shell-Änderungen die Cache-Version erhöhen.
-5. Spielregeln mit Node-Tests und Browser-/Mobile-/Offline-Verhalten mit einem passenden Smoke absichern.
+3. Auf der Spielseite `data-game-id="…"`, einen `data-game-nav`-Container und `../game-nav.js` verwenden.
+4. Die Registry-Shell in `APP_SHELL` von `sw.js` aufnehmen und die Cache-Version erhöhen.
+5. Pure Spielregeln mit Node-Tests und Browser-/Mobile-/Offline-Verhalten mit einem passenden Smoke absichern.
 
-`games.test.js` und `pwa.test.js` prüfen IDs, Routen, Registry-Navigation, vorhandene Shell-Dateien und die Übereinstimmung mit dem Service-Worker-Precache. `game-navigation-smoke.mjs` iteriert die Registry, statt eine feste Spielanzahl anzunehmen.
+`games.test.js` und `pwa.test.js` prüfen IDs, Routen, Registry-Navigation, vorhandene Shell-Dateien und den Service-Worker-Precache. `game-navigation-smoke.mjs` iteriert die Registry statt eine feste Spielanzahl anzunehmen.
 
 ## PWA / Offline
 
-`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells und die weiterhin unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v26`**.
+`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells, die gemeinsame Designschicht und die unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v28`**.
 
 Navigationen werden network-first geladen und erfolgreiche Antworten aktualisieren den Cache. Offline wird zuerst die passende gecachte Navigation verwendet; extensionlose bekannte Unterseiten können auf ihre gecachte Slash-Route umgeleitet werden. Der Root-Fallback bleibt die Welcome-Page.
 
@@ -66,119 +66,75 @@ Für einen manuellen Offline-Smoke:
 2. Die kanonischen Spielpfade einmal öffnen.
 3. Netzwerk in DevTools auf Offline setzen und neu laden.
 4. Prüfen, dass die aktive Oberfläche mit `Offline · spielbereit` startet.
-5. Offline über die gemeinsame Navigation zwischen den registrierten Spielen wechseln.
+5. Offline über den gemeinsamen Rückweg wieder zur Spielewelt navigieren.
 
 ## Steuerung und Spielstand
 
 ### 4096
 
-- Pfeiltasten oder WASD; auf Touch wischen
-- `Strg/⌘+Z` oder Button für genau einen Undo-Schritt
-- Spielstand, Undo-Snapshot und Bestwert werden lokal gespeichert
+Pfeiltasten oder WASD, auf Touch wischen. `Strg/⌘+Z` macht einen Undo-Schritt. Spielstand, Undo-Snapshot und Bestwert werden lokal gespeichert.
 
 ### Sudoku
 
-- Feld wählen, Zahl 1–9 eingeben
-- Pfeiltasten navigieren, `N` schaltet Notizen um
-- `Entf`/`Backspace` löscht, `Strg/⌘+Z` macht rückgängig
-- Aufgabe, Einträge, Notizen, Fehlerzahl und Timer werden lokal fortgesetzt
+Feld wählen und Zahl 1–9 eingeben. Pfeiltasten navigieren, `N` schaltet Notizen um, `Entf`/`Backspace` löscht und `Strg/⌘+Z` macht rückgängig. Aufgabe, Einträge, Notizen, Fehlerzahl und Timer werden lokal fortgesetzt.
 
 ### Dr. Tromu
 
-- Links/rechts: Pfeile oder `A`/`D`
-- Drehen: Pfeil hoch oder `W`
-- schneller fallen: Pfeil runter oder `S`
-- sofort ablegen: Leertaste oder Enter
-- Touch-Steuerung über große Buttons
-
-Dr. Tromu speichert Flasche, aktive und nächste Kapsel, Punkte und Viruszahl lokal. Beschädigter oder inkompatibler Storage wird verworfen und durch eine valide neue Runde ersetzt.
+Pfeile oder `A`/`D` bewegen die Kapsel, Pfeil hoch oder `W` dreht sie, Pfeil runter oder `S` beschleunigt und Leertaste/Enter legt sofort ab. Touch nutzt große Buttons. Spielzustand und nächste Kapsel werden lokal gespeichert und beschädigter Storage wird sicher verworfen.
 
 ### Super Tromu Land
 
-- Links/rechts: Pfeiltasten oder `A`/`D`
-- Springen: Pfeil hoch, `W` oder Leertaste
-- Blumenball: `X` oder `K`; auf Touch über **Ball**
-- `R`: neue Runde
-
-Die Kampagne umfasst vier Welten mit je drei Stages. `2-3` und `4-3` sind Auto-Scroll-Finale. Pilz und Blume liefern Treffer-Schutz beziehungsweise Ball-Angriff; Punkte, Leben und Power-up-Zustand werden beim Stagewechsel weitergegeben.
+Pfeile oder `A`/`D` bewegen, Pfeil hoch/`W`/Leertaste springt, `X` oder `K` wirft den Blumenball, `R` startet neu. Die Kampagne umfasst vier Welten mit zwölf Stages inklusive Auto-Scroll-Finalen.
 
 ### Tromu Snake
 
-- Pfeiltasten oder WASD; auf Touch über das Vier-Richtungs-D-Pad
-- `P`: Pause/Weiter
-- `R`: neue Runde
-- **Classic**: konstantes Grundtempo ohne Hindernisse
-- **Speed**: höheres Starttempo und weitere Beschleunigung nach Pickups
-- **Maze**: eigenes Hindernisfeld bei mittlerem Tempo
-
-Bestwerte werden getrennt für Classic, Speed und Maze lokal gespeichert. Beschädigter oder gesperrter Storage blockiert den Spielstart nicht.
+Pfeiltasten/WASD oder Touch-D-Pad. `P` pausiert, `R` startet neu. Classic, Speed und Maze besitzen getrennte lokale Bestwerte.
 
 ### Tromu Sokoban
 
-- Pfeiltasten oder WASD; auf Touch über das Vier-Richtungs-D-Pad
-- `Strg/⌘+Z` oder **Undo** macht beliebig viele gültige Züge rückgängig
-- `R` oder **Restart** startet das aktuelle Level neu
-- die Levelauswahl zeigt alle bereits freigeschalteten Stufen
-
-Fortsetzung, Freischaltung und Bestwerte werden lokal gespeichert. Pro Level gewinnt zuerst die geringere Zahl an Schüben, bei Gleichstand die geringere Zahl an Zügen. Beschädigter oder gesperrter Storage fällt sicher auf Level 1 zurück.
+Pfeiltasten/WASD oder Touch-D-Pad. `Strg/⌘+Z` macht beliebig viele Züge rückgängig, `R` startet das Level neu. Fortschritt und Bestwerte für Schübe/Züge werden lokal gespeichert.
 
 ### Tromu Breakout
 
-- Links/rechts: Pfeiltasten oder `A`/`D`
-- Leertaste oder **Start** setzt den Ball in Bewegung
-- `P` oder **Pause** hält die Physik an; `R` oder **Restart** startet eine neue Runde
-- Touch funktioniert über große Links/Rechts-Ziele sowie direktes Ziehen des Paddles im Canvas
-- fünf eigene Level enthalten normale Blöcke sowie **W** (breiteres Paddle), **S** (langsamer Ball) und **M** (Multiball)
-
-Punkte und Leben laufen über Levelgrenzen weiter. Der lokale Bestwert wird fortlaufend gespeichert; beschädigter oder gesperrter Storage fällt sicher auf `0` zurück.
+Pfeile oder `A`/`D` bewegen das Paddle, Leertaste startet, `P` pausiert, `R` startet neu. Touch unterstützt große Ziele und direktes Ziehen. Der Highscore wird lokal gespeichert.
 
 ### Tromu Minesweeper
 
-- Tap/Enter deckt die fokussierte Zelle auf; der erste Reveal und seine Nachbarn sind garantiert minenfrei
-- **Modus: Flagge** oder `F` setzt beziehungsweise entfernt eine Flagge
-- Pfeiltasten bewegen einen sichtbaren roving Fokus über das Raster; `R` startet die Runde neu
-- **Leicht**: 8×8 mit 10 Minen, **Mittel**: 9×9 mit 16 Minen, **Schwer**: 10×10 mit 24 Minen
-
-Bestzeiten werden pro Schwierigkeitsstufe lokal gespeichert. Beschädigter oder gesperrter Storage fällt sicher auf leere Bestzeiten zurück.
+Tap/Enter deckt auf, `F` schaltet Flaggen, Pfeiltasten bewegen den roving Fokus und `R` startet neu. Der erste Reveal ist sicher; Bestzeiten werden pro Schwierigkeitsstufe gespeichert.
 
 ### Tromu FreeCell
 
-- Karte oder gültige absteigende Rot/Schwarz-Folge auswählen und danach FreeCell, Foundation oder Kartenreihe als Ziel wählen
-- Touch und Maus verwenden dieselben großen Zielbereiche; auf Desktop können Karten zusätzlich gezogen werden
-- vollständige Tastaturbedienung über Tab/Shift+Tab und Enter; `Strg/⌘+Z` macht beliebig viele gespeicherte Züge rückgängig
-- `N` startet den nächsten reproduzierbaren Deal, `R` startet denselben Deal neu; ein Seed kann direkt geladen werden
-
-Aktueller Deal inklusive Undo-Historie sowie lokale Versuche/Siege werden fehlertolerant gespeichert. Derselbe Seed erzeugt immer denselben Deal.
+Karten/Folgen auswählen und ein gültiges Ziel wählen; Touch, Maus und Tastatur sind vollständig unterstützt. `Strg/⌘+Z` hat Mehrfach-Undo, `N` lädt den nächsten Deal und `R` denselben Deal neu. Deal und Statistik werden robust lokal gespeichert.
 
 ### Tromu Maze-Chase
 
-- Pfeiltasten oder WASD; auf Touch über das Vier-Richtungs-D-Pad
-- Richtungs-Buffering merkt eine noch blockierte Kurve bis zum nächsten möglichen Abzweig vor
-- `P` pausiert, `R` startet die Runde neu
-- drei eigene 15×15-Labyrinthe werden schrittweise schneller
-- Jäger, Vorhalter und Patrouille entscheiden deterministisch; Power-Zellen kehren die Gefahr kurzzeitig um
-
-Score und lokaler Bestwert werden fehlertolerant gespeichert. Beschädigter oder gesperrter Storage blockiert den Spielstart nicht.
+Pfeiltasten/WASD oder Touch-D-Pad. `P` pausiert, `R` startet neu. Richtungs-Buffering, deterministische Gegnerprofile und Power-Zellen bilden den Arcade-Loop; der Bestwert bleibt lokal.
 
 ### Tromu Space Shooter
 
-- Pfeiltasten oder WASD bewegen das Schiff; auf Touch über D-Pad oder direktes Ziehen im Canvas
-- Leertaste beziehungsweise **FEUER** schießt
-- `P`: Pause/Weiter, `R`: Restart
-- drei deterministische Wellen kombinieren Scout-, Tank- und Diver-Gegner
-- **Schild**, **Spread** und **Rapid** sind lokale Power-ups
-
-Der lokale Bestwert wird fehlertolerant gespeichert. Gehaltene Eingaben werden bei Blur, Sichtbarkeitswechsel, Game-over, Sieg und Restart bereinigt.
+Pfeiltasten/WASD beziehungsweise D-Pad/Drag bewegen, Leertaste oder **FEUER** schießt, `P` pausiert und `R` startet neu. Drei deterministische Wellen und drei Power-ups werden durch robusten lokalen Highscore ergänzt.
 
 ### Tromu Duell
 
-- lokaler Hot-Seat für zwei Personen: **A ●** und **B ○**
-- **Vier gewinnt**: eine der sieben Spalten antippen/anklicken; Pfeiltasten wechseln den Spaltenfokus, Enter/Leertaste wirft ein
-- **Reversi**: gültiges Feld antippen/anklicken; Pfeiltasten bewegen den roving Fokus, Enter/Leertaste setzt den Stein
-- **Neue Partie** startet den aktiven Modus neu; `R` funktioniert außerhalb fokussierter Bedienelemente
-- Reversi unterstützt erzwungene Pass-Züge und wertet das Endergebnis nach Steinzahl aus
+Lokaler Hot-Seat für zwei Personen. Vier gewinnt und Reversi unterstützen Touch/Maus sowie Tastatur mit roving Fokus. Siege und Remis werden pro Modus lokal gezählt.
 
-Siege und Remis werden pro Modus lokal gezählt. Beschädigte oder gesperrte Statistik blockiert keine Partie.
+### TROMU // ECHOLOOP
+
+Pfeiltasten/WASD wählen die Bewegung für den nächsten Tick; Leertaste wartet, `P` pausiert und `R` startet neu. Jeder feste Loop wird aufgezeichnet und in folgenden Loops als physisches Echo deterministisch wiederholt. Freischaltung und beste Loop-Zahl bleiben lokal.
+
+### TROMU // STRATA
+
+Die resultierende Welt folgt einer einzigen Regel: **Materie existiert genau dort, wo eine ungerade Zahl von Schichten belegt ist.** Zwei überlagerte Wände löschen sich daher aus.
+
+- Pfeiltasten/WASD bewegen die Figur.
+- `1`/`2` wählen Schicht A oder B.
+- `Shift` + Pfeiltaste verschiebt die aktive komplette Schicht zyklisch um ein Rasterfeld.
+- Touch besitzt getrennte D-Pads für Figur und Schicht, damit beide Aktionen nicht verwechselt werden.
+- `Strg/⌘+Z` macht unbegrenzt rückgängig; `Strg/⌘+Shift+Z` wiederholt.
+- `R` beziehungsweise **Restart** startet das aktuelle Puzzle sofort neu.
+- Alle zehn MVP-Puzzle sind frei anwählbar; gelöste Puzzle sowie beste Aktions- und Shift-Werte werden lokal gespeichert.
+
+Schicht A wird zusätzlich durch Linienmuster/`╱`, Schicht B durch Punktmuster/`•` dargestellt; Überlagerungen sind deshalb nicht ausschließlich farbcodiert. Das MVP enthält bewusst keine Rotation, Fixpunkte, dritte Schicht oder Meta-Progression.
 
 ## Tests
 
@@ -189,32 +145,21 @@ npm test
 npm run check
 ```
 
-`npm run check` prüft Syntax, Registry-/PWA-Verträge und alle Spielregressionen.
-
-Die echten Browser-Smokes benötigen Node.js 22+ und Chrome/Chromium (`CHROME_BIN` kann gesetzt werden):
+`npm run check` prüft Syntax, Registry-/PWA-Verträge und alle Spielregressionen. Die echten Browser-Smokes benötigen Node.js 22+ und Chrome/Chromium (`CHROME_BIN` kann gesetzt werden):
 
 ```bash
 npm run smoke
 ```
 
-Dabei werden unter anderem geprüft:
+Unter anderem werden geprüft:
 
-- Welcome-Page, Manifest und Service-Worker-Bereitschaft online/offline
-- Anzahl und Darstellung der Registry-Spielkarten auf 360×640
-- gemeinsame Navigation aller registrierten kanonischen Spielseiten auf 360×640
-- Touchzielgrößen, sichtbarer Tastaturfokus und Offline-Aktivierung per Enter
-- Deployment unter einem Webroot-Prefix inklusive Offline-Navigation
-- 4096- und Sudoku-Persistenz
-- Dr.-Tromu-Mobile-Fit, Offline-Reload und Storage-Recovery
-- Super-Tromu-Land-Kampagne, Power-ups, Auto-Scroll, Touch/Tastatur und Offline-Reload
-- Tromu-Snake-Mobile-Fit, Classic/Speed/Maze, Touch/Tastatur, Highscore-Recovery und Offline-Reload
-- Tromu-Sokoban-Mobile-Fit, Tastatur/Touch, Mehrfach-Undo, Progress/Bestwerte, Storage-Recovery und Offline-Reload
-- Tromu-Breakout-Mobile-Fit, Tastatur/Touch-Drag, Pause, Bestwert-Recovery und Offline-Reload
-- Tromu-Minesweeper-Mobile-Fit, sicherer erster Touch, Flag-Modus, Tastaturfokus, Bestzeit-Recovery und Offline-Reload
-- Tromu-FreeCell-Mobile-Fit, Touch/Maus/Tastatur, Mehrfach-Undo, reproduzierbare Fortsetzung, Storage-Recovery und Offline-Reload
-- Tromu-Maze-Chase-Mobile-Fit, Touch/Tastatur, deterministische Gegnerlogik, Bestwert-Recovery und Offline-Reload
-- Tromu-Space-Shooter-Mobile-Fit, Touch/Tastatur, Feuer/Input-Cleanup, Bestwert-Recovery und Offline-Reload
-- Tromu-Duell-Mobile-Fit, Touch/Maus/Tastatur für beide Modi, Statistik-Recovery und Offline-Reload
+- Welcome-Page, Manifest und Service-Worker online/offline
+- Registry-Spielkarten, gemeinsame Navigation und Deployment unter Webroot-Prefix
+- 360×640-Mobile-Fit, Touchziele und Tastaturpfade der Spiele
+- Persistenz-/Recovery-Pfade und Offline-Reloads
+- ECHOLOOPs tickgenaue Echo-Replays
+- STRATAs 7×7-Komposition, getrennte Touch-Steuerung, Layer-Shift, Spielerbewegung, Undo/Redo, Lösung, Storage-Recovery und Offline-Reload
+- STRATA-Node-Regressionen für Parität 0–4, deterministische Referenzlösungen aller zehn Puzzle, Rand-Wrap, Open/Close-Konsequenz und exakte History-Rekonstruktion
 
 In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 
@@ -223,32 +168,23 @@ In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 ### Gemeinsame Spielewelt-Schicht
 
 - `games.js` – zentrale Registry für Spielmetadaten, Routen, Legacy-Aliase und Offline-Shell-Verträge
-- `game-nav.js` – gemeinsame, aus der Registry erzeugte Navigation
+- `game-nav.js` / `mantine-theme.css` – gemeinsame Navigation und lokale UI-Grundschicht
 - `index.html` / `home.js` / `home.css` – Welcome-Page und dynamische Spielkarten
 - `sw.js` / `manifest.webmanifest` / Icons – gemeinsame Offline-/Installationsschicht
 - `games.test.js` / `pwa.test.js` – Registry-, Webroot- und Precache-Verträge
-- `browser-smoke.mjs` – Welcome-/Mehrseiten-Acceptance
-- `welcome-mobile-smoke.mjs` – echter 360×640-Audit der Welcome-Page
-- `game-navigation-smoke.mjs` – registry-basierte Navigation, Touchziele, Fokus und Offline-Enter-Zyklus
-- `subpath-navigation-smoke.mjs` – Webroot-Prefix-Navigation online/offline
-- `offline-routing-smoke.mjs` – Offline-No-Slash-Acceptance für kritische Spielrouten
+- `browser-smoke.mjs`, `welcome-mobile-smoke.mjs`, `game-navigation-smoke.mjs`, `subpath-navigation-smoke.mjs`, `offline-routing-smoke.mjs` – katalogweite Browser-Acceptance
 
 ### Spiele
 
-- 4096: `4096/index.html` plus Root-Module `game.js`, `app.js`, `storage.js`, `connectivity.js`, `dialog.js`, `pointer.js`, `styles.css`
-- Sudoku: `sudoku/`
-- Dr. Tromu: `dr-tromu/`
-- Super Tromu Land: `super-tromu-land/`
-- Tromu Snake: `snake/` mit purem `game.js`, fehlertolerantem `storage.js`, Browserzustand in `app.js` und eigenem Mobile-/Offline-Smoke
-- Tromu Sokoban: `sokoban/` mit zehn Levels in `levels.js`, purem `game.js`, validiertem `storage.js`, Browserzustand in `app.js` und eigenem Mobile-/Offline-Smoke
-- Tromu Breakout: `breakout/` mit fünf Levels in `levels.js`, purer Kollision/Physik in `game.js`, robustem Bestwert-Storage, Canvas-Browserzustand und eigenem Mobile-/Offline-Smoke
-- Tromu Minesweeper: `minesweeper/` mit seed-deterministischer Platzierung, puren Reveal-/Flag-Regeln, robusten Bestzeiten, zugänglichem DOM-Raster und eigenem Mobile-/Offline-Smoke
-- Tromu FreeCell: `freecell/` mit seed-deterministischem Deal, puren Zug-/Supermove-/Undo-Regeln, validierter Fortsetzung/Statistik, zugänglicher DOM-Kartendarstellung und eigenem Mobile-/Offline-Smoke
-- Tromu Maze-Chase: `maze-chase/` mit drei eigenen Labyrinthen in `levels.js`, purer Bewegungs-/Kollisions-/Gegnerlogik, robustem Bestwert-Storage und eigenem Mobile-/Offline-Smoke
-- Tromu Space Shooter: `space-shooter/` mit deterministischen Wellen in `waves.js`, purer Bewegungs-/Projektil-/Kollisions-/Power-up-Logik, robustem Highscore-Storage, Canvas-Rendering und eigenem Mobile-/Offline-Smoke
-- Tromu Duell: `duell/` mit getrennten puren Regelmodulen `connect-four.js` und `reversi.js`, robuster Statistik, gemeinsamer Hot-Seat-Browseroberfläche und eigenem Mobile-/Offline-Smoke
+Jedes Spiel bleibt ohne Bundler direkt aus seinem Webroot-Pfad ausführbar. Spiel-spezifische Regeln, Persistenz und Browser-Smokes bleiben beim jeweiligen Spiel; nur katalogweite Metadaten, Navigation, Designbasis und Offline-Schicht liegen zentral.
 
-Jedes Spiel bleibt ohne Bundler direkt aus seinem Webroot-Pfad ausführbar. Spiel-spezifische Regeln und Browser-Smokes bleiben beim jeweiligen Spiel; nur katalogweite Metadaten und Navigation liegen zentral.
+STRATA folgt demselben Muster:
+
+- `strata/levels.js` – zehn handgebaute Puzzle samt Lernziel und verifizierter Referenzlösung
+- `strata/game.js` – pure Paritätskomposition, Spielerbewegung, Schichtverschiebung und Undo/Redo
+- `strata/storage.js` – fehlertoleranter lokaler Fortschritt und Bestwerte
+- `strata/app.js` – DOM-Rendering, Touch-/Tastatursteuerung, Status und Service-Worker-Anbindung
+- `strata/browser-smoke.mjs` – echte 360×640-/Offline-Acceptance
 
 ## Deployment
 
