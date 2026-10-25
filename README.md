@@ -2,12 +2,13 @@
 
 Dieses Repository ist direkt der Webroot für die **Tromu Spielewelt**: eine lokale, installierbare und offlinefähige Browser-Spielesammlung ohne Runtime-Abhängigkeiten, Anmeldung oder Tracker.
 
-Aktuell registriert sind vierzehn kanonische Spiele:
+Aktuell registriert sind fünfzehn kanonische Spiele:
 
 - **4096** unter `/4096/` – Zahlen zusammenschieben und 4096 erreichen.
 - **Sudoku** unter `/sudoku/` – mobile-first 9×9-Sudoku mit Notizen, Undo, Timer und lokaler Fortsetzung.
 - **Dr. Tromu** unter `/dr-tromu/` – Kapselpuzzle mit Viren, Vierer-Matches, Kaskaden und lokaler Fortsetzung.
 - **Super Tromu Land** unter `/super-tromu-land/` – Jump ’n’ Run mit vier Welten und zwölf eigenen Stages.
+- **Super Tromu Land 2** unter `/super-tromu-land-2/` – eigenständiges Top-down-Handheld-Adventure mit Klingen-Kampf und kompletter Morgenkern-Einführungsquest.
 - **Tromu Snake** unter `/snake/` – Score-Arcade mit Classic-, Speed- und Maze-Modus.
 - **Tromu Sokoban** unter `/sokoban/` – zehn Push-Puzzle mit Mehrfach-Undo und lokalen Bestwerten.
 - **Tromu Breakout** unter `/breakout/` – fünf Arcade-Level mit Paddle, Power-ups und lokalem Bestwert.
@@ -56,7 +57,7 @@ Danach `http://localhost:8080` öffnen. `localhost` ist ein sicherer Browserkont
 
 ## PWA / Offline
 
-`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells, die gemeinsame Designschicht und die unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v28`**.
+`manifest.webmanifest` beschreibt die installierbare **Tromu Spielewelt** als Root-PWA. `sw.js` precacht Welcome-Page, Registry-/Navigationsmodule, die registrierten Spiel-Shells, die gemeinsame Designschicht und die unterstützten Legacy-Aliase. Die aktuelle Shell-Version ist **`4096-shell-v29`**.
 
 Navigationen werden network-first geladen und erfolgreiche Antworten aktualisieren den Cache. Offline wird zuerst die passende gecachte Navigation verwendet; extensionlose bekannte Unterseiten können auf ihre gecachte Slash-Route umgeleitet werden. Der Root-Fallback bleibt die Welcome-Page.
 
@@ -85,6 +86,20 @@ Pfeile oder `A`/`D` bewegen die Kapsel, Pfeil hoch oder `W` dreht sie, Pfeil run
 ### Super Tromu Land
 
 Pfeile oder `A`/`D` bewegen, Pfeil hoch/`W`/Leertaste springt, `X` oder `K` wirft den Blumenball, `R` startet neu. Die Kampagne umfasst vier Welten mit zwölf Stages inklusive Auto-Scroll-Finalen.
+
+### Super Tromu Land 2
+
+Super Tromu Land 2 ist ein separates Top-down-Adventure-System mit eigener Welt und eigener Vierfarb-Handheld-Pixelgrafik. Es übernimmt keine Karten, Figuren, Namen, Dialoge oder Assets anderer Spiele.
+
+- Pfeiltasten oder WASD bewegen Tromu rasterbasiert in vier Richtungen.
+- `E`/Enter beziehungsweise **A · Aktion** interagiert mit Figuren, Truhen, Toren, Runen und Altären.
+- `X`/`K`/Leertaste beziehungsweise **B · Klinge** greift nach Erhalt der Trainingsklinge in Blickrichtung an.
+- `N` beziehungsweise **Neu** startet ein frisches Abenteuer.
+- Touch besitzt ein großes D-Pad sowie getrennte Aktion-/Klingen-Tasten.
+
+Die vollständige Einführungsquest **Der Morgenkern** führt durch alle Kernmechaniken: in Lindenquell mit Hüterin Mira sprechen → Trainingsklinge aus der Werkstatt holen → am Moosweg drei Blattlinge besiegen → bei Pfadwächter Karo das Hain-Siegel erhalten → den Tauhain-Schrein öffnen → drei Runen aktivieren → den Schreinwächter besiegen → Morgenkern bergen → zu Mira zurückkehren und die Quest abschließen.
+
+Questphase, Gebiet/Position, Blickrichtung, Herzen, Inventar, Gegnerzustände, aktivierte Runen und der Morgenkern werden lokal gespeichert. Beschädigter oder gesperrter Storage fällt sicher auf ein neues Abenteuer zurück.
 
 ### Tromu Snake
 
@@ -157,6 +172,7 @@ Unter anderem werden geprüft:
 - Registry-Spielkarten, gemeinsame Navigation und Deployment unter Webroot-Prefix
 - 360×640-Mobile-Fit, Touchziele und Tastaturpfade der Spiele
 - Persistenz-/Recovery-Pfade und Offline-Reloads
+- Super-Tromu-Land-2-Touch-/Tastatursteuerung, Queststart, Klingenfund, vollständiger Morgenkern-Questbogen, Reload-Fortsetzung, Storage-Recovery und Offline-Reload
 - ECHOLOOPs tickgenaue Echo-Replays
 - STRATAs 7×7-Komposition, getrennte Touch-Steuerung, Layer-Shift, Spielerbewegung, Undo/Redo, Lösung, Storage-Recovery und Offline-Reload
 - STRATA-Node-Regressionen für Parität 0–4, deterministische Referenzlösungen aller zehn Puzzle, Rand-Wrap, Open/Close-Konsequenz und exakte History-Rekonstruktion
@@ -177,6 +193,14 @@ In GitHub Actions sind `npm run check` und `npm run smoke` die Pflichtpfade.
 ### Spiele
 
 Jedes Spiel bleibt ohne Bundler direkt aus seinem Webroot-Pfad ausführbar. Spiel-spezifische Regeln, Persistenz und Browser-Smokes bleiben beim jeweiligen Spiel; nur katalogweite Metadaten, Navigation, Designbasis und Offline-Schicht liegen zentral.
+
+Super Tromu Land 2 folgt diesem Muster als eigenständige Adventure-Engine:
+
+- `super-tromu-land-2/world.js` – drei verbundene 16×12-Gebiete mit eigenen NPCs, Objekten, Gegnern, Portalen und Hindernissen
+- `super-tromu-land-2/game.js` – pure Bewegung, Kollisionen, Interaktion, Kampf, Herzen, Questgates und deterministische Gegnerzüge
+- `super-tromu-land-2/storage.js` – fehlertolerante lokale Fortsetzung des gesamten Introquest-Zustands
+- `super-tromu-land-2/app.js` – 256×192-Canvas-Rendering, Touch-/Tastatursteuerung, HUD und Service-Worker-Anbindung
+- `super-tromu-land-2/browser-smoke.mjs` – echte 360×640-, Quest-, Persistenz- und Offline-Acceptance
 
 STRATA folgt demselben Muster:
 
