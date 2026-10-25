@@ -1,4 +1,4 @@
-const CACHE_NAME = '4096-shell-v28';
+const CACHE_NAME = '4096-shell-v29';
 const APP_SHELL = [
   './',
   './index.html',
@@ -32,6 +32,13 @@ const APP_SHELL = [
   './super-tromu-land/app.js',
   './super-tromu-land/game.js',
   './super-tromu-land/view.js',
+  './super-tromu-land-2/',
+  './super-tromu-land-2/index.html',
+  './super-tromu-land-2/styles.css',
+  './super-tromu-land-2/app.js',
+  './super-tromu-land-2/game.js',
+  './super-tromu-land-2/world.js',
+  './super-tromu-land-2/storage.js',
   './snake/',
   './snake/index.html',
   './snake/styles.css',
