@@ -1,0 +1,192 @@
+:root {
+  color-scheme: dark;
+  --strata-bg: #070b16;
+  --strata-panel: #111a2c;
+  --strata-line: #3f526f;
+  --strata-muted: #a9b7cb;
+  --strata-a: #79d9ff;
+  --strata-b: #f2b7ff;
+  --strata-cancel: #9df4c8;
+  --strata-player: #ffe17a;
+  --strata-goal: #ff9d7a;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  min-width: 0;
+  overflow-x: hidden;
+  background:
+    linear-gradient(rgb(121 217 255 / .025) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(242 183 255 / .025) 1px, transparent 1px),
+    radial-gradient(circle at 50% -8rem, #172a4d, var(--strata-bg) 30rem);
+  background-size: 24px 24px, 24px 24px, auto;
+}
+button, a { font: inherit; }
+button { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, .strata-board:focus-visible { outline: 3px solid #fff1a8; outline-offset: 2px; }
+.strata-shell {
+  width: min(100% - 16px, 920px);
+  margin: 0 auto;
+  padding: 10px 0 max(12px, env(safe-area-inset-bottom));
+  display: grid;
+  gap: 7px;
+}
+.strata-topbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.title-block { min-width: 0; }
+.eyebrow { margin: 0 0 2px; color: var(--strata-a); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+h1 { margin: 0; font-size: clamp(24px, 6vw, 38px); line-height: 1; }
+.game-nav { display: flex; justify-content: flex-end; }
+.game-nav a { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 12px; text-align: center; }
+.level-select {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(44px, 1fr));
+  gap: 4px;
+}
+.level-select button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px 2px;
+  border: 1px solid var(--strata-line);
+  border-radius: 10px;
+  background: var(--strata-panel);
+  color: inherit;
+  font-weight: 900;
+}
+.level-select button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--strata-a); }
+.level-select button[data-solved="true"]::after { content: ' ✓'; color: var(--strata-cancel); }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(74px, 1fr)) minmax(160px, 1.25fr); gap: 5px; }
+.stats > div, .connection {
+  min-height: 48px;
+  border: 1px solid var(--strata-line);
+  border-radius: 10px;
+  background: rgb(17 26 44 / .92);
+}
+.stats > div { display: grid; place-content: center; text-align: center; padding: 3px 6px; }
+.stats span { color: var(--strata-muted); font-size: 9px; text-transform: uppercase; letter-spacing: .04em; }
+.stats strong { font-size: 13px; }
+.connection { display: grid; place-items: center; padding: 4px 8px; color: var(--strata-muted); font-size: 10px; text-align: center; }
+.connection[data-ready="true"] { color: var(--strata-cancel); }
+.connection[data-warning="true"] { color: #ffb592; }
+.play-area {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 440px) minmax(250px, 1fr);
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+}
+.strata-board {
+  width: min(58vw, 440px);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  padding: 7px;
+  border: 2px solid #647a9e;
+  border-radius: 16px;
+  background: #050914;
+  box-shadow: 0 18px 42px #0008;
+}
+.strata-cell {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid #27364d;
+  border-radius: 7px;
+  background: #0d1423;
+  color: #dbe9fa;
+  font-weight: 1000;
+  font-size: clamp(13px, 3.2vw, 24px);
+  line-height: 1;
+  text-align: center;
+}
+.strata-cell[data-layer-a="true"] { background-image: repeating-linear-gradient(135deg, rgb(121 217 255 / .22) 0 3px, transparent 3px 7px); color: var(--strata-a); }
+.strata-cell[data-layer-b="true"] { background-image: radial-gradient(circle at center, rgb(242 183 255 / .28) 0 22%, transparent 24%); color: var(--strata-b); }
+.strata-cell[data-layer-a="true"][data-layer-b="true"] {
+  background-image:
+    repeating-linear-gradient(135deg, rgb(121 217 255 / .18) 0 3px, transparent 3px 7px),
+    radial-gradient(circle at center, rgb(242 183 255 / .24) 0 22%, transparent 24%);
+  color: var(--strata-cancel);
+  box-shadow: inset 0 0 0 2px rgb(157 244 200 / .5);
+}
+.strata-cell[data-solid="true"] { border-color: #7186a9; box-shadow: inset 0 0 0 1px #7186a955; }
+.strata-cell[data-player="true"] { color: var(--strata-player); box-shadow: inset 0 0 0 3px #ffe17a88; }
+.strata-cell[data-goal="true"] { outline: 2px dashed var(--strata-goal); outline-offset: -5px; }
+.control-panel { display: grid; grid-template-columns: repeat(2, minmax(112px, 1fr)); gap: 12px; align-items: start; }
+.pad-group { min-width: 0; padding: 8px; border: 1px solid var(--strata-line); border-radius: 14px; background: rgb(17 26 44 / .9); }
+.pad-group h2 { margin: 0 0 6px; color: var(--strata-muted); font-size: 10px; letter-spacing: .12em; text-align: center; }
+.layer-heading { display: grid; gap: 5px; }
+.layer-select { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.layer-select button { min-height: 44px; padding: 2px; }
+.layer-select button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--strata-a); }
+.layer-select button[data-layer="1"][aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--strata-b); }
+.dpad { display: grid; grid-template-columns: repeat(3, minmax(44px, 1fr)); grid-template-rows: repeat(2, 48px); gap: 4px; }
+.dpad button { min-width: 44px; min-height: 44px; padding: 0; font-size: 19px; font-weight: 1000; }
+.dpad .up { grid-column: 2; grid-row: 1; }
+.dpad .left { grid-column: 1; grid-row: 2; }
+.dpad .down { grid-column: 2; grid-row: 2; }
+.dpad .right { grid-column: 3; grid-row: 2; }
+.round-actions { display: grid; grid-template-columns: repeat(3, minmax(88px, 1fr)); gap: 5px; }
+.round-actions button { min-height: 46px; }
+.status { min-height: 20px; margin: 0; text-align: center; color: #efffc9; font-size: 12px; font-weight: 850; }
+.lesson, .action-history, .instructions { margin: 0; color: var(--strata-muted); text-align: center; font-size: 10px; }
+.action-history { min-height: 14px; color: #c7d8ee; }
+footer { color: #7f90aa; text-align: center; font-size: 9px; }
+
+@media (max-width: 640px) {
+  body { overflow: hidden; }
+  .strata-shell {
+    width: min(100% - 8px, 520px);
+    height: 100dvh;
+    min-height: 0;
+    padding: max(4px, env(safe-area-inset-top)) 0 max(4px, env(safe-area-inset-bottom));
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto auto auto;
+    gap: 3px;
+    overflow: hidden;
+  }
+  .strata-topbar { grid-template-columns: 1fr auto; gap: 4px; }
+  .eyebrow { display: none; }
+  h1 { font-size: 18px; }
+  .game-nav a { min-width: 44px; min-height: 44px; padding: 0 7px; font-size: 8px; line-height: 1.05; }
+  .level-select { display: flex; gap: 3px; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: none; }
+  .level-select::-webkit-scrollbar { display: none; }
+  .level-select button { flex: 0 0 44px; width: 44px; min-height: 44px; padding: 1px; font-size: 8px; border-radius: 7px; }
+  .stats { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; }
+  .stats > div, .connection { min-height: 44px; padding: 1px; border-radius: 7px; }
+  .stats span { font-size: 6px; }
+  .stats strong { font-size: 9px; }
+  .connection { min-width: 0; font-size: 6px; line-height: 1.05; }
+  .play-area {
+    grid-template-columns: minmax(0, 1.35fr) minmax(138px, .9fr);
+    gap: 4px;
+    align-items: center;
+  }
+  .strata-board { width: min(55vw, 198px); padding: 3px; gap: 1px; border-radius: 9px; }
+  .strata-cell { border-radius: 3px; font-size: 12px; }
+  .control-panel { grid-template-columns: 1fr; gap: 3px; width: 100%; }
+  .pad-group { padding: 3px; border-radius: 8px; }
+  .pad-group h2 { margin-bottom: 2px; font-size: 7px; }
+  .layer-heading { grid-template-columns: auto 1fr; align-items: center; gap: 3px; }
+  .layer-heading h2 { margin: 0; }
+  .layer-select { gap: 2px; }
+  .layer-select button { min-height: 44px; height: 44px; font-size: 9px; }
+  .dpad { grid-template-rows: repeat(2, 44px); gap: 2px; }
+  .dpad button { min-height: 44px; height: 44px; font-size: 16px; }
+  .round-actions { gap: 2px; }
+  .round-actions button { min-height: 44px; height: 44px; padding: 1px 3px; font-size: 9px; }
+  .status { min-height: 14px; font-size: 8px; line-height: 1.05; }
+  .lesson { font-size: 7px; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .action-history { font-size: 7px; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .instructions, footer { display: none; }
+}
+
+@media (max-width: 370px) {
+  .strata-board { width: min(53vw, 190px); }
+  .play-area { grid-template-columns: minmax(0, 1.25fr) minmax(136px, .95fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+}
