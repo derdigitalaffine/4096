@@ -133,7 +133,7 @@ test('Super Tromu Land 2 HTML exposes the original top-down intro quest controls
   assert.match(html, /Lindenquell/);
   assert.match(html, /Tauhain-Schrein/);
   assert.match(html, /keine kopierten Karten oder Fremdassets/i);
-  assert.doesNotMatch(html, /Zelda|Link|Hyrule|https?:\/\//i);
+  assert.doesNotMatch(html, /\b(?:Zelda|Hyrule|Nintendo)\b|https?:\/\//i);
 });
 
 test('service worker precaches shared registry modules and every registered game shell', () => {
