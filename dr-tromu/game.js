@@ -2,6 +2,13 @@ export const WIDTH = 8;
 export const HEIGHT = 16;
 export const COLORS = ['red', 'blue', 'yellow'];
 
+const ROTATION_OFFSETS = Object.freeze([
+  Object.freeze({ x: 1, y: 0 }),
+  Object.freeze({ x: 0, y: 1 }),
+  Object.freeze({ x: -1, y: 0 }),
+  Object.freeze({ x: 0, y: -1 }),
+]);
+
 export function emptyBoard() {
   return Array(WIDTH * HEIGHT).fill(null);
 }
@@ -10,18 +17,24 @@ export function boardIndex(x, y) {
   return y * WIDTH + x;
 }
 
+function activeRotation(active) {
+  if (Number.isInteger(active?.rotation) && active.rotation >= 0 && active.rotation < ROTATION_OFFSETS.length) {
+    return active.rotation;
+  }
+  return active?.orientation === 'vertical' ? 1 : 0;
+}
+
+function orientationForRotation(rotation) {
+  return rotation % 2 === 0 ? 'horizontal' : 'vertical';
+}
+
 export function activeCells(active) {
   if (!active) return [];
   const [first, second] = active.colors;
-  if (active.orientation === 'vertical') {
-    return [
-      { x: active.x, y: active.y, color: first },
-      { x: active.x, y: active.y + 1, color: second },
-    ];
-  }
+  const offset = ROTATION_OFFSETS[activeRotation(active)];
   return [
     { x: active.x, y: active.y, color: first },
-    { x: active.x + 1, y: active.y, color: second },
+    { x: active.x + offset.x, y: active.y + offset.y, color: second },
   ];
 }
 
@@ -39,7 +52,7 @@ function randomPair(random) {
 }
 
 function spawnActive(colors) {
-  return { x: 3, y: 0, orientation: 'horizontal', colors: [...colors] };
+  return { x: 3, y: 0, orientation: 'horizontal', rotation: 0, colors: [...colors] };
 }
 
 export function canPlace(board, active) {
@@ -178,9 +191,25 @@ export function moveActive(state, dx, dy) {
 
 export function rotateActive(state) {
   if (state.status !== 'playing' || !state.active) return state;
-  const orientation = state.active.orientation === 'horizontal' ? 'vertical' : 'horizontal';
-  for (const kick of [0, -1, 1]) {
-    const candidate = { ...state.active, x: state.active.x + kick, orientation };
+
+  const rotation = (activeRotation(state.active) + 1) % ROTATION_OFFSETS.length;
+  const orientation = orientationForRotation(rotation);
+  const kicks = [
+    { x: 0, y: 0 },
+    { x: -1, y: 0 },
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
+    { x: 0, y: -1 },
+  ];
+
+  for (const kick of kicks) {
+    const candidate = {
+      ...state.active,
+      x: state.active.x + kick.x,
+      y: state.active.y + kick.y,
+      orientation,
+      rotation,
+    };
     if (canPlace(state.board, candidate)) return { ...state, active: candidate };
   }
   return state;
@@ -244,7 +273,14 @@ export function isRestorableState(value) {
   if (value.status === 'playing') {
     if (!value.active || !['horizontal', 'vertical'].includes(value.active.orientation)) return false;
     if (!Array.isArray(value.active.colors) || value.active.colors.length !== 2 || value.active.colors.some((color) => !COLORS.includes(color))) return false;
-    if (!Number.isInteger(value.active.x) || !Number.isInteger(value.active.y) || !canPlace(value.board, value.active)) return false;
+    if (!Number.isInteger(value.active.x) || !Number.isInteger(value.active.y)) return false;
+
+    if (value.active.rotation !== undefined) {
+      if (!Number.isInteger(value.active.rotation) || value.active.rotation < 0 || value.active.rotation >= ROTATION_OFFSETS.length) return false;
+      if (value.active.orientation !== orientationForRotation(value.active.rotation)) return false;
+    }
+
+    if (!canPlace(value.board, value.active)) return false;
   } else if (value.active !== null) {
     return false;
   }
